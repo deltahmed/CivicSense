@@ -11,15 +11,17 @@ from .serializers import AnnouncementSerializer
 
 @method_decorator(cache_page(60 * 15), name='get')
 class AnnouncementListView(APIView):
-    permission_classes = [IsAuthenticated, IsVerified]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated(), IsExpert()]
+        return [IsAuthenticated(), IsVerified()]
 
     def get(self, request):
         announcements = Announcement.objects.filter(visible=True)
         return Response({'success': True, 'data': AnnouncementSerializer(announcements, many=True).data})
 
     def post(self, request):
-        self.permission_classes = [IsAuthenticated, IsExpert]
-        self.check_permissions(request)
         serializer = AnnouncementSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({'success': False, 'errors': serializer.errors}, status=400)

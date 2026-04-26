@@ -12,15 +12,17 @@ from .serializers import ConnectedObjectSerializer, HistoriqueConsoSerializer, D
 
 
 class ObjectListView(APIView):
-    permission_classes = [IsAuthenticated, IsVerified]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated(), IsAvance()]
+        return [IsAuthenticated(), IsVerified()]
 
     def get(self, request):
         objects = ConnectedObject.objects.all()
         return Response({'success': True, 'data': ConnectedObjectSerializer(objects, many=True).data})
 
     def post(self, request):
-        self.permission_classes = [IsAuthenticated, IsAvance]
-        self.check_permissions(request)
         serializer = ConnectedObjectSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({'success': False, 'errors': serializer.errors}, status=400)
@@ -44,9 +46,12 @@ class ObjectDetailView(APIView):
         add_points(request.user, 0.50)
         return Response({'success': True, 'data': ConnectedObjectSerializer(obj).data})
 
+    def get_permissions(self):
+        if self.request.method == 'PATCH':
+            return [IsAuthenticated(), IsAvance()]
+        return [IsAuthenticated(), IsVerified()]
+
     def patch(self, request, pk):
-        if request.user.level not in ('avance', 'expert'):
-            return Response({'success': False, 'message': 'Accès refusé.'}, status=403)
         obj = self._get_object(pk)
         if obj is None:
             return Response({'success': False, 'message': 'Objet introuvable.'}, status=404)
