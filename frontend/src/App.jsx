@@ -1,57 +1,28 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import HomePage      from './pages/HomePage';
-import LoginPage     from './pages/LoginPage';
-import RegisterPage  from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import AdminPanel    from './pages/AdminPanel';
-import NotFoundPage  from './pages/NotFoundPage';
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuth } from './context/AuthContext'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
+import DashboardPage from './pages/DashboardPage'
 
-const LEVELS = ['débutant', 'intermédiaire', 'avancé', 'expert'];
-
-function PrivateRoute({ children, minLevel }) {
-  const { user, loading } = useAuth();
-
-  if (loading) return null;
-  if (!user)   return <Navigate to="/login" replace />;
-
-  if (minLevel && LEVELS.indexOf(user.level) < LEVELS.indexOf(minLevel)) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return children;
+function PrivateRoute({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return null
+  return user ? children : <Navigate to="/login" replace />
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/"         element={<HomePage />} />
-          <Route path="/login"    element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <DashboardPage />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/admin"
-            element={
-              <PrivateRoute minLevel="expert">
-                <AdminPanel />
-              </PrivateRoute>
-            }
-          />
-
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
-  );
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route
+        path="/*"
+        element={
+          <PrivateRoute>
+            <DashboardPage />
+          </PrivateRoute>
+        }
+      />
+    </Routes>
+  )
 }

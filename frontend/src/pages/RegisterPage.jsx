@@ -1,133 +1,94 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import api from '../api'
+import './LoginPage.css'
 
 export default function RegisterPage() {
-  const { register } = useAuth();
-  const navigate     = useNavigate();
-  const [form, setForm]   = useState({ firstName: '', lastName: '', email: '', password: '' });
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ email: '', pseudo: '', username: '', password: '', type_membre: 'resident' })
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   function handleChange(e) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setErrors((prev) => ({ ...prev, [e.target.name]: '' }));
+    setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   }
 
   async function handleSubmit(e) {
-    e.preventDefault();
-    setErrors({});
-    setLoading(true);
+    e.preventDefault()
+    setError('')
+    setLoading(true)
     try {
-      await register(form.firstName, form.lastName, form.email, form.password);
-      navigate('/dashboard');
+      await api.post('/users/register/', form)
+      setSuccess(true)
     } catch (err) {
-      if (err.data?.errors) {
-        const mapped = {};
-        for (const e of err.data.errors) mapped[e.path] = e.msg;
-        setErrors(mapped);
-      } else {
-        setErrors({ global: err.message || 'Erreur lors de l\'inscription' });
-      }
+      const data = err.response?.data
+      setError(data?.message ?? 'Erreur lors de l\'inscription.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
-  return (
-    <>
-      <title>Créer un compte — CivicSense</title>
-      <meta name="description" content="Créez votre compte CivicSense pour accéder à la plateforme de gestion IoT de votre résidence." />
+  if (success) {
+    return (
+      <main className="auth-page">
+        <section className="auth-card">
+          <h1>CivicSense</h1>
+          <p style={{ marginTop: '1rem' }}>
+            Inscription réussie ! Vérifiez votre boîte mail pour activer votre compte.
+          </p>
+          <p className="auth-footer"><Link to="/login">Retour à la connexion</Link></p>
+        </section>
+      </main>
+    )
+  }
 
-      <main>
-        <h1>Créer un compte</h1>
+  return (
+    <main className="auth-page">
+      <section className="auth-card" aria-labelledby="register-title">
+        <h1 id="register-title">CivicSense</h1>
+        <p className="auth-subtitle">Créer un compte résident</p>
 
         <form onSubmit={handleSubmit} noValidate>
-          {errors.global && (
-            <p role="alert" aria-live="polite">{errors.global}</p>
-          )}
+          {error && <p className="auth-error" role="alert">{error}</p>}
 
-          <div>
-            <label htmlFor="firstName">Prénom <span aria-hidden="true">*</span></label>
-            <input
-              id="firstName"
-              name="firstName"
-              type="text"
-              value={form.firstName}
-              onChange={handleChange}
-              autoComplete="given-name"
-              aria-required="true"
-              aria-describedby={errors.firstName ? 'err-firstName' : undefined}
-              required
-            />
-            {errors.firstName && (
-              <p id="err-firstName" aria-live="polite">{errors.firstName}</p>
-            )}
+          <div className="field">
+            <label htmlFor="email">Adresse e-mail</label>
+            <input id="email" name="email" type="email" value={form.email} onChange={handleChange} required />
           </div>
 
-          <div>
-            <label htmlFor="lastName">Nom <span aria-hidden="true">*</span></label>
-            <input
-              id="lastName"
-              name="lastName"
-              type="text"
-              value={form.lastName}
-              onChange={handleChange}
-              autoComplete="family-name"
-              aria-required="true"
-              aria-describedby={errors.lastName ? 'err-lastName' : undefined}
-              required
-            />
-            {errors.lastName && (
-              <p id="err-lastName" aria-live="polite">{errors.lastName}</p>
-            )}
+          <div className="field">
+            <label htmlFor="pseudo">Pseudo</label>
+            <input id="pseudo" name="pseudo" type="text" value={form.pseudo} onChange={handleChange} required />
           </div>
 
-          <div>
-            <label htmlFor="email">Adresse e-mail <span aria-hidden="true">*</span></label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              autoComplete="email"
-              aria-required="true"
-              aria-describedby={errors.email ? 'err-email' : undefined}
-              required
-            />
-            {errors.email && (
-              <p id="err-email" aria-live="polite">{errors.email}</p>
-            )}
+          <div className="field">
+            <label htmlFor="username">Nom d'utilisateur</label>
+            <input id="username" name="username" type="text" value={form.username} onChange={handleChange} required />
           </div>
 
-          <div>
-            <label htmlFor="password">Mot de passe <span aria-hidden="true">*</span></label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={handleChange}
-              autoComplete="new-password"
-              aria-required="true"
-              aria-describedby={errors.password ? 'err-password' : undefined}
-              required
-            />
-            {errors.password && (
-              <p id="err-password" aria-live="polite">{errors.password}</p>
-            )}
+          <div className="field">
+            <label htmlFor="password">Mot de passe</label>
+            <input id="password" name="password" type="password" value={form.password} onChange={handleChange} required minLength={8} />
           </div>
 
-          <button type="submit" disabled={loading}>
-            {loading ? 'Création…' : 'Créer mon compte'}
+          <div className="field">
+            <label htmlFor="type_membre">Type de membre</label>
+            <select id="type_membre" name="type_membre" value={form.type_membre} onChange={handleChange}>
+              <option value="resident">Résident</option>
+              <option value="gardien">Gardien</option>
+              <option value="gestionnaire">Gestionnaire</option>
+            </select>
+          </div>
+
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? 'Inscription…' : 'S'inscrire'}
           </button>
         </form>
 
-        <p>
+        <p className="auth-footer">
           Déjà un compte ? <Link to="/login">Se connecter</Link>
         </p>
-      </main>
-    </>
-  );
+      </section>
+    </main>
+  )
 }

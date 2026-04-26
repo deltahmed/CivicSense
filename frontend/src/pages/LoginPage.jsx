@@ -1,82 +1,77 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import './LoginPage.css'
 
 export default function LoginPage() {
-  const { login }    = useAuth();
-  const navigate     = useNavigate();
-  const [form, setForm]     = useState({ email: '', password: '' });
-  const [error, setError]   = useState('');
-  const [loading, setLoading] = useState(false);
-
-  function handleChange(e) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  }
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e) {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault()
+    setError('')
+    setLoading(true)
     try {
-      await login(form.email, form.password);
-      navigate('/dashboard');
+      await login(email, password)
+      navigate('/')
     } catch (err) {
-      setError(err.message || 'Identifiants invalides');
+      setError(err.response?.data?.message ?? 'Erreur de connexion.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   return (
-    <>
-      <title>Connexion — CivicSense</title>
-      <meta name="description" content="Connectez-vous à votre espace CivicSense pour accéder à vos objets connectés." />
-
-      <main>
-        <h1>Connexion</h1>
+    <main className="auth-page">
+      <section className="auth-card" aria-labelledby="login-title">
+        <h1 id="login-title">CivicSense</h1>
+        <p className="auth-subtitle">Connectez-vous à votre résidence</p>
 
         <form onSubmit={handleSubmit} noValidate>
           {error && (
-            <p role="alert" aria-live="polite">{error}</p>
+            <p className="auth-error" role="alert" aria-live="polite">
+              {error}
+            </p>
           )}
 
-          <div>
+          <div className="field">
             <label htmlFor="email">Adresse e-mail</label>
             <input
               id="email"
-              name="email"
               type="email"
-              value={form.email}
-              onChange={handleChange}
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               autoComplete="email"
-              aria-required="true"
               required
+              aria-describedby={error ? 'login-error' : undefined}
             />
           </div>
 
-          <div>
+          <div className="field">
             <label htmlFor="password">Mot de passe</label>
             <input
               id="password"
-              name="password"
               type="password"
-              value={form.password}
-              onChange={handleChange}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
               autoComplete="current-password"
-              aria-required="true"
               required
             />
           </div>
 
-          <button type="submit" disabled={loading}>
+          <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Connexion…' : 'Se connecter'}
           </button>
         </form>
 
-        <p>
-          Pas encore de compte ? <Link to="/register">Créer un compte</Link>
+        <p className="auth-footer">
+          Pas encore de compte ? <Link to="/register">S'inscrire</Link>
         </p>
-      </main>
-    </>
-  );
+      </section>
+    </main>
+  )
 }

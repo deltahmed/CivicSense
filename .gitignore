@@ -1,27 +1,36 @@
-# Dependencies
-node_modules/
-
-# Environment variables
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+env/
 .env
-.env.local
-.env.*.local
-
-# Build outputs
+*.egg-info/
 dist/
 build/
 
-# Logs
-logs/
-*.log
-npm-debug.log*
+# Django
+*.sqlite3
+staticfiles/
+media/
 
-# OS files
-.DS_Store
-Thumbs.db
+# Node
+node_modules/
+dist/
+.vite/
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Coverage
-coverage/
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
