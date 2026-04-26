@@ -9,16 +9,6 @@ Plateforme web IoT pour la gestion d'une résidence intelligente — projet acad
 - **Frontend** : React 18 (Vite) + CSS vanilla
 - **Graphiques** : recharts
 
-## Équipe
-
-| Rôle | Membre |
-|---|---|
-| Setup & Auth | Ahmed |
-| BDD & Data | Amine |
-| Frontend React | Zakaria |
-| CSS & Qualité | Adame |
-| Objets connectés & Gestion | Zied |
-
 ---
 
 ## Lancer en local
