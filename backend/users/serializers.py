@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, LoginHistory, LEVEL_CHOICES
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -31,3 +31,40 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'type_membre', 'photo', 'level', 'points', 'login_count', 'action_count',
         )
         read_only_fields = ('id', 'email', 'level', 'points', 'login_count', 'action_count')
+
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = (
+            'id', 'email', 'username', 'first_name', 'last_name',
+            'pseudo', 'age', 'genre', 'date_naissance', 'type_membre', 'photo',
+            'is_verified', 'is_active',
+            'points', 'level', 'login_count', 'action_count',
+            'date_joined', 'last_login',
+        )
+        read_only_fields = (
+            'id', 'points', 'level', 'login_count', 'action_count',
+            'date_joined', 'last_login', 'is_verified',
+        )
+
+
+class AdminUserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('email', 'first_name', 'last_name', 'type_membre', 'is_active')
+        extra_kwargs = {
+            'email': {'required': False},
+            'first_name': {'required': False},
+            'last_name': {'required': False},
+            'type_membre': {'required': False},
+            'is_active': {'required': False},
+        }
+
+
+class AdminSetLevelSerializer(serializers.Serializer):
+    level = serializers.ChoiceField(choices=[c[0] for c in LEVEL_CHOICES])
+
+
+class AdminSetPointsSerializer(serializers.Serializer):
+    points = serializers.FloatField(min_value=0)

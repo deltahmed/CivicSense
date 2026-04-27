@@ -1,14 +1,22 @@
 from django.conf import settings
 from django.contrib.auth import authenticate
-from rest_framework import status
+from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import CustomUser
-from .serializers import RegisterSerializer, UserProfileSerializer
-from .utils import add_points
+from .models import CustomUser, LoginHistory
+from .permissions import IsExpert
+from .serializers import (
+    RegisterSerializer,
+    UserProfileSerializer,
+    AdminUserSerializer,
+    AdminUserUpdateSerializer,
+    AdminSetLevelSerializer,
+    AdminSetPointsSerializer,
+)
+from .utils import add_points, check_level_up
 
 
 def _set_auth_cookies(response, refresh):
@@ -55,9 +63,11 @@ class LoginView(APIView):
         if not user.is_verified:
             return Response({'success': False, 'message': 'Compte non vérifié.'}, status=403)
 
+        user.last_login = timezone.now()
         user.login_count += 1
-        user.save(update_fields=['login_count'])
+        user.save(update_fields=['last_login', 'login_count'])
         add_points(user, 0.25)
+        LoginHistory.objects.create(user=user)
 
         refresh = RefreshToken.for_user(user)
         response = Response({'success': True, 'data': UserProfileSerializer(user).data})
@@ -101,3 +111,104 @@ class VerifyEmailView(APIView):
         user.is_verified = True
         user.save(update_fields=['is_verified'])
         return Response({'success': True, 'message': 'Email vérifié.'})
+
+
+# ── Admin views ────────────────────────────────────────────────────────────────
+
+class AdminUserListView(APIView):
+    permission_classes = [IsAuthenticated, IsExpert]
+
+    def get(self, request):
+        users = CustomUser.objects.all().order_by('date_joined')
+        return Response({'success': True, 'data': AdminUserSerializer(users, many=True).data})
+
+
+class AdminUserDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsExpert]
+
+    def _get_user(self, pk):
+        try:
+            return CustomUser.objects.get(pk=pk)
+        except CustomUser.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        user = self._get_user(pk)
+        if not user:
+            return Response({'success': False, 'message': 'Utilisateur introuvable.'}, status=404)
+        return Response({'success': True, 'data': AdminUserSerializer(user).data})
+
+    def put(self, request, pk):
+        user = self._get_user(pk)
+        if not user:
+            return Response({'success': False, 'message': 'Utilisateur introuvable.'}, status=404)
+        serializer = AdminUserUpdateSerializer(user, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response({'success': False, 'errors': serializer.errors}, status=400)
+        serializer.save()
+        return Response({'success': True, 'data': AdminUserSerializer(user).data})
+
+    def delete(self, request, pk):
+        user = self._get_user(pk)
+        if not user:
+            return Response({'success': False, 'message': 'Utilisateur introuvable.'}, status=404)
+        if user.pk == request.user.pk:
+            return Response(
+                {'success': False, 'message': 'Impossible de supprimer votre propre compte.'},
+                status=400,
+            )
+        user.delete()
+        return Response({'success': True, 'message': 'Utilisateur supprimé définitivement.'})
+
+
+class AdminSetLevelView(APIView):
+    permission_classes = [IsAuthenticated, IsExpert]
+
+    def put(self, request, pk):
+        try:
+            user = CustomUser.objects.get(pk=pk)
+        except CustomUser.DoesNotExist:
+            return Response({'success': False, 'message': 'Utilisateur introuvable.'}, status=404)
+        serializer = AdminSetLevelSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'success': False, 'errors': serializer.errors}, status=400)
+        user.level = serializer.validated_data['level']
+        user.save(update_fields=['level'])
+        return Response({'success': True, 'data': AdminUserSerializer(user).data})
+
+
+class AdminSetPointsView(APIView):
+    permission_classes = [IsAuthenticated, IsExpert]
+
+    def put(self, request, pk):
+        try:
+            user = CustomUser.objects.get(pk=pk)
+        except CustomUser.DoesNotExist:
+            return Response({'success': False, 'message': 'Utilisateur introuvable.'}, status=404)
+        serializer = AdminSetPointsSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'success': False, 'errors': serializer.errors}, status=400)
+        user.points = serializer.validated_data['points']
+        check_level_up(user)
+        user.save(update_fields=['points', 'level'])
+        return Response({'success': True, 'data': AdminUserSerializer(user).data})
+
+
+class AdminUserHistoryView(APIView):
+    permission_classes = [IsAuthenticated, IsExpert]
+
+    def get(self, request, pk):
+        try:
+            user = CustomUser.objects.get(pk=pk)
+        except CustomUser.DoesNotExist:
+            return Response({'success': False, 'message': 'Utilisateur introuvable.'}, status=404)
+        connexions = list(user.login_history.values_list('logged_at', flat=True)[:50])
+        return Response({
+            'success': True,
+            'data': {
+                'login_count': user.login_count,
+                'action_count': user.action_count,
+                'last_login': user.last_login,
+                'connexions': connexions,
+            },
+        })
