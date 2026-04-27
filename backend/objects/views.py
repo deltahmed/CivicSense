@@ -79,23 +79,3 @@ class DeletionRequestView(APIView):
             return Response({'success': False, 'errors': serializer.errors}, status=400)
         serializer.save(demandeur=request.user)
         return Response({'success': True, 'data': serializer.data}, status=201)
-
-
-class DeletionRequestActionView(APIView):
-    permission_classes = [IsAuthenticated, IsExpert]
-
-    def patch(self, request, pk):
-        try:
-            dr = DeletionRequest.objects.get(pk=pk)
-        except DeletionRequest.DoesNotExist:
-            return Response({'success': False, 'message': 'Demande introuvable.'}, status=404)
-        action = request.data.get('action')
-        if action == 'approuver':
-            dr.objet.delete()
-            dr.statut = 'approuvee'
-        elif action == 'refuser':
-            dr.statut = 'refusee'
-        else:
-            return Response({'success': False, 'message': 'Action invalide.'}, status=400)
-        dr.save(update_fields=['statut'])
-        return Response({'success': True, 'message': f'Demande {dr.statut}.'})

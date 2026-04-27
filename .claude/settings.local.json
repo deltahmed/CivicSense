@@ -12,7 +12,8 @@
       "Bash(venv/Scripts/python manage.py makemigrations users)",
       "Bash(PYTHONUTF8=1 venv/Scripts/python manage.py makemigrations users)",
       "PowerShell(psql --version 2>&1)",
-      "PowerShell($env:PGDATA)"
+      "PowerShell($env:PGDATA)",
+      "Bash(bash setup.sh)"
     ]
   }
 }
