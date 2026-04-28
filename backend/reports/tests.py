@@ -26,12 +26,13 @@ def make_object(unique_id='OBJ-001', nom='Lampadaire', zone='Rue A', **kwargs):
 class ExportObjectsCSVTest(APITestCase):
     URL = '/api/reports/objects/csv/'
 
-    def setUp(self):
-        self.avance = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.avance = make_user(
             email='av@example.com', username='avance', pseudo='Avance',
             verified=True, level='avance',
         )
-        self.verified = make_user(verified=True)
+        cls.verified = make_user(verified=True)
 
     def test_avance_gets_csv_200(self):
         self.client.force_authenticate(self.avance)
@@ -81,12 +82,13 @@ class ExportObjectsCSVTest(APITestCase):
 class ExportObjectsPDFTest(APITestCase):
     URL = '/api/reports/objects/pdf/'
 
-    def setUp(self):
-        self.avance = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.avance = make_user(
             email='av@example.com', username='avance', pseudo='Avance',
             verified=True, level='avance',
         )
-        self.verified = make_user(verified=True)
+        cls.verified = make_user(verified=True)
 
     def test_avance_gets_pdf_200(self):
         self.client.force_authenticate(self.avance)

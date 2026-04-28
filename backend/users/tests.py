@@ -95,12 +95,13 @@ class RegisterViewTest(APITestCase):
 class LoginViewTest(APITestCase):
     URL = '/api/users/login/'
 
-    def setUp(self):
-        self.verified = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.verified = make_user(
             email='ok@example.com', username='okuser', pseudo='OkPseudo',
             password='StrongPass1', verified=True,
         )
-        self.unverified = make_user(
+        cls.unverified = make_user(
             email='nv@example.com', username='nvuser', pseudo='NvPseudo',
             password='StrongPass1',
         )
@@ -169,8 +170,9 @@ class LoginViewTest(APITestCase):
 class LogoutViewTest(APITestCase):
     URL = '/api/users/logout/'
 
-    def setUp(self):
-        self.user = make_user(verified=True)
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = make_user(verified=True)
 
     def test_success_returns_200(self):
         self.client.force_authenticate(user=self.user)
@@ -196,8 +198,9 @@ class LogoutViewTest(APITestCase):
 class MeViewTest(APITestCase):
     URL = '/api/users/me/'
 
-    def setUp(self):
-        self.user = make_user(verified=True)
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = make_user(verified=True)
 
     # GET
 
@@ -231,8 +234,9 @@ class MeViewTest(APITestCase):
         self.assertEqual(self.user.pseudo, 'Updated')
 
     def test_patch_readonly_level_ignored(self):
-        original = self.user.level
         self.client.force_authenticate(user=self.user)
+        self.user.refresh_from_db()
+        original = self.user.level
         self.client.patch(self.URL, {'level': 'expert'})
         self.user.refresh_from_db()
         self.assertEqual(self.user.level, original)
@@ -253,11 +257,12 @@ class MeViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class VerifyEmailViewTest(APITestCase):
-    def setUp(self):
-        self.token = str(uuid.uuid4())
-        self.user = make_user()
-        self.user.verification_token = self.token
-        self.user.save(update_fields=['verification_token'])
+    @classmethod
+    def setUpTestData(cls):
+        cls.token = str(uuid.uuid4())
+        cls.user = make_user()
+        cls.user.verification_token = cls.token
+        cls.user.save(update_fields=['verification_token'])
 
     def url(self, token=None):
         return f'/api/users/verify/{token or self.token}/'
@@ -295,12 +300,13 @@ class VerifyEmailViewTest(APITestCase):
 class AdminUserListViewTest(APITestCase):
     URL = '/api/users/admin/users/'
 
-    def setUp(self):
-        self.expert = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.expert = make_user(
             email='ex@example.com', username='expert', pseudo='Expert',
             verified=True, level='expert',
         )
-        self.verified = make_user(verified=True)
+        cls.verified = make_user(verified=True)
 
     def test_expert_gets_all_users(self):
         self.client.force_authenticate(self.expert)
@@ -324,15 +330,16 @@ class AdminUserListViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class AdminUserDetailViewTest(APITestCase):
-    def setUp(self):
-        self.expert = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.expert = make_user(
             email='ex@example.com', username='expert', pseudo='Expert',
             verified=True, level='expert',
         )
-        self.target = make_user(
+        cls.target = make_user(
             email='target@example.com', username='target', pseudo='Target', verified=True,
         )
-        self.verified = make_user(verified=True)
+        cls.verified = make_user(verified=True)
 
     def url(self, pk=None):
         return f'/api/users/admin/users/{pk or self.target.pk}/'
@@ -378,12 +385,13 @@ class AdminUserDetailViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class AdminSetLevelViewTest(APITestCase):
-    def setUp(self):
-        self.expert = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.expert = make_user(
             email='ex@example.com', username='expert', pseudo='Expert',
             verified=True, level='expert',
         )
-        self.target = make_user(
+        cls.target = make_user(
             email='target@example.com', username='target', pseudo='Target', verified=True,
         )
 
@@ -422,12 +430,13 @@ class AdminSetLevelViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class AdminSetPointsViewTest(APITestCase):
-    def setUp(self):
-        self.expert = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.expert = make_user(
             email='ex@example.com', username='expert', pseudo='Expert',
             verified=True, level='expert',
         )
-        self.target = make_user(
+        cls.target = make_user(
             email='target@example.com', username='target', pseudo='Target', verified=True,
         )
 
@@ -463,16 +472,17 @@ class AdminSetPointsViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class AdminUserHistoryViewTest(APITestCase):
-    def setUp(self):
-        self.expert = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.expert = make_user(
             email='ex@example.com', username='expert', pseudo='Expert',
             verified=True, level='expert',
         )
-        self.target = make_user(
+        cls.target = make_user(
             email='target@example.com', username='target', pseudo='Target', verified=True,
         )
-        LoginHistory.objects.create(user=self.target)
-        LoginHistory.objects.create(user=self.target)
+        LoginHistory.objects.create(user=cls.target)
+        LoginHistory.objects.create(user=cls.target)
 
     def url(self):
         return f'/api/users/admin/users/{self.target.pk}/history/'

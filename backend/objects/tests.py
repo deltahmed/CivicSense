@@ -27,13 +27,14 @@ def make_object(unique_id='OBJ-001', nom='Lampadaire', zone='Rue A', **kwargs):
 class ObjectListViewTest(APITestCase):
     URL = '/api/objects/'
 
-    def setUp(self):
-        self.verified = make_user(verified=True)
-        self.avance = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.verified = make_user(verified=True)
+        cls.avance = make_user(
             email='av@example.com', username='avance', pseudo='Avance',
             verified=True, level='avance',
         )
-        self.unverified = make_user(
+        cls.unverified = make_user(
             email='nv@example.com', username='nvuser', pseudo='NvUser',
         )
 
@@ -97,13 +98,14 @@ class ObjectListViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class ObjectDetailViewTest(APITestCase):
-    def setUp(self):
-        self.verified = make_user(verified=True)
-        self.avance = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.verified = make_user(verified=True)
+        cls.avance = make_user(
             email='av@example.com', username='avance', pseudo='Avance',
             verified=True, level='avance',
         )
-        self.obj = make_object()
+        cls.obj = make_object()
 
     def url(self, pk=None):
         return f'/api/objects/{pk or self.obj.pk}/'
@@ -156,11 +158,12 @@ class ObjectDetailViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class ObjectHistoryViewTest(APITestCase):
-    def setUp(self):
-        self.verified = make_user(verified=True)
-        self.obj = make_object()
+    @classmethod
+    def setUpTestData(cls):
+        cls.verified = make_user(verified=True)
+        cls.obj = make_object()
         HistoriqueConso.objects.create(
-            objet=self.obj, date=datetime.date.today(), valeur=12.5
+            objet=cls.obj, date=datetime.date.today(), valeur=12.5
         )
 
     def url(self):
@@ -197,13 +200,14 @@ class ObjectHistoryViewTest(APITestCase):
 class DeletionRequestViewTest(APITestCase):
     URL = '/api/objects/deletion-requests/'
 
-    def setUp(self):
-        self.avance = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.avance = make_user(
             email='av@example.com', username='avance', pseudo='Avance',
             verified=True, level='avance',
         )
-        self.verified = make_user(verified=True)
-        self.obj = make_object()
+        cls.verified = make_user(verified=True)
+        cls.obj = make_object()
 
     def test_avance_creates_request(self):
         self.client.force_authenticate(self.avance)

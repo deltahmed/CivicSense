@@ -29,13 +29,14 @@ def make_incident(auteur, type_incident='panne', description='Desc', **kwargs):
 class IncidentListViewTest(APITestCase):
     URL = '/api/incidents/'
 
-    def setUp(self):
-        self.verified = make_user(verified=True)
-        self.avance = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.verified = make_user(verified=True)
+        cls.avance = make_user(
             email='av@example.com', username='avance', pseudo='Avance',
             verified=True, level='avance',
         )
-        self.unverified = make_user(
+        cls.unverified = make_user(
             email='nv@example.com', username='nv', pseudo='NV',
         )
 
@@ -113,13 +114,14 @@ class IncidentListViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class IncidentDetailViewTest(APITestCase):
-    def setUp(self):
-        self.avance = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.avance = make_user(
             email='av@example.com', username='avance', pseudo='Avance',
             verified=True, level='avance',
         )
-        self.verified = make_user(verified=True)
-        self.incident = make_incident(self.verified)
+        cls.verified = make_user(verified=True)
+        cls.incident = make_incident(cls.verified)
 
     def url(self, pk=None):
         return f'/api/incidents/{pk or self.incident.pk}/'

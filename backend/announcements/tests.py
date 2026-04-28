@@ -29,16 +29,19 @@ def make_announcement(auteur, titre='Info', contenu='Contenu', visible=True):
 class AnnouncementListViewTest(APITestCase):
     URL = '/api/announcements/'
 
-    def setUp(self):
-        cache.clear()
-        self.verified = make_user(verified=True)
-        self.expert = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.verified = make_user(verified=True)
+        cls.expert = make_user(
             email='ex@example.com', username='expert', pseudo='Expert',
             verified=True, level='expert',
         )
-        self.unverified = make_user(
+        cls.unverified = make_user(
             email='nv@example.com', username='nv', pseudo='NV',
         )
+
+    def setUp(self):
+        cache.clear()
 
     def tearDown(self):
         cache.clear()
@@ -109,13 +112,14 @@ class AnnouncementListViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class AnnouncementDetailViewTest(APITestCase):
-    def setUp(self):
-        self.expert = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.expert = make_user(
             email='ex@example.com', username='expert', pseudo='Expert',
             verified=True, level='expert',
         )
-        self.verified = make_user(verified=True)
-        self.ann = make_announcement(self.expert)
+        cls.verified = make_user(verified=True)
+        cls.ann = make_announcement(cls.expert)
 
     def url(self, pk=None):
         return f'/api/announcements/{pk or self.ann.pk}/'
