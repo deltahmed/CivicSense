@@ -6,6 +6,8 @@ import DashboardPage from './pages/DashboardPage'
 import AdminUsersPage from './pages/AdminUsersPage'
 import AdminMaintenancePage from './pages/AdminMaintenancePage'
 import PublicStatsPage from './pages/PublicStatsPage'
+import AlertsPage from './pages/AlertsPage'
+import AdminReportsPage from './pages/AdminReportsPage'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -41,6 +43,22 @@ export default function App() {
         element={
           <ExpertRoute>
             <AdminMaintenancePage />
+          </ExpertRoute>
+        }
+      />
+      <Route
+        path="/alerts"
+        element={
+          <PrivateRoute>
+            <AlertsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/reports"
+        element={
+          <ExpertRoute>
+            <AdminReportsPage />
           </ExpertRoute>
         }
       />
