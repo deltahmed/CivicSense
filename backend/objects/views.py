@@ -1,5 +1,6 @@
 from datetime import timedelta
 from django.utils import timezone
+from django.db.models import Sum, Count, Q
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -76,3 +77,55 @@ class ObjectHistoryView(APIView):
         
         history = HistoriqueConso.objects.filter(objet_id=pk, date__gte=start_date).order_by('date')
         return Response({'success': True, 'data': HistoriqueConsoSerializer(history, many=True).data})
+
+
+class ObjectAlertsView(APIView):
+    permission_classes = [IsAuthenticated, IsVerified]
+
+    def get(self, request):
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        seven_days_ago = timezone.now() - timedelta(days=7)
+        
+        # Optimisation : On agrège les données côté base de données (1 seule requête O(1))
+        qs = ConnectedObject.objects.annotate(
+            interactions_30j=Count('historique_conso', filter=Q(historique_conso__date__gte=thirty_days_ago)),
+            conso_30j=Sum('historique_conso__valeur', filter=Q(historique_conso__date__gte=thirty_days_ago))
+        )
+        
+        seuil_bas = 0.1
+        seuil_moyen = 0.5
+        
+        data = []
+        for obj in qs:
+            conso = obj.conso_30j or 0.0
+            interactions = obj.interactions_30j
+            
+            # Calcul du score sécurisé (évite la division par zéro)
+            score = 0.0
+            if conso > 0:
+                score = interactions / conso
+                
+            if score < seuil_bas:
+                efficacite = "inefficace"
+            elif score < seuil_moyen:
+                efficacite = "à surveiller"
+            else:
+                efficacite = "efficace"
+                
+            maintenance = False
+            if obj.derniere_interaction and obj.derniere_interaction < seven_days_ago:
+                maintenance = True
+                
+            data.append({
+                'id': obj.id,
+                'unique_id': obj.unique_id,
+                'nom': obj.nom,
+                'zone': obj.zone,
+                'interactions_30j': interactions,
+                'conso_30j': conso,
+                'score': score,
+                'efficacite': efficacite,
+                'maintenance_conseillee': maintenance
+            })
+            
+        return Response({'success': True, 'data': data})
