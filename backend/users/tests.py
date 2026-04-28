@@ -1,6 +1,6 @@
 import uuid
 from rest_framework.test import APITestCase
-from .models import CustomUser
+from .models import CustomUser, LoginHistory
 
 
 def make_user(email='u@example.com', username='user1', pseudo='Pseudo1',
@@ -152,6 +152,15 @@ class LoginViewTest(APITestCase):
         self.verified.refresh_from_db()
         self.assertEqual(self.verified.login_count, 2)
 
+    def test_login_creates_history_entry(self):
+        self.login()
+        self.assertEqual(LoginHistory.objects.filter(user=self.verified).count(), 1)
+
+    def test_multiple_logins_create_multiple_history_entries(self):
+        self.login()
+        self.login()
+        self.assertEqual(LoginHistory.objects.filter(user=self.verified).count(), 2)
+
 
 # ---------------------------------------------------------------------------
 # POST /api/users/logout/
@@ -277,3 +286,212 @@ class VerifyEmailViewTest(APITestCase):
         self.client.get(self.url())
         r = self.client.get(self.url())
         self.assertEqual(r.status_code, 404)
+
+
+# ---------------------------------------------------------------------------
+# GET /api/users/admin/users/
+# ---------------------------------------------------------------------------
+
+class AdminUserListViewTest(APITestCase):
+    URL = '/api/users/admin/users/'
+
+    def setUp(self):
+        self.expert = make_user(
+            email='ex@example.com', username='expert', pseudo='Expert',
+            verified=True, level='expert',
+        )
+        self.verified = make_user(verified=True)
+
+    def test_expert_gets_all_users(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.data['success'])
+        self.assertGreaterEqual(len(r.data['data']), 2)
+
+    def test_non_expert_returns_403(self):
+        self.client.force_authenticate(self.verified)
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 403)
+
+    def test_unauthenticated_returns_401(self):
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 401)
+
+
+# ---------------------------------------------------------------------------
+# GET + PUT + DELETE /api/users/admin/users/<pk>/
+# ---------------------------------------------------------------------------
+
+class AdminUserDetailViewTest(APITestCase):
+    def setUp(self):
+        self.expert = make_user(
+            email='ex@example.com', username='expert', pseudo='Expert',
+            verified=True, level='expert',
+        )
+        self.target = make_user(
+            email='target@example.com', username='target', pseudo='Target', verified=True,
+        )
+        self.verified = make_user(verified=True)
+
+    def url(self, pk=None):
+        return f'/api/users/admin/users/{pk or self.target.pk}/'
+
+    def test_get_returns_user_data(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.get(self.url())
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data['data']['email'], 'target@example.com')
+
+    def test_get_unknown_pk_returns_404(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.get('/api/users/admin/users/9999/')
+        self.assertEqual(r.status_code, 404)
+
+    def test_put_updates_is_active(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.put(self.url(), {'is_active': False})
+        self.assertEqual(r.status_code, 200)
+        self.target.refresh_from_db()
+        self.assertFalse(self.target.is_active)
+
+    def test_delete_removes_user(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.delete(self.url())
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(CustomUser.objects.filter(pk=self.target.pk).exists())
+
+    def test_delete_own_account_returns_400(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.delete(f'/api/users/admin/users/{self.expert.pk}/')
+        self.assertEqual(r.status_code, 400)
+        self.assertFalse(r.data['success'])
+
+    def test_non_expert_returns_403(self):
+        self.client.force_authenticate(self.verified)
+        r = self.client.get(self.url())
+        self.assertEqual(r.status_code, 403)
+
+
+# ---------------------------------------------------------------------------
+# PUT /api/users/admin/users/<pk>/level/
+# ---------------------------------------------------------------------------
+
+class AdminSetLevelViewTest(APITestCase):
+    def setUp(self):
+        self.expert = make_user(
+            email='ex@example.com', username='expert', pseudo='Expert',
+            verified=True, level='expert',
+        )
+        self.target = make_user(
+            email='target@example.com', username='target', pseudo='Target', verified=True,
+        )
+
+    def url(self):
+        return f'/api/users/admin/users/{self.target.pk}/level/'
+
+    def test_set_valid_level(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.put(self.url(), {'level': 'avance'})
+        self.assertEqual(r.status_code, 200)
+        self.target.refresh_from_db()
+        self.assertEqual(self.target.level, 'avance')
+
+    def test_invalid_level_returns_400(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.put(self.url(), {'level': 'dieu'})
+        self.assertEqual(r.status_code, 400)
+        self.assertFalse(r.data['success'])
+
+    def test_unknown_user_returns_404(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.put('/api/users/admin/users/9999/level/', {'level': 'avance'})
+        self.assertEqual(r.status_code, 404)
+
+    def test_non_expert_returns_403(self):
+        non_expert = make_user(
+            email='nex@example.com', username='nex', pseudo='Nex', verified=True,
+        )
+        self.client.force_authenticate(non_expert)
+        r = self.client.put(self.url(), {'level': 'avance'})
+        self.assertEqual(r.status_code, 403)
+
+
+# ---------------------------------------------------------------------------
+# PUT /api/users/admin/users/<pk>/points/
+# ---------------------------------------------------------------------------
+
+class AdminSetPointsViewTest(APITestCase):
+    def setUp(self):
+        self.expert = make_user(
+            email='ex@example.com', username='expert', pseudo='Expert',
+            verified=True, level='expert',
+        )
+        self.target = make_user(
+            email='target@example.com', username='target', pseudo='Target', verified=True,
+        )
+
+    def url(self):
+        return f'/api/users/admin/users/{self.target.pk}/points/'
+
+    def test_set_points_updates_value(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.put(self.url(), {'points': 3.5})
+        self.assertEqual(r.status_code, 200)
+        self.target.refresh_from_db()
+        self.assertAlmostEqual(self.target.points, 3.5)
+
+    def test_set_points_triggers_level_update(self):
+        self.client.force_authenticate(self.expert)
+        self.client.put(self.url(), {'points': 5.0})
+        self.target.refresh_from_db()
+        self.assertEqual(self.target.level, 'expert')
+
+    def test_negative_points_returns_400(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.put(self.url(), {'points': -1})
+        self.assertEqual(r.status_code, 400)
+
+    def test_unknown_user_returns_404(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.put('/api/users/admin/users/9999/points/', {'points': 1.0})
+        self.assertEqual(r.status_code, 404)
+
+
+# ---------------------------------------------------------------------------
+# GET /api/users/admin/users/<pk>/history/
+# ---------------------------------------------------------------------------
+
+class AdminUserHistoryViewTest(APITestCase):
+    def setUp(self):
+        self.expert = make_user(
+            email='ex@example.com', username='expert', pseudo='Expert',
+            verified=True, level='expert',
+        )
+        self.target = make_user(
+            email='target@example.com', username='target', pseudo='Target', verified=True,
+        )
+        LoginHistory.objects.create(user=self.target)
+        LoginHistory.objects.create(user=self.target)
+
+    def url(self):
+        return f'/api/users/admin/users/{self.target.pk}/history/'
+
+    def test_returns_login_count_and_connexions(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.get(self.url())
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(len(r.data['data']['connexions']), 2)
+
+    def test_unknown_user_returns_404(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.get('/api/users/admin/users/9999/history/')
+        self.assertEqual(r.status_code, 404)
+
+    def test_non_expert_returns_403(self):
+        non_expert = make_user(
+            email='nex@example.com', username='nex', pseudo='Nex', verified=True,
+        )
+        self.client.force_authenticate(non_expert)
+        r = self.client.get(self.url())
+        self.assertEqual(r.status_code, 403)

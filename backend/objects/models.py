@@ -38,7 +38,7 @@ class ConnectedObject(models.Model):
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
-        related_name='objects',
+        related_name='connected_objects',
         null=True,
         blank=True,
         verbose_name='catégorie'

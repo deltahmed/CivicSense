@@ -20,7 +20,8 @@ class ExportObjectsCSV(APIView):
         writer = csv.writer(response)
         writer.writerow(['ID', 'Nom', 'Zone', 'Type', 'Statut', 'Consommation (kWh)'])
         for obj in ConnectedObject.objects.all():
-            writer.writerow([obj.unique_id, obj.nom, obj.zone, obj.type_objet, obj.statut, obj.consommation_kwh])
+            category = obj.category.nom if obj.category else 'N/A'
+            writer.writerow([obj.unique_id, obj.nom, obj.zone, category, obj.statut, obj.consommation_kwh])
         return response
 
 
@@ -45,7 +46,8 @@ class ExportObjectsPDF(APIView):
             if y < 60:
                 p.showPage()
                 y = height - 60
-            row = [obj.nom, obj.zone, obj.type_objet, obj.statut, str(obj.consommation_kwh)]
+            category = obj.category.nom if obj.category else 'N/A'
+            row = [obj.nom, obj.zone, category, obj.statut, str(obj.consommation_kwh)]
             for i, cell in enumerate(row):
                 p.drawString(x_positions[i], y, cell[:20])
             y -= 16
