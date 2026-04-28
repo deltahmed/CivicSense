@@ -4,7 +4,7 @@ from django.db import models
 class Incident(models.Model):
     TYPE_CHOICES = [
         ('panne', 'Panne'),
-        ('anomalie', 'Anomalie'),
+        ('fuite', 'Fuite'),
         ('securite', 'Sécurité'),
         ('autre', 'Autre'),
     ]
@@ -32,11 +32,10 @@ class Incident(models.Model):
         return f'{self.type_incident} — {self.statut}'
 
 
-class HistoriqueStatut(models.Model):
-    incident = models.ForeignKey(Incident, on_delete=models.CASCADE, related_name='historique_statut')
-    ancien_statut = models.CharField(max_length=20)
-    nouveau_statut = models.CharField(max_length=20)
-    modifie_par = models.ForeignKey('users.CustomUser', on_delete=models.SET_NULL, null=True)
+class HistoriqueStatutIncident(models.Model):
+    incident = models.ForeignKey(Incident, on_delete=models.CASCADE, related_name='historique')
+    statut = models.CharField(max_length=20)
+    commentaire = models.TextField(blank=True)
     date = models.DateTimeField(auto_now_add=True)
 
     class Meta:

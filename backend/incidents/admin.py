@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Incident, HistoriqueStatut
+from .models import Incident, HistoriqueStatutIncident
 
 admin.site.register(Incident)
-admin.site.register(HistoriqueStatut)
+admin.site.register(HistoriqueStatutIncident)

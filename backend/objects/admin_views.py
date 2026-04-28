@@ -7,8 +7,10 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 from users.permissions import IsExpert
-from .models import Category, ConnectedObject, DeletionRequest
-from .serializers import CategorySerializer, DeletionRequestSerializer
+from .models import Category, ConnectedObject
+from .serializers import CategorySerializer
+from announcements.models import DeletionRequest
+from announcements.serializers import DeletionRequestSerializer
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

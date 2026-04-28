@@ -1,14 +1,11 @@
-from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.views.decorators.cache import cache_page
-from django.utils.decorators import method_decorator
 
-from users.permissions import IsVerified, IsAvance, IsExpert
+from users.permissions import IsVerified, IsAvance
 from users.utils import add_points
-from .models import ConnectedObject, HistoriqueConso, DeletionRequest
-from .serializers import ConnectedObjectSerializer, HistoriqueConsoSerializer, DeletionRequestSerializer
+from .models import ConnectedObject, HistoriqueConso
+from .serializers import ConnectedObjectSerializer, HistoriqueConsoSerializer
 
 
 class ObjectListView(APIView):
@@ -68,14 +65,3 @@ class ObjectHistoryView(APIView):
     def get(self, request, pk):
         history = HistoriqueConso.objects.filter(objet_id=pk)
         return Response({'success': True, 'data': HistoriqueConsoSerializer(history, many=True).data})
-
-
-class DeletionRequestView(APIView):
-    permission_classes = [IsAuthenticated, IsAvance]
-
-    def post(self, request):
-        serializer = DeletionRequestSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({'success': False, 'errors': serializer.errors}, status=400)
-        serializer.save(demandeur=request.user)
-        return Response({'success': True, 'data': serializer.data}, status=201)
