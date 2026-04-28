@@ -1,4 +1,6 @@
 import uuid
+from django.test import TestCase
+from django.core.management import call_command
 from rest_framework.test import APITestCase
 from .models import CustomUser, LoginHistory
 
@@ -505,3 +507,210 @@ class AdminUserHistoryViewTest(APITestCase):
         self.client.force_authenticate(non_expert)
         r = self.client.get(self.url())
         self.assertEqual(r.status_code, 403)
+
+
+# ---------------------------------------------------------------------------
+# python manage.py seed
+# ---------------------------------------------------------------------------
+
+from objects.models import ConnectedObject, HistoriqueConso, Category          # noqa: E402
+from announcements.models import Announcement, DeletionRequest                 # noqa: E402
+from incidents.models import Incident, HistoriqueStatutIncident                # noqa: E402
+
+OBJECTS_COUNT = 11
+READINGS_PER_DAY = 4
+DAYS = 30
+HISTORIQUE_TOTAL = OBJECTS_COUNT * READINGS_PER_DAY * DAYS   # 1 320
+
+
+class SeedCommandTest(TestCase):
+    """Vérifie que `python manage.py seed` peuple correctement la base."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        call_command('seed', '--clear', verbosity=0)
+
+    # ── Utilisateurs ─────────────────────────────────────────────────────────
+
+    def test_admin_is_superuser(self):
+        self.assertTrue(CustomUser.objects.get(email='admin@civicsense.fr').is_superuser)
+
+    def test_admin_is_staff(self):
+        self.assertTrue(CustomUser.objects.get(email='admin@civicsense.fr').is_staff)
+
+    def test_admin_is_verified(self):
+        self.assertTrue(CustomUser.objects.get(email='admin@civicsense.fr').is_verified)
+
+    def test_admin_level_is_expert(self):
+        self.assertEqual(CustomUser.objects.get(email='admin@civicsense.fr').level, 'expert')
+
+    def test_two_avance_users(self):
+        self.assertEqual(CustomUser.objects.filter(level='avance').count(), 2)
+
+    def test_three_intermediaire_users(self):
+        self.assertEqual(CustomUser.objects.filter(level='intermediaire').count(), 3)
+
+    def test_three_debutant_users(self):
+        # 2 vérifiés + 1 non vérifié
+        self.assertEqual(CustomUser.objects.filter(level='debutant').count(), 3)
+
+    def test_one_unverified_user(self):
+        self.assertEqual(CustomUser.objects.filter(is_verified=False).count(), 1)
+
+    def test_unverified_user_is_debutant(self):
+        self.assertEqual(CustomUser.objects.get(is_verified=False).level, 'debutant')
+
+    def test_total_user_count(self):
+        self.assertEqual(CustomUser.objects.count(), 9)
+
+    # ── Objets connectés ──────────────────────────────────────────────────────
+
+    def test_eleven_connected_objects(self):
+        self.assertEqual(ConnectedObject.objects.count(), OBJECTS_COUNT)
+
+    def test_two_thermostats(self):
+        self.assertEqual(ConnectedObject.objects.filter(type_objet='thermostat').count(), 2)
+
+    def test_three_compteurs(self):
+        self.assertEqual(ConnectedObject.objects.filter(type_objet='compteur').count(), 3)
+
+    def test_two_cameras(self):
+        self.assertEqual(ConnectedObject.objects.filter(type_objet='camera').count(), 2)
+
+    def test_one_eclairage(self):
+        self.assertEqual(ConnectedObject.objects.filter(type_objet='eclairage').count(), 1)
+
+    def test_two_capteurs(self):
+        self.assertEqual(ConnectedObject.objects.filter(type_objet='capteur').count(), 2)
+
+    def test_one_prise(self):
+        self.assertEqual(ConnectedObject.objects.filter(type_objet='prise').count(), 1)
+
+    def test_each_object_has_at_least_30_historique_entries(self):
+        for obj in ConnectedObject.objects.all():
+            count = HistoriqueConso.objects.filter(objet=obj).count()
+            self.assertGreaterEqual(
+                count, 30,
+                msg=f'{obj.nom} : seulement {count} entrées historique (min 30 requises)',
+            )
+
+    def test_historique_total_count(self):
+        self.assertEqual(HistoriqueConso.objects.count(), HISTORIQUE_TOTAL)
+
+    def test_historique_values_are_non_negative(self):
+        self.assertEqual(HistoriqueConso.objects.filter(valeur__lt=0).count(), 0)
+
+    def test_all_objects_have_unique_id(self):
+        ids = list(ConnectedObject.objects.values_list('unique_id', flat=True))
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_objects_linked_to_categories(self):
+        without_cat = ConnectedObject.objects.filter(category__isnull=True).count()
+        self.assertEqual(without_cat, 0)
+
+    # ── Catégories ────────────────────────────────────────────────────────────
+
+    def test_five_categories(self):
+        self.assertEqual(Category.objects.count(), 5)
+
+    # ── Annonces ──────────────────────────────────────────────────────────────
+
+    def test_five_announcements(self):
+        self.assertEqual(Announcement.objects.count(), 5)
+
+    def test_two_public_announcements(self):
+        self.assertEqual(Announcement.objects.filter(visible=True).count(), 2)
+
+    def test_three_private_announcements(self):
+        self.assertEqual(Announcement.objects.filter(visible=False).count(), 3)
+
+    def test_announcements_have_author(self):
+        self.assertEqual(Announcement.objects.filter(auteur__isnull=True).count(), 0)
+
+    # ── Incidents ─────────────────────────────────────────────────────────────
+
+    def test_three_incidents(self):
+        self.assertEqual(Incident.objects.count(), 3)
+
+    def test_incident_statut_signale_exists(self):
+        self.assertTrue(Incident.objects.filter(statut='signale').exists())
+
+    def test_incident_statut_pris_en_charge_exists(self):
+        self.assertTrue(Incident.objects.filter(statut='pris_en_charge').exists())
+
+    def test_incident_statut_resolu_exists(self):
+        self.assertTrue(Incident.objects.filter(statut='resolu').exists())
+
+    def test_three_historique_statut_incidents(self):
+        self.assertEqual(HistoriqueStatutIncident.objects.count(), 3)
+
+    def test_each_incident_has_one_historique_entry(self):
+        for incident in Incident.objects.all():
+            count = HistoriqueStatutIncident.objects.filter(incident=incident).count()
+            self.assertEqual(count, 1, msg=f'Incident {incident.pk} : {count} entrée(s) statut')
+
+    # ── DeletionRequest ───────────────────────────────────────────────────────
+
+    def test_one_pending_deletion_request(self):
+        self.assertEqual(DeletionRequest.objects.filter(statut='en_attente').count(), 1)
+
+    # ── Idempotence (get_or_create guards) ───────────────────────────────────
+
+    def test_second_seed_does_not_duplicate_admin(self):
+        call_command('seed', verbosity=0)
+        self.assertEqual(CustomUser.objects.filter(email='admin@civicsense.fr').count(), 1)
+
+    def test_second_seed_does_not_duplicate_categories(self):
+        call_command('seed', verbosity=0)
+        self.assertEqual(Category.objects.count(), 5)
+
+    def test_second_seed_does_not_duplicate_announcements(self):
+        call_command('seed', verbosity=0)
+        self.assertEqual(Announcement.objects.count(), 5)
+
+
+class SeedCommandClearTest(TestCase):
+    """Vérifie que `python manage.py seed --clear` remet la base à zéro puis re-seède."""
+
+    def setUp(self):
+        # Nettoyer la base avant chaque test (données du SeedCommandTest)
+        call_command('seed', '--clear', verbosity=0)
+
+    def test_clear_and_reseed_correct_user_count(self):
+        call_command('seed', verbosity=0)
+        call_command('seed', '--clear', verbosity=0)
+        self.assertEqual(CustomUser.objects.count(), 9)
+
+    def test_clear_and_reseed_correct_object_count(self):
+        call_command('seed', verbosity=0)
+        call_command('seed', '--clear', verbosity=0)
+        self.assertEqual(ConnectedObject.objects.count(), OBJECTS_COUNT)
+
+    def test_clear_and_reseed_correct_historique_count(self):
+        call_command('seed', verbosity=0)
+        call_command('seed', '--clear', verbosity=0)
+        self.assertEqual(HistoriqueConso.objects.count(), HISTORIQUE_TOTAL)
+
+    def test_clear_and_reseed_correct_announcement_count(self):
+        call_command('seed', verbosity=0)
+        call_command('seed', '--clear', verbosity=0)
+        self.assertEqual(Announcement.objects.count(), 5)
+
+    def test_clear_and_reseed_correct_incident_count(self):
+        call_command('seed', verbosity=0)
+        call_command('seed', '--clear', verbosity=0)
+        self.assertEqual(Incident.objects.count(), 3)
+
+    def test_clear_removes_old_objects_before_reseed(self):
+        from objects.models import ConnectedObject
+        # Nettoyer toutes les données avant de commencer
+        ConnectedObject.objects.all().delete()
+        
+        call_command('seed', verbosity=0)
+        first_ids = set(ConnectedObject.objects.values_list('unique_id', flat=True))
+        call_command('seed', '--clear', verbosity=0)
+        second_ids = set(ConnectedObject.objects.values_list('unique_id', flat=True))
+        # Après clear, exactement 11 objets — pas d'accumulation
+        self.assertEqual(len(second_ids), OBJECTS_COUNT)
+        self.assertEqual(len(first_ids), OBJECTS_COUNT)

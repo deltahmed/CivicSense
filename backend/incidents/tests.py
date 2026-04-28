@@ -30,6 +30,9 @@ class IncidentListViewTest(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
+        # Nettoyer les données du seed global
+        Incident.objects.all().delete()
+        
         cls.verified = make_user(verified=True)
         cls.avance = make_user(
             email='av@example.com', username='avance', pseudo='Avance',

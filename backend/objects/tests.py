@@ -127,6 +127,8 @@ class ConnectedObjectModelTest(TestCase):
 class HistoriqueConsoModelTest(TestCase):
 
     def setUp(self):
+        # Nettoyer les données du seed global
+        HistoriqueConso.objects.all().delete()
         self.obj = make_object(unique_id='H001')
 
     def test_create_avec_datetime(self):
@@ -168,6 +170,9 @@ class ObjectListViewTest(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
+        # Nettoyer les données du seed global
+        ConnectedObject.objects.all().delete()
+        
         cls.verified = make_user(verified=True)
         cls.avance = make_user(
             email='av@example.com', username='avance', pseudo='Avance',

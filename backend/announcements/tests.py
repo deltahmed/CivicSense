@@ -36,6 +36,9 @@ class AnnouncementListViewTest(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
+        # Nettoyer les données du seed global
+        Announcement.objects.all().delete()
+        
         cls.verified = make_user(verified=True)
         cls.expert = make_user(
             email='ex@example.com', username='expert', pseudo='Expert',
