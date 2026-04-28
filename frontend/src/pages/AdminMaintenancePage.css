@@ -1,0 +1,331 @@
+/* ── AdminMaintenancePage — mobile first ─────────────────────────────────────── */
+
+.admin-maintenance {
+  padding: 1rem;
+  max-width: 1200px;
+}
+
+.admin-maintenance__header {
+  margin-bottom: 1.5rem;
+}
+
+.admin-maintenance__header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+/* ── Grid de cartes ─────────────────────────────────────────────────────────── */
+
+.maintenance-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Carte ──────────────────────────────────────────────────────────────────── */
+
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+.card h2 {
+  font-size: 1.1rem;
+  margin: 0 0 1.25rem;
+  color: #111827;
+}
+
+.card__desc {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0 0 1.25rem;
+}
+
+.card--full {
+  margin-top: 0;
+}
+
+/* ── Champs de formulaire ───────────────────────────────────────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.field input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.field input:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+  border-color: #2563eb;
+}
+
+/* ── Alertes ────────────────────────────────────────────────────────────────── */
+
+.alert {
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.alert--error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+}
+
+.alert--success {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.alert__msg {
+  margin: 0 0 0.4rem;
+}
+
+.fix-list {
+  margin: 0.4rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.fix-list li {
+  margin: 0.2rem 0;
+  font-size: 0.85rem;
+}
+
+/* ── Section intégrité ──────────────────────────────────────────────────────── */
+
+.integrity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.integrity-summary {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0;
+}
+
+.integrity-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.status-text {
+  color: #6b7280;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* ── Tableau des anomalies ──────────────────────────────────────────────────── */
+
+.anomaly-tables {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.anomaly-block {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.anomaly-block__header {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.65rem 1rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.anomaly-block__header h3 {
+  font-size: 0.875rem;
+  margin: 0;
+  flex: 1;
+  color: #374151;
+}
+
+.anomaly-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  padding: 0 0.45rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.anomaly-count--ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.anomaly-count--error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.anomaly-manual {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.anomaly-empty {
+  padding: 1rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  text-align: center;
+  margin: 0;
+}
+
+.anomaly-table-wrapper {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.anomaly-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.anomaly-table th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  padding: 0.45rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.78rem;
+  z-index: 1;
+}
+
+.anomaly-table td {
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #4b5563;
+}
+
+.anomaly-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.anomaly-table tbody tr:hover {
+  background: #fafafa;
+}
+
+/* ── Boutons ────────────────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  text-decoration: none;
+}
+
+.btn--primary {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.btn--outline {
+  background: transparent;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.btn--outline:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.btn--success {
+  background: #16a34a;
+  color: #fff;
+  border-color: #16a34a;
+}
+
+.btn--success:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Tablette ───────────────────────────────────────────────────────────────── */
+
+@media (min-width: 768px) {
+  .admin-maintenance {
+    padding: 1.5rem;
+  }
+
+  .admin-maintenance__header h1 {
+    font-size: 1.75rem;
+  }
+
+  .maintenance-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .anomaly-tables {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ── Desktop ────────────────────────────────────────────────────────────────── */
+
+@media (min-width: 1024px) {
+  .admin-maintenance {
+    padding: 2rem;
+  }
+}

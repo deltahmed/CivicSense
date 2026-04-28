@@ -51,3 +51,17 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.pseudo
+
+
+class LoginHistory(models.Model):
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='login_history',
+    )
+    logged_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-logged_at']
+        verbose_name = 'historique de connexion'
+        verbose_name_plural = 'historiques de connexion'

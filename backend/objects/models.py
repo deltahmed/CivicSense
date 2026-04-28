@@ -1,6 +1,20 @@
 from django.db import models
 
 
+class Category(models.Model):
+    nom = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    icone = models.CharField(max_length=50, blank=True, help_text="Nom d'icône (ex: 'lightbulb')")
+
+    class Meta:
+        verbose_name = 'catégorie'
+        verbose_name_plural = 'catégories'
+        ordering = ['nom']
+
+    def __str__(self):
+        return self.nom
+
+
 STATUT_CHOICES = [
     ('actif', 'Actif'),
     ('inactif', 'Inactif'),
@@ -21,7 +35,14 @@ class ConnectedObject(models.Model):
     nom = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     marque = models.CharField(max_length=100, blank=True)
-    type_objet = models.CharField(max_length=100)
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        related_name='objects',
+        null=True,
+        blank=True,
+        verbose_name='catégorie'
+    )
     zone = models.CharField(max_length=100)
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='actif')
 

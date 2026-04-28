@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py makemigrations users)",
+      "Bash(python -c \"import django; print\\(django.__version__\\)\")",
+      "Bash(pip show *)",
+      "Read(//h/CYTECHDATA/Documents/CivicSense/**)",
+      "Bash(python -m venv venv)",
+      "Bash(python -c \"import secrets; print\\(secrets.token_urlsafe\\(50\\)\\)\")",
+      "Bash(venv/Scripts/pip install *)",
+      "Bash(venv/Scripts/python manage.py check)",
+      "Bash(venv/Scripts/python manage.py makemigrations users)",
+      "Bash(PYTHONUTF8=1 venv/Scripts/python manage.py makemigrations users)",
+      "PowerShell(psql --version 2>&1)",
+      "PowerShell($env:PGDATA)",
+      "Bash(bash setup.sh)"
+    ]
+  }
+}
