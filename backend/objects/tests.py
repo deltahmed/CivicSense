@@ -334,3 +334,54 @@ class ObjectHistoryViewTest(APITestCase):
         self.client.force_authenticate(self.verified)
         r = self.client.get(f'/api/objects/{obj2.pk}/history/')
         self.assertEqual(r.data['data'], [])
+
+
+# ── API — GET /api/objects/alerts/ ───────────────────────────────────────────
+
+class ObjectAlertsViewTest(APITestCase):
+    URL = '/api/objects/alerts/'
+
+    @classmethod
+    def setUpTestData(cls):
+        ConnectedObject.objects.all().delete()
+        HistoriqueConso.objects.all().delete()
+
+        cls.verified = make_user(email='alert@x.com', verified=True)
+        now = timezone.now()
+        
+        # Obj 1: Efficace (score = 1.0) & Récent
+        cls.obj_efficace = make_object(unique_id='O1', nom='Efficace')
+        ConnectedObject.objects.filter(pk=cls.obj_efficace.pk).update(derniere_interaction=now - datetime.timedelta(days=2))
+        HistoriqueConso.objects.create(objet=cls.obj_efficace, date=now - datetime.timedelta(days=5), valeur=1.0)
+
+        # Obj 2: A surveiller (score = 0.2)
+        cls.obj_surveiller = make_object(unique_id='O2', nom='Surveiller')
+        ConnectedObject.objects.filter(pk=cls.obj_surveiller.pk).update(derniere_interaction=now - datetime.timedelta(days=2))
+        HistoriqueConso.objects.create(objet=cls.obj_surveiller, date=now - datetime.timedelta(days=5), valeur=5.0)
+
+        # Obj 3: Inefficace (score = 0.05) & Maintenance (vieux)
+        cls.obj_inefficace = make_object(unique_id='O3', nom='Inefficace')
+        # QuerySet.update() bypasse auto_now=True pour simuler une ancienne interaction
+        ConnectedObject.objects.filter(pk=cls.obj_inefficace.pk).update(derniere_interaction=now - datetime.timedelta(days=10))
+        HistoriqueConso.objects.create(objet=cls.obj_inefficace, date=now - datetime.timedelta(days=5), valeur=20.0)
+
+        # Obj 4: Zero conso (score = 0 -> inefficace)
+        cls.obj_zero = make_object(unique_id='O4', nom='Zero')
+        ConnectedObject.objects.filter(pk=cls.obj_zero.pk).update(derniere_interaction=now - datetime.timedelta(days=2))
+
+    def test_get_alerts(self):
+        self.client.force_authenticate(self.verified)
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 200)
+        
+        data = {item['unique_id']: item for item in r.data['data']}
+        
+        self.assertEqual(data['O1']['efficacite'], 'efficace')
+        self.assertFalse(data['O1']['maintenance_conseillee'])
+        
+        self.assertEqual(data['O2']['efficacite'], 'à surveiller')
+        self.assertEqual(data['O3']['efficacite'], 'inefficace')
+        self.assertTrue(data['O3']['maintenance_conseillee'])
+        
+        # Sécurité test "Division par zero"
+        self.assertEqual(data['O4']['score'], 0.0)
