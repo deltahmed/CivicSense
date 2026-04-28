@@ -5,6 +5,7 @@ import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import AdminUsersPage from './pages/AdminUsersPage'
 import AdminMaintenancePage from './pages/AdminMaintenancePage'
+import PublicStatsPage from './pages/PublicStatsPage'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -23,6 +24,8 @@ function ExpertRoute({ children }) {
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<PublicStatsPage />} />
+      <Route path="/public/stats" element={<PublicStatsPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route

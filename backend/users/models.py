@@ -1,4 +1,3 @@
-import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -18,8 +17,8 @@ GENRE_CHOICES = [
 
 TYPE_MEMBRE_CHOICES = [
     ('resident', 'Résident'),
-    ('gardien', 'Gardien'),
-    ('gestionnaire', 'Gestionnaire'),
+    ('referent', 'Référent'),
+    ('syndic', 'Syndic'),
 ]
 
 
@@ -35,7 +34,7 @@ class CustomUser(AbstractUser):
     # Private / auth
     email = models.EmailField(unique=True)
     is_verified = models.BooleanField(default=False)
-    verification_token = models.UUIDField(default=uuid.uuid4, editable=False)
+    verification_token = models.CharField(max_length=64, blank=True, default='')
 
     # Gamification
     points = models.FloatField(default=0.0)
