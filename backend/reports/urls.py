@@ -1,7 +1,6 @@
 from django.urls import path
-from .views import ExportObjectsCSV, ExportObjectsPDF
+from .views import UsageReportView
 
 urlpatterns = [
-    path('objects/csv/', ExportObjectsCSV.as_view(), name='export-objects-csv'),
-    path('objects/pdf/', ExportObjectsPDF.as_view(), name='export-objects-pdf'),
+    path('usage/', UsageReportView.as_view(), name='reports-usage'),
 ]

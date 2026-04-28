@@ -304,6 +304,21 @@ class ObjectHistoryViewTest(APITestCase):
         self.assertEqual(len(r.data['data']), 1)
         self.assertAlmostEqual(r.data['data'][0]['valeur'], 12.5)
 
+    def test_returns_history_with_period_filter(self):
+        self.client.force_authenticate(self.verified)
+        # Créer une entrée hors de la période de 7 jours
+        HistoriqueConso.objects.create(
+            objet=self.obj, date=timezone.now() - datetime.timedelta(days=10), valeur=20.0
+        )
+        # Test sans filtre (par défaut 30 jours, donc 2 entrées)
+        r_30d = self.client.get(self.url())
+        self.assertEqual(len(r_30d.data['data']), 2)
+        
+        # Test avec filtre 7 jours (1 seule entrée)
+        r_7d = self.client.get(self.url() + '?period=7d')
+        self.assertEqual(len(r_7d.data['data']), 1)
+        self.assertAlmostEqual(r_7d.data['data'][0]['valeur'], 12.5)
+
     def test_unauthenticated_returns_401(self):
         r = self.client.get(self.url())
         self.assertEqual(r.status_code, 401)

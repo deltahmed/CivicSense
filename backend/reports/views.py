@@ -1,57 +1,76 @@
-import csv
-from io import BytesIO
-
-from django.http import HttpResponse
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import Sum, Avg, Count, Q
+from django.utils import timezone
+from datetime import timedelta
+from objects.models import ConnectedObject
 
-from users.permissions import IsAvance
-from objects.models import ConnectedObject, HistoriqueConso
-
-
-class ExportObjectsCSV(APIView):
-    permission_classes = [IsAuthenticated, IsAvance]
-
-    def get(self, request):
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment; filename="objets.csv"'
-        writer = csv.writer(response)
-        writer.writerow(['ID', 'Nom', 'Zone', 'Type', 'Statut', 'Consommation (kWh)'])
-        for obj in ConnectedObject.objects.all():
-            category = obj.category.nom if obj.category else 'N/A'
-            writer.writerow([obj.unique_id, obj.nom, obj.zone, category, obj.statut, obj.consommation_kwh])
-        return response
-
-
-class ExportObjectsPDF(APIView):
-    permission_classes = [IsAuthenticated, IsAvance]
+class UsageReportView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        buffer = BytesIO()
-        p = canvas.Canvas(buffer, pagesize=A4)
-        width, height = A4
-        p.setTitle('Rapport objets connectés — CivicSense')
-        p.setFont('Helvetica-Bold', 16)
-        p.drawString(50, height - 60, 'Objets connectés — CivicSense')
-        p.setFont('Helvetica', 10)
-        y = height - 100
-        headers = ['Nom', 'Zone', 'Type', 'Statut', 'kWh']
-        x_positions = [50, 180, 280, 380, 470]
-        for i, h in enumerate(headers):
-            p.drawString(x_positions[i], y, h)
-        y -= 20
-        for obj in ConnectedObject.objects.all():
-            if y < 60:
-                p.showPage()
-                y = height - 60
-            category = obj.category.nom if obj.category else 'N/A'
-            row = [obj.nom, obj.zone, category, obj.statut, str(obj.consommation_kwh)]
-            for i, cell in enumerate(row):
-                p.drawString(x_positions[i], y, cell[:20])
-            y -= 16
-        p.save()
-        buffer.seek(0)
-        return HttpResponse(buffer, content_type='application/pdf',
-                            headers={'Content-Disposition': 'attachment; filename="objets.pdf"'})
+        if not request.user.is_verified:
+            return Response({'success': False, 'message': 'Non vérifié'}, status=403)
+
+        period = request.query_params.get('period', '30d')
+        zone = request.query_params.get('zone', None)
+        
+        days = 30
+        if period == '7d':
+            days = 7
+        elif period == '90d':
+            days = 90
+            
+        start_date = timezone.now() - timedelta(days=days)
+        
+        qs = ConnectedObject.objects.all()
+        if zone:
+            qs = qs.filter(zone__icontains=zone)
+            
+        qs = qs.annotate(
+            total_conso=Sum('historique_conso__valeur', filter=Q(historique_conso__date__gte=start_date)),
+            avg_conso=Avg('historique_conso__valeur', filter=Q(historique_conso__date__gte=start_date)),
+            interactions=Count('incidents', distinct=True)
+        )
+        
+        zones_data = {}
+        objects_data = []
+        total_residence = 0.0
+        
+        for obj in qs:
+            conso = obj.total_conso or 0.0
+            total_residence += conso
+            
+            if obj.zone not in zones_data:
+                zones_data[obj.zone] = 0.0
+            zones_data[obj.zone] += conso
+            
+            objects_data.append({
+                'id': obj.id,
+                'nom': obj.nom,
+                'zone': obj.zone,
+                'type_objet': obj.type_objet,
+                'total_conso': conso,
+                'avg_conso': obj.avg_conso or 0.0,
+                'interactions': obj.interactions
+            })
+            
+        top_3 = sorted(objects_data, key=lambda x: x['total_conso'], reverse=True)[:3]
+        
+        types_distribution = {}
+        for obj in objects_data:
+            t = obj['type_objet']
+            types_distribution[t] = types_distribution.get(t, 0) + 1
+            
+        types_chart_data = [{'name': k, 'value': v} for k, v in types_distribution.items()]
+            
+        return Response({
+            'success': True,
+            'period': period,
+            'total_residence': total_residence,
+            'zones_data': [{'zone': k, 'total': v} for k, v in zones_data.items()],
+            'top_3_objects': top_3,
+            'objects_data': objects_data,
+            'types_distribution': types_chart_data
+        })
