@@ -99,5 +99,6 @@ class VerifyEmailView(APIView):
         except CustomUser.DoesNotExist:
             return Response({'success': False, 'message': 'Token invalide.'}, status=404)
         user.is_verified = True
-        user.save(update_fields=['is_verified'])
+        user.verification_token = ''
+        user.save(update_fields=['is_verified', 'verification_token'])
         return Response({'success': True, 'message': 'Email vérifié.'})
