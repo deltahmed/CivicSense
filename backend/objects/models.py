@@ -15,6 +15,15 @@ class Category(models.Model):
         return self.nom
 
 
+TYPE_OBJET_CHOICES = [
+    ('thermostat', 'Thermostat'),
+    ('camera', 'Caméra'),
+    ('compteur', 'Compteur'),
+    ('eclairage', 'Éclairage'),
+    ('capteur', 'Capteur'),
+    ('prise', 'Prise'),
+]
+
 STATUT_CHOICES = [
     ('actif', 'Actif'),
     ('inactif', 'Inactif'),
@@ -29,33 +38,45 @@ CONNECTIVITE_CHOICES = [
     ('ethernet', 'Ethernet'),
 ]
 
+SIGNAL_FORCE_CHOICES = [
+    ('fort', 'Fort'),
+    ('moyen', 'Moyen'),
+    ('faible', 'Faible'),
+]
+
+MODE_CHOICES = [
+    ('automatique', 'Automatique'),
+    ('manuel', 'Manuel'),
+]
+
 
 class ConnectedObject(models.Model):
     unique_id = models.CharField(max_length=100, unique=True)
     nom = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     marque = models.CharField(max_length=100, blank=True)
+    type_objet = models.CharField(max_length=20, choices=TYPE_OBJET_CHOICES, default='capteur')
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
         related_name='connected_objects',
         null=True,
         blank=True,
-        verbose_name='catégorie'
+        verbose_name='catégorie',
     )
     zone = models.CharField(max_length=100)
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='actif')
 
     connectivite = models.CharField(max_length=20, choices=CONNECTIVITE_CHOICES, default='wifi')
-    signal_force = models.SmallIntegerField(default=0, help_text='dBm')
-    derniere_interaction = models.DateTimeField(null=True, blank=True)
+    signal_force = models.CharField(max_length=10, choices=SIGNAL_FORCE_CHOICES, default='moyen')
+    derniere_interaction = models.DateTimeField(auto_now=True)
 
     consommation_kwh = models.FloatField(default=0.0)
-    batterie = models.SmallIntegerField(null=True, blank=True, help_text='%')
+    batterie = models.IntegerField(default=100)
 
     valeur_actuelle = models.JSONField(default=dict)
-    valeur_cible = models.JSONField(default=dict)
-    mode = models.CharField(max_length=50, blank=True)
+    valeur_cible = models.JSONField(null=True, blank=True)
+    mode = models.CharField(max_length=20, choices=MODE_CHOICES, default='automatique')
     attributs_specifiques = models.JSONField(default=dict)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -71,10 +92,10 @@ class ConnectedObject(models.Model):
 
 class HistoriqueConso(models.Model):
     objet = models.ForeignKey(ConnectedObject, on_delete=models.CASCADE, related_name='historique_conso')
-    date = models.DateField()
+    date = models.DateTimeField()
     valeur = models.FloatField()
 
     class Meta:
-        unique_together = ('objet', 'date')
         ordering = ['-date']
         verbose_name = 'historique de consommation'
+        verbose_name_plural = 'historiques de consommation'
