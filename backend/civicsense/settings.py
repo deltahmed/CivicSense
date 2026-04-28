@@ -140,6 +140,13 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@civicsense.local')
+EMAIL_TIMEOUT = 10
+EMAIL_SSL_CERTFILE = None
+EMAIL_SSL_KEYFILE = None
+
+# Anti-spam headers
+EMAIL_USE_LOCALTIME = False
+SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'server@civicsense.local')
 
 # Cache
 CACHES = {

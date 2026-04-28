@@ -16,6 +16,8 @@ from .serializers import (
     AdminSetLevelSerializer,
     AdminSetPointsSerializer,
 )
+from django.urls import reverse
+from utils.email_utils import send_verification_email
 from .utils import add_points, check_level_up
 
 
@@ -47,7 +49,14 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({'success': False, 'errors': serializer.errors}, status=400)
-        serializer.save()
+        user = serializer.save()
+        # Build absolute verification URL and send email
+        try:
+            verify_path = reverse('verify-email', args=[user.verification_token])
+            verification_url = request.build_absolute_uri(verify_path)
+        except Exception:
+            verification_url = None
+        send_verification_email(user.email, user.verification_token, verification_url)
         return Response({'success': True, 'message': 'Inscription réussie. Vérifiez votre email.'}, status=201)
 
 
