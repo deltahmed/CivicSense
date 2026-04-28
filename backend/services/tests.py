@@ -26,19 +26,20 @@ def make_service(nom='Service A', categorie='Energie', niveau_requis='debutant')
 class ServiceListViewTest(APITestCase):
     URL = '/api/services/'
 
-    def setUp(self):
-        self.debutant = make_user(verified=True)
-        self.avance = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.debutant = make_user(verified=True)
+        cls.avance = make_user(
             email='av@example.com', username='avance', pseudo='Avance',
             verified=True, level='avance',
         )
-        self.unverified = make_user(
+        cls.unverified = make_user(
             email='nv@example.com', username='nv', pseudo='NV',
         )
-        self.s_debutant = make_service(nom='Basique', niveau_requis='debutant')
-        self.s_intermediaire = make_service(nom='Intermédiaire', niveau_requis='intermediaire')
-        self.s_avance = make_service(nom='Avancé', niveau_requis='avance')
-        self.s_expert = make_service(nom='Expert', niveau_requis='expert')
+        cls.s_debutant = make_service(nom='Basique', niveau_requis='debutant')
+        cls.s_intermediaire = make_service(nom='Intermédiaire', niveau_requis='intermediaire')
+        cls.s_avance = make_service(nom='Avancé', niveau_requis='avance')
+        cls.s_expert = make_service(nom='Expert', niveau_requis='expert')
 
     def test_debutant_sees_only_debutant_services(self):
         self.client.force_authenticate(self.debutant)
@@ -79,14 +80,15 @@ class ServiceListViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class ServiceDetailViewTest(APITestCase):
-    def setUp(self):
-        self.debutant = make_user(verified=True)
-        self.avance = make_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.debutant = make_user(verified=True)
+        cls.avance = make_user(
             email='av@example.com', username='avance', pseudo='Avance',
             verified=True, level='avance',
         )
-        self.s_debutant = make_service(nom='Basique', niveau_requis='debutant')
-        self.s_avance = make_service(nom='Avancé', niveau_requis='avance')
+        cls.s_debutant = make_service(nom='Basique', niveau_requis='debutant')
+        cls.s_avance = make_service(nom='Avancé', niveau_requis='avance')
 
     def url(self, pk):
         return f'/api/services/{pk}/'
