@@ -1,7 +1,6 @@
 from rest_framework.test import APITestCase
 from users.models import CustomUser
-from .models import Incident, HistoriqueStatut
-from objects.models import ConnectedObject
+from .models import Incident, HistoriqueStatutIncident
 
 
 def make_user(email='u@example.com', username='user1', pseudo='Pseudo1',
@@ -50,7 +49,7 @@ class IncidentListViewTest(APITestCase):
 
     def test_get_returns_all_incidents(self):
         make_incident(self.verified)
-        make_incident(self.verified, type_incident='anomalie')
+        make_incident(self.verified, type_incident='fuite')
         self.client.force_authenticate(self.verified)
         r = self.client.get(self.URL)
         self.assertEqual(len(r.data['data']), 2)
@@ -68,10 +67,7 @@ class IncidentListViewTest(APITestCase):
 
     def test_post_verified_creates_incident(self):
         self.client.force_authenticate(self.verified)
-        r = self.client.post(self.URL, {
-            'type_incident': 'panne',
-            'description': 'Lampe éteinte',
-        })
+        r = self.client.post(self.URL, {'type_incident': 'panne', 'description': 'Lampe éteinte'})
         self.assertEqual(r.status_code, 201)
         self.assertTrue(r.data['success'])
         self.assertTrue(Incident.objects.filter(auteur=self.verified).exists())
@@ -87,6 +83,11 @@ class IncidentListViewTest(APITestCase):
         self.client.post(self.URL, {'type_incident': 'panne', 'description': 'X'})
         incident = Incident.objects.get(auteur=self.verified)
         self.assertEqual(incident.statut, 'signale')
+
+    def test_post_type_fuite_accepted(self):
+        self.client.force_authenticate(self.verified)
+        r = self.client.post(self.URL, {'type_incident': 'fuite', 'description': 'Fuite eau'})
+        self.assertEqual(r.status_code, 201)
 
     def test_post_invalid_type_returns_400(self):
         self.client.force_authenticate(self.verified)
@@ -136,11 +137,21 @@ class IncidentDetailViewTest(APITestCase):
     def test_patch_creates_historique_entry(self):
         self.client.force_authenticate(self.avance)
         self.client.patch(self.url(), {'statut': 'resolu'})
-        histo = HistoriqueStatut.objects.filter(incident=self.incident).first()
+        histo = HistoriqueStatutIncident.objects.filter(incident=self.incident).first()
         self.assertIsNotNone(histo)
-        self.assertEqual(histo.ancien_statut, 'signale')
-        self.assertEqual(histo.nouveau_statut, 'resolu')
-        self.assertEqual(histo.modifie_par, self.avance)
+        self.assertEqual(histo.statut, 'resolu')
+
+    def test_patch_with_commentaire_saves_it(self):
+        self.client.force_authenticate(self.avance)
+        self.client.patch(self.url(), {'statut': 'pris_en_charge', 'commentaire': 'Pris en compte'})
+        histo = HistoriqueStatutIncident.objects.filter(incident=self.incident).first()
+        self.assertEqual(histo.commentaire, 'Pris en compte')
+
+    def test_patch_without_commentaire_stores_empty(self):
+        self.client.force_authenticate(self.avance)
+        self.client.patch(self.url(), {'statut': 'en_cours'})
+        histo = HistoriqueStatutIncident.objects.filter(incident=self.incident).first()
+        self.assertEqual(histo.commentaire, '')
 
     def test_patch_invalid_statut_returns_400(self):
         self.client.force_authenticate(self.avance)
@@ -163,11 +174,9 @@ class IncidentDetailViewTest(APITestCase):
         r = self.client.patch(self.url(), {'statut': 'resolu'})
         self.assertEqual(r.status_code, 401)
 
-    def test_patch_records_correct_ancien_statut(self):
-        # Enchaîner deux changements, vérifier que l'historique trace bien l'état précédent
+    def test_multiple_patches_create_multiple_historique_entries(self):
         self.client.force_authenticate(self.avance)
         self.client.patch(self.url(), {'statut': 'pris_en_charge'})
         self.client.patch(self.url(), {'statut': 'resolu'})
-        entries = list(HistoriqueStatut.objects.filter(incident=self.incident).order_by('date'))
-        self.assertEqual(entries[0].ancien_statut, 'signale')
-        self.assertEqual(entries[1].ancien_statut, 'pris_en_charge')
+        count = HistoriqueStatutIncident.objects.filter(incident=self.incident).count()
+        self.assertEqual(count, 2)

@@ -1,7 +1,8 @@
 from django.core.cache import cache
 from rest_framework.test import APITestCase
 from users.models import CustomUser
-from .models import Announcement
+from objects.models import ConnectedObject
+from .models import Announcement, DeletionRequest
 
 
 def make_user(email='u@example.com', username='user1', pseudo='Pseudo1',
@@ -20,6 +21,10 @@ def make_announcement(auteur, titre='Info', contenu='Contenu', visible=True):
     return Announcement.objects.create(
         auteur=auteur, titre=titre, contenu=contenu, visible=visible
     )
+
+
+def make_object(unique_id='OBJ-001', nom='Lampadaire', zone='Rue A', **kwargs):
+    return ConnectedObject.objects.create(unique_id=unique_id, nom=nom, zone=zone, **kwargs)
 
 
 # ---------------------------------------------------------------------------
@@ -174,4 +179,59 @@ class AnnouncementDetailViewTest(APITestCase):
 
     def test_delete_unauthenticated_returns_401(self):
         r = self.client.delete(self.url())
+        self.assertEqual(r.status_code, 401)
+
+
+# ---------------------------------------------------------------------------
+# POST /api/announcements/deletion-requests/
+# ---------------------------------------------------------------------------
+
+class DeletionRequestViewTest(APITestCase):
+    URL = '/api/announcements/deletion-requests/'
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.avance = make_user(
+            email='av@example.com', username='avance', pseudo='Avance',
+            verified=True, level='avance',
+        )
+        cls.verified = make_user(verified=True)
+        cls.obj = make_object()
+
+    def test_avance_creates_request(self):
+        self.client.force_authenticate(self.avance)
+        r = self.client.post(self.URL, {'objet': self.obj.pk, 'motif': 'Obsolète'})
+        self.assertEqual(r.status_code, 201)
+        self.assertTrue(r.data['success'])
+        self.assertTrue(DeletionRequest.objects.filter(demandeur=self.avance).exists())
+
+    def test_statut_defaults_to_en_attente(self):
+        self.client.force_authenticate(self.avance)
+        self.client.post(self.URL, {'objet': self.obj.pk, 'motif': 'Obsolète'})
+        dr = DeletionRequest.objects.get(demandeur=self.avance)
+        self.assertEqual(dr.statut, 'en_attente')
+
+    def test_response_contains_objet_nom(self):
+        self.client.force_authenticate(self.avance)
+        r = self.client.post(self.URL, {'objet': self.obj.pk, 'motif': 'X'})
+        self.assertEqual(r.data['data']['objet_nom'], self.obj.nom)
+
+    def test_verified_not_avance_returns_403(self):
+        self.client.force_authenticate(self.verified)
+        r = self.client.post(self.URL, {'objet': self.obj.pk, 'motif': 'X'})
+        self.assertEqual(r.status_code, 403)
+
+    def test_missing_motif_returns_400(self):
+        self.client.force_authenticate(self.avance)
+        r = self.client.post(self.URL, {'objet': self.obj.pk})
+        self.assertEqual(r.status_code, 400)
+        self.assertFalse(r.data['success'])
+
+    def test_invalid_objet_returns_400(self):
+        self.client.force_authenticate(self.avance)
+        r = self.client.post(self.URL, {'objet': 9999, 'motif': 'X'})
+        self.assertEqual(r.status_code, 400)
+
+    def test_unauthenticated_returns_401(self):
+        r = self.client.post(self.URL, {'objet': self.obj.pk, 'motif': 'X'})
         self.assertEqual(r.status_code, 401)

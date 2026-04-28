@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from users.permissions import IsVerified, IsAvance
-from .models import Incident, HistoriqueStatut
+from .models import Incident, HistoriqueStatutIncident
 from .serializers import IncidentSerializer, StatutUpdateSerializer
 
 
@@ -38,14 +38,12 @@ class IncidentDetailView(APIView):
         serializer = StatutUpdateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({'success': False, 'errors': serializer.errors}, status=400)
-        ancien = incident.statut
         nouveau = serializer.validated_data['statut']
         incident.statut = nouveau
         incident.save(update_fields=['statut'])
-        HistoriqueStatut.objects.create(
+        HistoriqueStatutIncident.objects.create(
             incident=incident,
-            ancien_statut=ancien,
-            nouveau_statut=nouveau,
-            modifie_par=request.user,
+            statut=nouveau,
+            commentaire=serializer.validated_data.get('commentaire', ''),
         )
         return Response({'success': True, 'data': IncidentSerializer(incident).data})

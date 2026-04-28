@@ -4,9 +4,9 @@ from rest_framework.views import APIView
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 
-from users.permissions import IsVerified, IsExpert
-from .models import Announcement
-from .serializers import AnnouncementSerializer
+from users.permissions import IsVerified, IsExpert, IsAvance
+from .models import Announcement, DeletionRequest
+from .serializers import AnnouncementSerializer, DeletionRequestSerializer
 
 
 @method_decorator(cache_page(60 * 15), name='get')
@@ -50,3 +50,14 @@ class AnnouncementDetailView(APIView):
             return Response({'success': False, 'message': 'Annonce introuvable.'}, status=404)
         ann.delete()
         return Response({'success': True, 'message': 'Annonce supprimée.'})
+
+
+class DeletionRequestView(APIView):
+    permission_classes = [IsAuthenticated, IsAvance]
+
+    def post(self, request):
+        serializer = DeletionRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'success': False, 'errors': serializer.errors}, status=400)
+        serializer.save(demandeur=request.user)
+        return Response({'success': True, 'data': serializer.data}, status=201)
