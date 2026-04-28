@@ -11,82 +11,213 @@ Plateforme web IoT pour la gestion d'une résidence intelligente — projet acad
 
 ---
 
-## Lancer en local
+## Lancer en local (Windows)
 
 ### Prérequis
 
-- Python 3.11+
-- Node.js 18+
-- PostgreSQL 15+ (doit tourner en arrière-plan)
+- **Python 3.11+** — [python.org](https://www.python.org/downloads/) — cocher "Add Python to PATH" à l'installation
+- **Node.js 18+** — [nodejs.org](https://nodejs.org/)
+- **PostgreSQL 15+** — [postgresql.org](https://www.postgresql.org/download/windows/) — noter le mot de passe du compte `postgres`
 
 ---
 
-### 1. Setup initial (une seule fois)
+### 1. Setup automatique (une seule fois)
 
-Ce script crée la BDD, le venv, installe les dépendances, lance les migrations et crée un compte admin :
-
-```bash
-bash setup.sh
+```powershell
+powershell -ExecutionPolicy Bypass -File setup.ps1
 ```
 
-> Le script demande le mot de passe sudo pour créer la BDD PostgreSQL.
-> Compte admin créé : `admin@civicsense.local` / `admin1234`
+Le script fait tout : BDD, venv, dépendances, `.env`, migrations, compte admin.
+Compte créé : `admin@civicsense.local` / `admin1234`
 
 ---
 
-### 2. Lancer le backend
+### Détail des étapes manuelles (si le script échoue)
 
-```bash
+#### 1. Créer la base de données PostgreSQL (une seule fois)
+
+Ouvrir **SQL Shell (psql)** depuis le menu Démarrer et exécuter :
+
+```sql
+CREATE DATABASE civicsense;
+\q
+```
+
+---
+
+### 2. Configurer les variables d'environnement (une seule fois)
+
+```powershell
 cd backend
-source venv/bin/activate
+copy .env.example .env
+```
+
+Ouvrir `.env` et remplir au minimum :
+
+```
+SECRET_KEY=une-chaine-aleatoire-longue-ici
+DB_PASSWORD=ton_mot_de_passe_postgres
+```
+
+> `SECRET_KEY` est obligatoire — Django refuse de démarrer sans elle.  
+> Générer une clé : `python -c "import secrets; print(secrets.token_hex(50))"`
+
+---
+
+### 3. Créer le venv et installer les dépendances (une seule fois)
+
+```powershell
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+> Le venv est activé quand le prompt affiche `(venv)` en préfixe.
+
+---
+
+### 4. Appliquer les migrations (une seule fois, puis à chaque modif de modèle)
+
+```powershell
+python manage.py migrate
+```
+
+---
+
+### 5. Créer un compte admin (une seule fois)
+
+```powershell
+python manage.py createsuperuser
+```
+
+Ou créer un utilisateur vérifié directement via le shell Django :
+
+```powershell
+python manage.py shell
+```
+
+```python
+from users.models import CustomUser
+u = CustomUser.objects.create_user(
+    email='admin@civicsense.local',
+    username='admin',
+    pseudo='Admin',
+    password='admin1234',
+    is_verified=True,
+)
+u.level = 'expert'
+u.save()
+exit()
+```
+
+---
+
+### 6. Lancer le backend
+
+```powershell
+cd backend
+venv\Scripts\activate
 python manage.py runserver
 ```
 
-
-API disponible sur : `http://localhost:8000`  
-Interface admin : `http://localhost:8000/admin/`
+- API : `http://localhost:8000`
+- Admin Django : `http://localhost:8000/admin/`
+- API navigable DRF : `http://localhost:8000/api/users/`
 
 ---
 
-### 3. Lancer le frontend (dans un autre terminal)
+### 7. Lancer le frontend (dans un autre terminal)
 
-```bash
+```powershell
 cd frontend
-npm install   # une seule fois
+npm install
 npm run dev
 ```
 
-Frontend disponible sur : `http://localhost:5173`
+Frontend : `http://localhost:5173`
 
-> Le proxy Vite redirige automatiquement `/api` → `http://localhost:8000`.
-> Les cookies httpOnly passent sans problème CORS.
+> Le proxy Vite redirige `/api` → `http://localhost:8000`. Les cookies httpOnly fonctionnent sans configuration CORS supplémentaire.
 
 ---
 
 ### Relancer après un redémarrage
 
-```bash
+```powershell
 # Terminal 1 — backend
-cd backend && source venv/bin/activate && python manage.py runserver
+cd backend ; venv\Scripts\activate ; python manage.py runserver
 
 # Terminal 2 — frontend
-cd frontend && npm run dev
+cd frontend ; npm run dev
+```
+
+---
+
+### Tester les routes avec curl (PowerShell)
+
+#### Inscription
+
+```powershell
+curl.exe -X POST http://localhost:8000/api/users/register/ `
+  -H "Content-Type: application/json" `
+  -d '{"email":"test@example.com","username":"testuser","pseudo":"TestUser","password":"StrongPass1","type_membre":"resident"}'
+```
+
+#### Connexion (stocke les cookies JWT)
+
+```powershell
+curl.exe -X POST http://localhost:8000/api/users/login/ `
+  -H "Content-Type: application/json" `
+  -c cookies.txt `
+  -d '{"email":"admin@civicsense.local","password":"admin1234"}'
+```
+
+#### Profil connecté (utilise les cookies)
+
+```powershell
+curl.exe http://localhost:8000/api/users/me/ -b cookies.txt
+```
+
+#### Vérification email
+
+```powershell
+# Récupérer le token depuis le shell Django :
+# CustomUser.objects.get(email='test@example.com').verification_token
+curl.exe http://localhost:8000/api/users/verify/TON-TOKEN-ICI/
+```
+
+#### Déconnexion
+
+```powershell
+curl.exe -X POST http://localhost:8000/api/users/logout/ -b cookies.txt
+```
+
+> **Alternative** : utiliser [Postman](https://www.postman.com/) ou l'interface DRF navigable (`http://localhost:8000/api/`) qui gère les cookies automatiquement.
+
+---
+
+### Lancer les tests
+
+```powershell
+cd backend
+venv\Scripts\activate
+python manage.py test users --verbosity=2
 ```
 
 ---
 
 ### Commandes Django utiles
 
-```bash
-# Après avoir modifié un model (models.py)
+```powershell
+# Après avoir modifié un modèle
 python manage.py makemigrations
 python manage.py migrate
 
-# Console Python interactive avec accès aux modèles
+# Shell interactif avec accès aux modèles
 python manage.py shell
 
-# Créer un autre superuser
-python manage.py createsuperuser
+# Vérifier les migrations sans les appliquer
+python manage.py migrate --check
 ```
 
 ---

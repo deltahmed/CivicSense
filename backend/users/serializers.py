@@ -1,3 +1,4 @@
+import uuid
 from rest_framework import serializers
 from .models import CustomUser
 
@@ -12,6 +13,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = CustomUser(**{k: v for k, v in validated_data.items() if k != 'password'})
         user.set_password(validated_data['password'])
+        user.verification_token = str(uuid.uuid4())
         user.save()
         return user
 
