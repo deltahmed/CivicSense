@@ -10,6 +10,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [mouse, setMouse] = useState({ x: 50, y: 16, rx: 0, ry: 0 })
+
+  function handleMouseMove(event) {
+    const rect = event.currentTarget.getBoundingClientRect()
+    const x = ((event.clientX - rect.left) / rect.width) * 100
+    const y = ((event.clientY - rect.top) / rect.height) * 100
+    const rx = ((x - 50) / 50) * 1.1
+    const ry = ((y - 50) / 50) * -1.1
+    setMouse({ x, y, rx, ry })
+  }
+
+  function handleMouseLeave() {
+    setMouse({ x: 50, y: 16, rx: 0, ry: 0 })
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -26,14 +40,26 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="auth-page">
+    <main
+      className="auth-page"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        '--mx': `${mouse.x}%`,
+        '--my': `${mouse.y}%`,
+        '--rx': mouse.rx,
+        '--ry': mouse.ry,
+      }}
+    >
+      <div className="auth-orb auth-orb-a" aria-hidden="true" />
+      <div className="auth-orb auth-orb-b" aria-hidden="true" />
       <section className="auth-card" aria-labelledby="login-title">
         <h1 id="login-title">CivicSense</h1>
         <p className="auth-subtitle">Connectez-vous à votre résidence</p>
 
         <form onSubmit={handleSubmit} noValidate>
           {error && (
-            <p className="auth-error" role="alert" aria-live="polite">
+            <p className="auth-error" id="login-error" role="alert" aria-live="polite">
               {error}
             </p>
           )}

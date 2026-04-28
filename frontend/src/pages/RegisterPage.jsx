@@ -22,6 +22,20 @@ export default function RegisterPage() {
   const [globalError, setGlobalError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [mouse, setMouse] = useState({ x: 50, y: 16, rx: 0, ry: 0 })
+
+  function handleMouseMove(event) {
+    const rect = event.currentTarget.getBoundingClientRect()
+    const x = ((event.clientX - rect.left) / rect.width) * 100
+    const y = ((event.clientY - rect.top) / rect.height) * 100
+    const rx = ((x - 50) / 50) * 1.1
+    const ry = ((y - 50) / 50) * -1.1
+    setMouse({ x, y, rx, ry })
+  }
+
+  function handleMouseLeave() {
+    setMouse({ x: 50, y: 16, rx: 0, ry: 0 })
+  }
 
   function handleChange(e) {
     const { name, value, files, type } = e.target
@@ -103,7 +117,19 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <main className="auth-page">
+      <main
+        className="auth-page"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          '--mx': `${mouse.x}%`,
+          '--my': `${mouse.y}%`,
+          '--rx': mouse.rx,
+          '--ry': mouse.ry,
+        }}
+      >
+        <div className="auth-orb auth-orb-a" aria-hidden="true" />
+        <div className="auth-orb auth-orb-b" aria-hidden="true" />
         <section className="auth-card">
           <h1>CivicSense</h1>
           <p style={{ marginTop: '1rem' }}>Un mail vous a ete envoye</p>
@@ -114,7 +140,19 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="auth-page">
+    <main
+      className="auth-page"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        '--mx': `${mouse.x}%`,
+        '--my': `${mouse.y}%`,
+        '--rx': mouse.rx,
+        '--ry': mouse.ry,
+      }}
+    >
+      <div className="auth-orb auth-orb-a" aria-hidden="true" />
+      <div className="auth-orb auth-orb-b" aria-hidden="true" />
       <section className="auth-card" aria-labelledby="register-title">
         <h1 id="register-title">CivicSense</h1>
         <p className="auth-subtitle">Créer un compte résident</p>
@@ -215,8 +253,6 @@ export default function RegisterPage() {
               <option value="">Sélectionner</option>
               <option value="homme">Homme</option>
               <option value="femme">Femme</option>
-              <option value="autre">Autre</option>
-              <option value="nr">Non renseigné</option>
             </select>
             {fieldErrors.genre && <p id="genre-error" className="auth-error" role="alert">{fieldErrors.genre[0]}</p>}
           </div>
@@ -269,19 +305,6 @@ export default function RegisterPage() {
               <option value="gestionnaire">Gestionnaire</option>
             </select>
             {fieldErrors.type_membre && <p id="type-membre-error" className="auth-error" role="alert">{fieldErrors.type_membre[0]}</p>}
-          </div>
-
-          <div className="field">
-            <label htmlFor="photo">Photo de profil (optionnel)</label>
-            <input
-              id="photo"
-              name="photo"
-              type="file"
-              accept="image/*"
-              onChange={handleChange}
-              aria-describedby={fieldErrors.photo ? 'photo-error' : undefined}
-            />
-            {fieldErrors.photo && <p id="photo-error" className="auth-error" role="alert">{fieldErrors.photo[0]}</p>}
           </div>
 
           <button type="submit" className="btn-primary" disabled={loading}>
