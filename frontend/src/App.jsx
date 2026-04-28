@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import AdminUsersPage from './pages/AdminUsersPage'
+import AdminMaintenancePage from './pages/AdminMaintenancePage'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -29,6 +30,14 @@ export default function App() {
         element={
           <ExpertRoute>
             <AdminUsersPage />
+          </ExpertRoute>
+        }
+      />
+      <Route
+        path="/admin/maintenance"
+        element={
+          <ExpertRoute>
+            <AdminMaintenancePage />
           </ExpertRoute>
         }
       />
