@@ -881,3 +881,8 @@ class PublicSearchObjectsTestCase(APITestCase):
         self.assertNotIn('consommation_kwh', obj_data)
         self.assertNotIn('valeur_actuelle', obj_data)
         self.assertNotIn('valeur_cible', obj_data)
+
+
+
+
+
