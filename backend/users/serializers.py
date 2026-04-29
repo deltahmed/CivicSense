@@ -70,3 +70,15 @@ class AdminSetLevelSerializer(serializers.Serializer):
 
 class AdminSetPointsSerializer(serializers.Serializer):
     points = serializers.FloatField(min_value=0)
+
+
+class AdminRejectUserSerializer(serializers.Serializer):
+    motif = serializers.CharField(max_length=500, required=True)
+
+
+class PendingUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'email', 'pseudo', 'type_membre', 'date_joined')
+        read_only_fields = fields
+
