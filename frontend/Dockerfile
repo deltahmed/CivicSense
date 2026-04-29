@@ -11,9 +11,6 @@ RUN npm ci
 # Copier le code
 COPY . .
 
-# Build l'app
-RUN npm run build
-
 # Expose le port de dev server
 EXPOSE 5173
 
