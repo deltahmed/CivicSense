@@ -201,7 +201,7 @@
 
 .ol-card-meta {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   margin: 0;
 }
@@ -233,6 +233,29 @@
   text-align: right;
 }
 
+/* ── Reset filtre ── */
+
+.ol-filter-reset {
+  display: flex;
+  align-items: flex-end;
+}
+
+.btn-reset {
+  background: transparent;
+  border: 1px solid #c8d0da;
+  color: #555;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-reset:hover {
+  background: #f0f4f8;
+  border-color: #999;
+}
+
 /* ── Footer ── */
 
 .ol-footer {
@@ -261,7 +284,15 @@
 
   .ol-filter-field {
     flex: 1;
-    min-width: 180px;
+    min-width: 160px;
+  }
+
+  .ol-filter-field--wide {
+    flex: 2;
+  }
+
+  .ol-card-meta {
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .ol-grid {
