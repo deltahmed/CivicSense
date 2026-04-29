@@ -629,6 +629,185 @@ class AuthFlowTest(APITestCase):
         self.assertTrue(r.cookies['access_token']['httponly'])
 
 
+# ── GET /api/users/ - Liste publique des utilisateurs ────────────────────────
+
+class ListPublicUsersTest(APITestCase):
+    """Tests pour la liste des profils publics des utilisateurs"""
+    
+    LIST_URL = '/api/users/'
+    
+    @classmethod
+    def setUpTestData(cls):
+        # Nettoyer la base de données pour éviter les doublons de tests précédents
+        CustomUser.objects.all().delete()
+        
+        # Créer des utilisateurs vérifiés
+        cls.debutant1 = make_user(
+            email='deb1@example.com', username='deb1', pseudo='Débutant1',
+            verified=True, type_membre='resident', level='debutant'
+        )
+        cls.debutant2 = make_user(
+            email='deb2@example.com', username='deb2', pseudo='Débutant2',
+            verified=True, type_membre='resident', level='debutant'
+        )
+        cls.avance = make_user(
+            email='av@example.com', username='avance', pseudo='Avancé',
+            verified=True, type_membre='gestionnaire', level='avance'
+        )
+        # Créer un utilisateur non-vérifié (ne doit pas apparaître)
+        cls.unverified = make_user(
+            email='unv@example.com', username='unverified', pseudo='NonVérifié',
+            verified=False, type_membre='resident'
+        )
+    
+    def test_list_requires_authentication(self):
+        """Test que la liste requiert l'authentification"""
+        r = self.client.get(self.LIST_URL)
+        self.assertEqual(r.status_code, 401)
+    
+    def test_list_requires_verification(self):
+        """Test que l'utilisateur doit être vérifié"""
+        self.client.force_authenticate(self.unverified)
+        r = self.client.get(self.LIST_URL)
+        self.assertEqual(r.status_code, 403)
+    
+    def test_list_returns_verified_users_only(self):
+        """Test que seuls les utilisateurs vérifiés sont retournés"""
+        self.client.force_authenticate(self.debutant1)
+        r = self.client.get(self.LIST_URL)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data['count'], 3)  # debutant1, debutant2, avance
+        self.assertEqual(len(r.data['data']), 3)
+    
+    def test_list_returns_count_field(self):
+        """Test que le nombre d'utilisateurs est retourné"""
+        self.client.force_authenticate(self.debutant1)
+        r = self.client.get(self.LIST_URL)
+        self.assertIn('count', r.data)
+    
+    def test_list_sorted_by_pseudo(self):
+        """Test que la liste est triée par pseudo"""
+        self.client.force_authenticate(self.debutant1)
+        r = self.client.get(self.LIST_URL)
+        pseudos = [u['pseudo'] for u in r.data['data']]
+        self.assertEqual(pseudos, sorted(pseudos))
+    
+    def test_filter_by_type_membre(self):
+        """Test le filtrage par type de membre"""
+        self.client.force_authenticate(self.debutant1)
+        r = self.client.get(f'{self.LIST_URL}?type_membre=gestionnaire')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data['count'], 1)
+        self.assertEqual(r.data['data'][0]['pseudo'], 'Avancé')
+    
+    def test_filter_by_level(self):
+        """Test le filtrage par niveau"""
+        self.client.force_authenticate(self.debutant1)
+        r = self.client.get(f'{self.LIST_URL}?level=debutant')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data['count'], 2)
+    
+    def test_filter_by_type_membre_and_level(self):
+        """Test le filtrage par type de membre ET niveau"""
+        self.client.force_authenticate(self.debutant1)
+        r = self.client.get(f'{self.LIST_URL}?type_membre=resident&level=debutant')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data['count'], 2)
+    
+    def test_filter_returns_empty_if_no_match(self):
+        """Test qu'un filtre sans correspondance retourne 0 résultats"""
+        self.client.force_authenticate(self.debutant1)
+        r = self.client.get(f'{self.LIST_URL}?level=expert')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data['count'], 0)
+    
+    def test_response_contains_public_fields_only(self):
+        """Test que seuls les champs publics sont retournés"""
+        self.client.force_authenticate(self.debutant1)
+        r = self.client.get(self.LIST_URL)
+        user_data = r.data['data'][0]
+        # Vérifier que les champs publics sont présents
+        self.assertIn('id', user_data)
+        self.assertIn('pseudo', user_data)
+        self.assertIn('level', user_data)
+        self.assertIn('type_membre', user_data)
+        self.assertIn('photo', user_data)
+        # Vérifier que les champs privés ne sont pas présents
+        self.assertNotIn('email', user_data)
+        self.assertNotIn('password', user_data)
+
+
+# ── GET /api/users/{id}/ - Profil d'un utilisateur ─────────────────────────
+
+class GetUserDetailTest(APITestCase):
+    """Tests pour récupérer le profil d'un utilisateur"""
+    
+    @classmethod
+    def setUpTestData(cls):
+        # Nettoyer la base de données pour éviter les doublons de tests précédents
+        CustomUser.objects.all().delete()
+        
+        cls.debutant = make_user(
+            email='deb@example.com', username='debutant', pseudo='Débutant',
+            verified=True, type_membre='resident', level='debutant'
+        )
+        cls.other_user = make_user(
+            email='other@example.com', username='other', pseudo='Autre',
+            verified=True, type_membre='resident', level='debutant'
+        )
+    
+    def get_url(self, pk=None):
+        return f'/api/users/{pk or self.debutant.pk}/'
+    
+    def test_requires_authentication(self):
+        """Test que l'accès requiert l'authentification"""
+        r = self.client.get(self.get_url())
+        self.assertEqual(r.status_code, 401)
+    
+    def test_returns_404_for_nonexistent_user(self):
+        """Test que les utilisateurs inexistants retournent 404"""
+        self.client.force_authenticate(self.debutant)
+        r = self.client.get(self.get_url(999))
+        self.assertEqual(r.status_code, 404)
+        self.assertFalse(r.data['success'])
+    
+    def test_returns_private_profile_for_own_user(self):
+        """Test que le profil privé est retourné pour l'utilisateur lui-même"""
+        self.client.force_authenticate(self.debutant)
+        r = self.client.get(self.get_url(self.debutant.pk))
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.data['success'])
+        # Vérifier les champs privés
+        self.assertIn('email', r.data['data'])
+        self.assertIn('username', r.data['data'])
+        self.assertIn('first_name', r.data['data'])
+    
+    def test_returns_public_profile_for_other_user(self):
+        """Test que le profil public est retourné pour les autres utilisateurs"""
+        self.client.force_authenticate(self.debutant)
+        r = self.client.get(self.get_url(self.other_user.pk))
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.data['success'])
+        # Vérifier que les champs privés ne sont pas présents
+        self.assertNotIn('email', r.data['data'])
+        self.assertNotIn('username', r.data['data'])
+        # Vérifier que les champs publics sont présents
+        self.assertIn('pseudo', r.data['data'])
+        self.assertIn('level', r.data['data'])
+    
+    def test_public_profile_contains_required_fields(self):
+        """Test que le profil public contient tous les champs requis"""
+        self.client.force_authenticate(self.debutant)
+        r = self.client.get(self.get_url(self.other_user.pk))
+        user_data = r.data['data']
+        required_fields = ['id', 'pseudo', 'level', 'type_membre', 'photo', 'age', 'genre']
+        for field in required_fields:
+            self.assertIn(field, user_data, f"Champ manquant: {field}")
+
+
+
+
+
 OBJECTS_COUNT = 11
 READINGS_PER_DAY = 4
 DAYS = 30

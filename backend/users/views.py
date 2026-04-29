@@ -1,13 +1,14 @@
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.utils import timezone
+from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import CustomUser, LoginHistory
-from .permissions import IsExpert
+from .permissions import IsExpert, IsVerified
 from .serializers import (
     RegisterSerializer,
     PublicUserSerializer,
@@ -194,13 +195,59 @@ class GetPublicUserView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
-        """Retourne le profil public d'un utilisateur"""
+        """
+        Retourne le profil d'un utilisateur
+        - PrivateUserSerializer si c'est l'utilisateur lui-même
+        - PublicUserSerializer sinon
+        """
         try:
             user = CustomUser.objects.get(pk=pk)
         except CustomUser.DoesNotExist:
             return Response({'success': False, 'message': 'Utilisateur introuvable.'}, status=404)
         
+        # Si c'est l'utilisateur lui-même, retourner le profil privé
+        if request.user.pk == pk:
+            return Response({'success': True, 'data': PrivateUserSerializer(user).data})
+        
+        # Sinon, retourner le profil public
         return Response({'success': True, 'data': PublicUserSerializer(user).data})
+
+
+class ListPublicUsersView(APIView):
+    permission_classes = [IsAuthenticated, IsVerified]
+
+    def get(self, request):
+        """
+        Liste les profils publics des utilisateurs avec filtres optionnels
+        
+        Filtres supportés:
+        - type_membre=X (filtre par type de membre)
+        - level=Y (filtre par niveau)
+        """
+        # Récupérer les filtres
+        type_membre = request.query_params.get('type_membre', '').strip()
+        level = request.query_params.get('level', '').strip()
+        
+        # Commencer avec tous les utilisateurs vérifiés
+        queryset = CustomUser.objects.filter(is_verified=True)
+        
+        # Appliquer les filtres
+        if type_membre:
+            queryset = queryset.filter(type_membre=type_membre)
+        
+        if level:
+            queryset = queryset.filter(level=level)
+        
+        # Trier par pseudo
+        queryset = queryset.order_by('pseudo')
+        
+        # Retourner les résultats
+        return Response({
+            'success': True,
+            'count': queryset.count(),
+            'data': PublicUserSerializer(queryset, many=True).data
+        })
+
 
 
 
