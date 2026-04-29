@@ -50,10 +50,25 @@ const ReportsPage = () => {
 
   if (!reportData) return <p>Chargement des rapports...</p>;
 
+  const handleExport = (format) => {
+    window.open(`/api/reports/export/?format=${format}&period=${period}`);
+  };
+
   return (
     <div className="reports-page">
       <h1>Rapports d'utilisation & Statistiques</h1>
-      
+
+      <div style={{ marginBottom: '16px', display: 'flex', gap: '10px' }}>
+        <button onClick={() => handleExport('csv')}
+          style={{ padding: '8px 18px', background: '#28a745', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+          Exporter CSV
+        </button>
+        <button onClick={() => handleExport('pdf')}
+          style={{ padding: '8px 18px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+          Exporter PDF
+        </button>
+      </div>
+
       <div className="filters" style={{ marginBottom: '20px' }}>
         <label style={{ marginRight: '15px' }}>
           Période:

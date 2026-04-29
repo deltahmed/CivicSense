@@ -9,7 +9,9 @@ from django.utils import timezone
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfgen import canvas
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from rest_framework.negotiation import DefaultContentNegotiation
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,6 +21,12 @@ from objects.models import ConnectedObject, HistoriqueConso
 from services.models import Service
 from users.models import CustomUser, LoginHistory
 from users.permissions import IsExpert, IsVerified
+
+
+class _IgnoreFormatNegotiation(DefaultContentNegotiation):
+    """Empêche DRF d'intercepter ?format= pour la négociation de contenu."""
+    def select_renderer(self, request, renderers, format_suffix=None):
+        return (renderers[0], renderers[0].media_type)
 
 
 # ── Calcul centralisé ─────────────────────────────────────────────────────────
@@ -299,3 +307,165 @@ def _table(data):
         ('PADDING', (0, 0), (-1, -1), 5),
     ]))
     return t
+
+
+# ── Export rapport utilisateur ─────────────────────────────────────────────────
+
+class ExportReportView(APIView):
+    permission_classes = [IsAuthenticated, IsVerified]
+    content_negotiation_class = _IgnoreFormatNegotiation
+
+    def get(self, request):
+        fmt = request.query_params.get('format', 'csv')
+        period = request.query_params.get('period', '30d')
+
+        days = {'7d': 7, '90d': 90}.get(period, 30)
+        start = timezone.now() - timedelta(days=days)
+        seven_days_ago = timezone.now() - timedelta(days=7)
+
+        qs = ConnectedObject.objects.annotate(
+            total_conso=Sum('historique_conso__valeur', filter=Q(historique_conso__date__gte=start)),
+            interactions_count=Count('historique_conso', filter=Q(historique_conso__date__gte=start)),
+        )
+
+        objects_data = []
+        total_residence = 0.0
+        alerts = []
+
+        for obj in qs:
+            conso = obj.total_conso or 0.0
+            total_residence += conso
+            interactions = obj.interactions_count
+            score = interactions / conso if conso > 0 else 0.0
+            is_alerte = score < 0.1 or (obj.derniere_interaction and obj.derniere_interaction < seven_days_ago)
+
+            row = {
+                'nom': obj.nom,
+                'zone': obj.zone or '-',
+                'type_objet': obj.type_objet,
+                'total_conso': conso,
+                'interactions': interactions,
+            }
+            objects_data.append(row)
+            if is_alerte:
+                alerts.append({'nom': obj.nom, 'zone': obj.zone or '-'})
+
+        incidents_map = {
+            item['statut']: item['count']
+            for item in Incident.objects.filter(created_at__gte=start).values('statut').annotate(count=Count('id'))
+        }
+        incidents_ouverts = sum(v for k, v in incidents_map.items() if k != 'resolu')
+        incidents_resolus = incidents_map.get('resolu', 0)
+
+        payload = {
+            'period': period,
+            'generated_at': timezone.now().strftime('%d/%m/%Y %H:%M'),
+            'total_residence': total_residence,
+            'objects_data': objects_data,
+            'incidents_ouverts': incidents_ouverts,
+            'incidents_resolus': incidents_resolus,
+            'alerts': alerts,
+        }
+
+        return _export_pdf(payload) if fmt == 'pdf' else _export_csv(payload)
+
+
+def _export_csv(payload):
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="rapport.csv"'
+    w = csv.writer(response)
+
+    w.writerow(['CivicSense — Rapport Consommation'])
+    w.writerow([f"Période : {payload['period']}", f"Généré le : {payload['generated_at']}"])
+    w.writerow([])
+
+    w.writerow(['Résumé'])
+    w.writerow(['Conso totale résidence (kWh)', f"{payload['total_residence']:.2f}"])
+    w.writerow(['Incidents ouverts', payload['incidents_ouverts']])
+    w.writerow(['Incidents résolus', payload['incidents_resolus']])
+    w.writerow([])
+
+    w.writerow(['Tableau des objets'])
+    w.writerow(['Nom', 'Zone', 'Type', 'Conso (kWh)', 'Interactions'])
+    for o in payload['objects_data']:
+        w.writerow([o['nom'], o['zone'], o['type_objet'], f"{o['total_conso']:.2f}", o['interactions']])
+    w.writerow([])
+
+    w.writerow(['Objets en alerte'])
+    w.writerow(['Nom', 'Zone'])
+    for a in payload['alerts']:
+        w.writerow([a['nom'], a['zone']])
+
+    return response
+
+
+def _export_pdf(payload):
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    w, h = A4
+
+    # Titre
+    c.setFont('Helvetica-Bold', 16)
+    c.drawString(50, h - 50, 'CivicSense — Rapport Consommation')
+
+    # Sous-titre
+    c.setFont('Helvetica', 10)
+    c.drawString(50, h - 70, f"Période : {payload['period']}   |   Généré le : {payload['generated_at']}")
+
+    # Résumé
+    y = h - 110
+    c.setFont('Helvetica-Bold', 11)
+    c.drawString(50, y, 'Résumé')
+    y -= 18
+    c.setFont('Helvetica', 10)
+    c.drawString(50, y, f"Consommation totale résidence : {payload['total_residence']:.2f} kWh")
+    y -= 15
+    c.drawString(50, y, f"Incidents ouverts : {payload['incidents_ouverts']}   |   Résolus : {payload['incidents_resolus']}")
+
+    # Tableau des objets
+    y -= 30
+    c.setFont('Helvetica-Bold', 11)
+    c.drawString(50, y, 'Tableau des objets')
+    y -= 18
+
+    headers = [('Nom', 50), ('Zone', 180), ('Type', 280), ('Conso (kWh)', 360), ('Interactions', 450)]
+    c.setFont('Helvetica-Bold', 9)
+    for label, x in headers:
+        c.drawString(x, y, label)
+    y -= 3
+    c.line(50, y, 540, y)
+    y -= 12
+
+    c.setFont('Helvetica', 9)
+    for obj in payload['objects_data']:
+        if y < 60:
+            c.showPage()
+            y = h - 50
+        c.drawString(50, y, obj['nom'][:22])
+        c.drawString(180, y, obj['zone'][:15])
+        c.drawString(280, y, obj['type_objet'])
+        c.drawString(360, y, f"{obj['total_conso']:.2f}")
+        c.drawString(450, y, str(obj['interactions']))
+        y -= 14
+
+    # Objets en alerte
+    y -= 20
+    if y < 100:
+        c.showPage()
+        y = h - 50
+    c.setFont('Helvetica-Bold', 11)
+    c.drawString(50, y, f"Objets en alerte ({len(payload['alerts'])})")
+    y -= 18
+    c.setFont('Helvetica', 10)
+    for a in payload['alerts']:
+        if y < 60:
+            c.showPage()
+            y = h - 50
+        c.drawString(50, y, f"- {a['nom']} ({a['zone']})")
+        y -= 14
+
+    c.save()
+    resp = HttpResponse(content_type='application/pdf')
+    resp['Content-Disposition'] = 'attachment; filename="rapport.pdf"'
+    resp.write(buf.getvalue())
+    return resp
