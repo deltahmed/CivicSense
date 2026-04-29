@@ -20,7 +20,7 @@ export default function DashboardPage() {
             {user?.level === 'expert' && (
               <>
                 <li><Link to="/admin/reports">Rapports</Link></li>
-                <li><a href="#">Administration</a></li>
+                <li><Link to="/admin/settings">Paramètres</Link></li>
               </>
             )}
           </ul>

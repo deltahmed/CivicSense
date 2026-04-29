@@ -50,8 +50,7 @@ class Command(BaseCommand):
         HistoriqueConso.objects.all().delete()
         ConnectedObject.objects.all().delete()
         Category.objects.all().delete()
-        User.objects.filter(email='admin@civicsense.fr').delete()
-        User.objects.filter(is_superuser=False).delete()
+        User.objects.all().delete()
         self.stdout.write('  Données précédentes supprimées.')
 
     # ── Seeders ──────────────────────────────────────────────────────────────

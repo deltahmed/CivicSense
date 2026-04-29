@@ -1,0 +1,441 @@
+/* ── AdminSettingsPage ─────────────────────────────────────────────────────── */
+
+.admin-settings {
+  padding: 1rem;
+  max-width: 1100px;
+}
+
+.admin-settings__header {
+  margin-bottom: 1.5rem;
+}
+
+.admin-settings__header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+/* ── Layout deux colonnes ─────────────────────────────────────────────────── */
+
+.as-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.as-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Carte ────────────────────────────────────────────────────────────────── */
+
+.as-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+.as-card h2 {
+  font-size: 1.05rem;
+  margin: 0 0 1.25rem;
+  color: #111827;
+}
+
+/* ── Champs ───────────────────────────────────────────────────────────────── */
+
+.as-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.as-field:last-child {
+  margin-bottom: 0;
+}
+
+.as-field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.as-field input[type="text"],
+.as-field textarea {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.as-field input[type="text"]:focus,
+.as-field textarea:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+  border-color: #2563eb;
+}
+
+.as-field textarea {
+  resize: vertical;
+}
+
+.as-hint {
+  font-size: 0.78rem;
+  color: #9ca3af;
+  margin: 0.25rem 0 0;
+}
+
+/* ── Couleur ──────────────────────────────────────────────────────────────── */
+
+.as-color-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.as-color-swatch {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 2px;
+  cursor: pointer;
+  background: none;
+  flex-shrink: 0;
+}
+
+.as-color-hex {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: monospace;
+  box-sizing: border-box;
+}
+
+.as-color-hex:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+  border-color: #2563eb;
+}
+
+/* ── Bannière ─────────────────────────────────────────────────────────────── */
+
+.as-banner-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.as-banner-preview img {
+  max-height: 140px;
+  max-width: 100%;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  object-fit: cover;
+}
+
+.as-file-input {
+  font-size: 0.875rem;
+  padding: 0.25rem 0;
+  color: #374151;
+}
+
+/* ── Toggle ───────────────────────────────────────────────────────────────── */
+
+.as-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.as-toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border: none;
+  border-radius: 9999px;
+  background: #d1d5db;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.as-toggle--on {
+  background: #2563eb;
+}
+
+.as-toggle__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+  display: block;
+  pointer-events: none;
+}
+
+.as-toggle--on .as-toggle__thumb {
+  transform: translateX(20px);
+}
+
+/* ── Tags input ───────────────────────────────────────────────────────────── */
+
+.as-tags-input {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  min-height: 2.5rem;
+  cursor: text;
+  background: #fff;
+}
+
+.as-tags-input:focus-within {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+  border-color: #2563eb;
+}
+
+.as-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 4px;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.as-tag__remove {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #93c5fd;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.as-tag__remove:hover {
+  color: #1d4ed8;
+}
+
+.as-tags-input__field {
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 120px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  padding: 0.15rem 0.25rem;
+  background: transparent;
+}
+
+/* ── Alertes ──────────────────────────────────────────────────────────────── */
+
+.as-alert {
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.as-alert--error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+}
+
+.as-alert--success {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+/* ── Boutons ──────────────────────────────────────────────────────────────── */
+
+.as-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  text-decoration: none;
+}
+
+.as-btn--primary {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.as-btn--primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.as-btn--outline {
+  background: transparent;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.as-btn--outline:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.as-btn--sm {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.as-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.as-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ── Statut ───────────────────────────────────────────────────────────────── */
+
+.as-status {
+  color: #6b7280;
+  font-size: 0.9rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* ── Aperçu ───────────────────────────────────────────────────────────────── */
+
+.as-preview {
+  display: none;
+}
+
+.as-preview__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin: 0 0 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.as-preview-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+}
+
+.as-preview-card__header {
+  padding: 1.5rem 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  transition: background-color 0.2s;
+}
+
+.as-preview-card__banner {
+  max-height: 70px;
+  max-width: 100%;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.as-preview-card__name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.as-preview-card__body {
+  padding: 1rem;
+  background: #fff;
+}
+
+.as-preview-card__message {
+  font-size: 0.875rem;
+  color: #374151;
+  margin: 0 0 0.875rem;
+  line-height: 1.5;
+}
+
+.as-preview-card__placeholder {
+  font-size: 0.875rem;
+  color: #d1d5db;
+  margin: 0 0 0.875rem;
+  font-style: italic;
+}
+
+.as-preview-card__badge {
+  display: inline-block;
+  border: 1.5px solid;
+  border-radius: 6px;
+  padding: 0.3rem 0.875rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+/* ── Tablette ─────────────────────────────────────────────────────────────── */
+
+@media (min-width: 768px) {
+  .admin-settings {
+    padding: 1.5rem;
+  }
+
+  .admin-settings__header h1 {
+    font-size: 1.75rem;
+  }
+}
+
+/* ── Desktop ──────────────────────────────────────────────────────────────── */
+
+@media (min-width: 1024px) {
+  .admin-settings {
+    padding: 2rem;
+  }
+
+  .as-layout {
+    grid-template-columns: 1fr 320px;
+  }
+
+  .as-preview {
+    display: block;
+    position: sticky;
+    top: 1.5rem;
+  }
+}

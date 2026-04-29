@@ -12,3 +12,9 @@ class GlobalSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = GlobalSettings
         exclude = ('id',)
+
+
+class PublicSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GlobalSettings
+        fields = ('nom_residence', 'banniere', 'couleur_theme')
