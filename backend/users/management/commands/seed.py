@@ -1,4 +1,5 @@
 import random
+import os
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
@@ -23,6 +24,17 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        # Check if seeding is enabled
+        if os.getenv('SEED_TEST_DATA', 'False').lower() != 'true' and not options['clear']:
+            self.stdout.write(self.style.WARNING('Seeding disabled (SEED_TEST_DATA=False). Set SEED_TEST_DATA=True to enable.'))
+            return
+            
+        # Check if already seeded (to avoid duplication)
+        from objects.models import Category
+        if Category.objects.count() > 0 and not options['clear']:
+            self.stdout.write(self.style.SUCCESS('✅ Database already seeded. Use --clear to re-seed.'))
+            return
+
         if options['clear']:
             self._clear()
 
@@ -34,7 +46,7 @@ class Command(BaseCommand):
         self._seed_incidents(users, objects)
         self._seed_deletion_request(users, objects)
 
-        self.stdout.write(self.style.SUCCESS('Base de données seedée avec succès.'))
+        self.stdout.write(self.style.SUCCESS('✅ Base de données seedée avec succès.'))
 
     # ── Clear ────────────────────────────────────────────────────────────────
 
