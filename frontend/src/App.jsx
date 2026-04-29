@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
+import ObjectsPage from './pages/ObjectsPage'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -15,6 +16,14 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route
+        path="/objects"
+        element={
+          <PrivateRoute>
+            <ObjectsPage />
+          </PrivateRoute>
+        }
+      />
       <Route
         path="/*"
         element={

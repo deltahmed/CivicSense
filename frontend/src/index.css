@@ -13,10 +13,12 @@
   --color-primary: #2563eb;
   --color-primary-dark: #1d4ed8;
   --color-bg: #f8fafc;
+  --color-bg-light: #f1f5f9;
   --color-surface: #ffffff;
   --color-text: #0f172a;
   --color-text-muted: #64748b;
   --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
   --color-error: #dc2626;
   --color-success: #16a34a;
   --radius: 0.5rem;

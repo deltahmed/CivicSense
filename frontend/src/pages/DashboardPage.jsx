@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import './DashboardPage.css'
 
@@ -10,8 +11,8 @@ export default function DashboardPage() {
         <span className="dashboard-brand">CivicSense</span>
         <nav aria-label="Navigation principale">
           <ul className="nav-links">
-            <li><a href="#">Accueil</a></li>
-            <li><a href="#">Objets</a></li>
+            <li><Link to="/">Accueil</Link></li>
+            <li><Link to="/objects">Objets</Link></li>
             <li><a href="#">Services</a></li>
             {['avance', 'expert'].includes(user?.level) && <li><a href="#">Gestion</a></li>}
             {user?.level === 'expert' && <li><a href="#">Administration</a></li>}
