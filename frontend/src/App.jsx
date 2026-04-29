@@ -16,6 +16,8 @@ import ObjectDetailPage from './pages/ObjectDetailPage'
 import SearchPage from './pages/SearchPage'
 import PublicUsersPage from './pages/PublicUsersPage'
 import PublicUserDetailPage from './pages/PublicUserDetailPage'
+import ServicesPage from './pages/ServicesPage'
+import ServiceDetailPage from './pages/ServiceDetailPage'
 
 const LEVEL_ORDER = ['debutant', 'intermediaire', 'avance', 'expert']
 
@@ -56,6 +58,14 @@ export default function App() {
       <Route
         path="/users/:id"
         element={<ProtectedRoute><PublicUserDetailPage /></ProtectedRoute>}
+      />
+      <Route
+        path="/services"
+        element={<ProtectedRoute><ServicesPage /></ProtectedRoute>}
+      />
+      <Route
+        path="/services/:id"
+        element={<ProtectedRoute><ServiceDetailPage /></ProtectedRoute>}
       />
       <Route
         path="/objects"
