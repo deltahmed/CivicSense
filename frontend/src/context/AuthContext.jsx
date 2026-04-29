@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../api'
 
 const AuthContext = createContext(null)
@@ -6,6 +7,7 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
     api.get('/auth/me/')
@@ -23,6 +25,7 @@ export function AuthProvider({ children }) {
   async function logout() {
     await api.post('/auth/logout/')
     setUser(null)
+    navigate('/')
   }
 
   return (

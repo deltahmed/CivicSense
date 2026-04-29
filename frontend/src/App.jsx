@@ -17,28 +17,33 @@ import ProfilePage from './pages/ProfilePage'
 import AdminPendingUsersPage from './pages/AdminPendingUsersPage'
 import SearchPage from './pages/SearchPage'
 
-function PrivateRoute({ children }) {
-  const { user, loading } = useAuth()
-  if (loading) return null
-  return user ? children : <Navigate to="/login" replace />
-}
+const LEVEL_ORDER = ['debutant', 'intermediaire', 'avance', 'expert']
 
-function ExpertRoute({ children }) {
+function ProtectedRoute({ children, minLevel = null }) {
   const { user, loading } = useAuth()
   if (loading) return null
   if (!user) return <Navigate to="/login" replace />
-  if (user.level !== 'expert') return <Navigate to="/" replace />
+  if (minLevel) {
+    const userIdx = LEVEL_ORDER.indexOf(user.level)
+    const minIdx = LEVEL_ORDER.indexOf(minLevel)
+    if (userIdx < minIdx) return <Navigate to="/dashboard" replace />
+  }
   return children
 }
 
 export default function App() {
   return (
     <Routes>
+      {/* Public */}
       <Route path="/" element={<PublicStatsPage />} />
       <Route path="/public/stats" element={<PublicStatsPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+
+      {/* Tous les utilisateurs connectés */}
       <Route
+        path="/dashboard"
+        element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}
         path="/profile"
         element={
           <PrivateRoute>
@@ -72,44 +77,46 @@ export default function App() {
       />
       <Route
         path="/objects"
-        element={
-          <PrivateRoute>
-            <ObjectListPage />
-          </PrivateRoute>
-        }
+        element={<ProtectedRoute><ObjectListPage /></ProtectedRoute>}
       />
       <Route
         path="/objects/:id"
-        element={
-          <PrivateRoute>
-            <ObjectDetailPage />
-          </PrivateRoute>
-        }
+        element={<ProtectedRoute><ObjectDetailPage /></ProtectedRoute>}
       />
       <Route
         path="/alerts"
-        element={
-          <PrivateRoute>
-            <AlertsPage />
-          </PrivateRoute>
-        }
+        element={<ProtectedRoute><AlertsPage /></ProtectedRoute>}
+      />
+
+      {/* Avancé et supérieur */}
+      <Route
+        path="/gestion"
+        element={<ProtectedRoute minLevel="avance"><ObjectListPage /></ProtectedRoute>}
+      />
+
+      {/* Expert uniquement */}
+      <Route
+        path="/admin"
+        element={<ProtectedRoute minLevel="expert"><Navigate to="/admin/users" replace /></ProtectedRoute>}
+      />
+      <Route
+        path="/admin/users"
+        element={<ProtectedRoute minLevel="expert"><AdminUsersPage /></ProtectedRoute>}
+      />
+      <Route
+        path="/admin/maintenance"
+        element={<ProtectedRoute minLevel="expert"><AdminMaintenancePage /></ProtectedRoute>}
       />
       <Route
         path="/admin/reports"
-        element={
-          <ExpertRoute>
-            <AdminReportsPage />
-          </ExpertRoute>
-        }
+        element={<ProtectedRoute minLevel="expert"><AdminReportsPage /></ProtectedRoute>}
       />
       <Route
         path="/admin/settings"
-        element={
-          <ExpertRoute>
-            <AdminSettingsPage />
-          </ExpertRoute>
-        }
+        element={<ProtectedRoute minLevel="expert"><AdminSettingsPage /></ProtectedRoute>}
       />
+
+      {/* Catch-all */}
       <Route
         path="/profile"
         element={
@@ -129,11 +136,7 @@ export default function App() {
       <Route path="/search" element={<SearchPage />} />
       <Route
         path="/*"
-        element={
-          <PrivateRoute>
-            <DashboardPage />
-          </PrivateRoute>
-        }
+        element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}
       />
     </Routes>
   )
