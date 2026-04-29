@@ -18,21 +18,51 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
-class UserPublicSerializer(serializers.ModelSerializer):
+class PublicUserSerializer(serializers.ModelSerializer):
+    """Serializer pour les profils publics (visibles par tous)"""
     class Meta:
         model = CustomUser
-        fields = ('id', 'pseudo', 'age', 'genre', 'type_membre', 'photo', 'level', 'points')
+        fields = ('id', 'pseudo', 'age', 'genre', 'date_naissance', 'type_membre', 'photo', 'level', 'points')
         read_only_fields = fields
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class PrivateUserSerializer(serializers.ModelSerializer):
+    """Serializer pour le profil privé (accessible uniquement soi-même et admin)"""
     class Meta:
         model = CustomUser
         fields = (
-            'id', 'email', 'pseudo', 'age', 'genre', 'date_naissance',
-            'type_membre', 'photo', 'level', 'points', 'login_count', 'action_count',
+            'id', 'email', 'username', 'first_name', 'last_name',
+            'pseudo', 'age', 'genre', 'date_naissance',
+            'type_membre', 'photo', 'level', 'points', 
+            'login_count', 'action_count', 'date_joined', 'last_login'
         )
-        read_only_fields = ('id', 'email', 'level', 'points', 'login_count', 'action_count')
+        read_only_fields = ('id', 'email', 'username', 'level', 'points', 'login_count', 'action_count', 'date_joined', 'last_login')
+        extra_kwargs = {
+            'first_name': {'required': False},
+            'last_name': {'required': False},
+            'pseudo': {'required': False},
+            'age': {'required': False},
+            'genre': {'required': False},
+            'date_naissance': {'required': False},
+            'type_membre': {'required': False},
+            'photo': {'required': False},
+        }
+
+
+class UserProfileSerializer(PrivateUserSerializer):
+    """Alias pour compatibilité"""
+    pass
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """Serializer pour changer le mot de passe"""
+    old_password = serializers.CharField(write_only=True, min_length=8)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+    
+    def validate_new_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("Le mot de passe doit contenir au moins 8 caractères.")
+        return value
 
 
 class AdminUserSerializer(serializers.ModelSerializer):
@@ -70,3 +100,16 @@ class AdminSetLevelSerializer(serializers.Serializer):
 
 class AdminSetPointsSerializer(serializers.Serializer):
     points = serializers.FloatField(min_value=0)
+
+
+class AdminRejectUserSerializer(serializers.Serializer):
+    motif = serializers.CharField(max_length=500, required=True)
+
+
+class PendingUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'email', 'pseudo', 'type_membre', 'date_joined')
+        read_only_fields = fields
+
+

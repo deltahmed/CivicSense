@@ -192,3 +192,43 @@ class ObjectConfigView(APIView):
         obj.attributs_specifiques = {**obj.attributs_specifiques, **attrs}
         obj.save()
         return Response({'success': True, 'data': ConnectedObjectSerializer(obj).data})
+
+
+class PublicSearchObjectsView(APIView):
+    """Vue publique pour rechercher des objets connectés sans connexion"""
+    permission_classes = []
+
+    def get(self, request):
+        # Filtres avec valeurs par défaut
+        type_objet = request.query_params.get('type_objet', '').strip()
+        statut = request.query_params.get('statut', 'actif').strip()
+        zone = request.query_params.get('zone', '').strip()
+        search = request.query_params.get('search', '').strip()
+
+        # Commencer avec tous les objets
+        queryset = ConnectedObject.objects.all()
+
+        # Appliquer les filtres
+        if type_objet:
+            queryset = queryset.filter(type_objet=type_objet)
+
+        if statut:
+            queryset = queryset.filter(statut=statut)
+
+        if zone:
+            queryset = queryset.filter(zone=zone)
+
+        if search:
+            queryset = queryset.filter(
+                Q(nom__icontains=search) | Q(description__icontains=search)
+            )
+
+        # Retourner les résultats avec le sérialiseur public
+        from .serializers import PublicObjectSerializer
+        serializer = PublicObjectSerializer(queryset, many=True)
+        
+        return Response({
+            'success': True,
+            'count': queryset.count(),
+            'data': serializer.data
+        })

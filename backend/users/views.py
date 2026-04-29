@@ -10,15 +10,22 @@ from .models import CustomUser, LoginHistory
 from .permissions import IsExpert
 from .serializers import (
     RegisterSerializer,
+    PublicUserSerializer,
+    PrivateUserSerializer,
     UserProfileSerializer,
+    ChangePasswordSerializer,
     AdminUserSerializer,
     AdminUserUpdateSerializer,
     AdminSetLevelSerializer,
     AdminSetPointsSerializer,
+    AdminRejectUserSerializer,
+    PendingUserSerializer,
 )
 from django.urls import reverse
-from utils.email_utils import send_verification_email
+from utils.email_utils import send_verification_email, send_approval_email, send_rejection_email
 from .utils import add_points, check_level_up
+from services.models import GlobalSettings
+
 
 
 def _set_auth_cookies(response, refresh):
@@ -50,14 +57,49 @@ class RegisterView(APIView):
         if not serializer.is_valid():
             return Response({'success': False, 'errors': serializer.errors}, status=400)
         user = serializer.save()
-        # Build absolute verification URL and send email
+        
+        # Vérifier si le domaine email est autorisé pour approbation automatique
+        settings_obj = GlobalSettings.load()
+        email_allowed = self._check_email_domain(user.email, settings_obj)
+        
+        if email_allowed:
+            user.is_verified = True
+            user.save(update_fields=['is_verified'])
+            send_approval_email(user.email, user.pseudo)
+            return Response({
+                'success': True,
+                'message': 'Inscription approuvée automatiquement.'
+            }, status=201)
+        
+        # Sinon, attendre approbation manuelle
         try:
             verify_path = reverse('verify-email', args=[user.verification_token])
             verification_url = request.build_absolute_uri(verify_path)
         except Exception:
             verification_url = None
         send_verification_email(user.email, user.verification_token, verification_url)
-        return Response({'success': True, 'message': 'Inscription réussie. Vérifiez votre email.'}, status=201)
+        return Response({
+            'success': True,
+            'message': 'Inscription réussie. En attente d\'approbation.'
+        }, status=201)
+    
+    @staticmethod
+    def _check_email_domain(email, settings_obj):
+        """Vérifie si le domaine email est dans la liste autorisée"""
+        # Si liste vide, tous les domaines sont autorisés
+        if not settings_obj.domaines_email_autorises:
+            return False
+        
+        # Extraire le domaine de l'email
+        email_domain = email[email.index('@'):].lower()
+        
+        # Vérifier si le domaine est dans la liste
+        for allowed_domain in settings_obj.domaines_email_autorises:
+            if allowed_domain.lower() in email_domain:
+                return True
+        
+        return False
+
 
 
 class LoginView(APIView):
@@ -99,14 +141,67 @@ class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response({'success': True, 'data': UserProfileSerializer(request.user).data})
+        """Retourne le profil complet de l'utilisateur connecté (profil privé)"""
+        return Response({'success': True, 'data': PrivateUserSerializer(request.user).data})
 
     def patch(self, request):
-        serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
+        """Modifie le profil de l'utilisateur connecté"""
+        serializer = PrivateUserSerializer(request.user, data=request.data, partial=True)
         if not serializer.is_valid():
             return Response({'success': False, 'errors': serializer.errors}, status=400)
         serializer.save()
         return Response({'success': True, 'data': serializer.data})
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """Change le mot de passe de l'utilisateur connecté"""
+        serializer = ChangePasswordSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'success': False, 'errors': serializer.errors}, status=400)
+        
+        user = request.user
+        old_password = serializer.validated_data['old_password']
+        new_password = serializer.validated_data['new_password']
+        
+        # Vérifier que l'ancien mot de passe est correct
+        if not user.check_password(old_password):
+            return Response({
+                'success': False,
+                'message': 'L\'ancien mot de passe est incorrect.'
+            }, status=400)
+        
+        # Vérifier que le nouveau mot de passe est différent
+        if old_password == new_password:
+            return Response({
+                'success': False,
+                'message': 'Le nouveau mot de passe doit être différent de l\'ancien.'
+            }, status=400)
+        
+        # Définir et sauvegarder le nouveau mot de passe
+        user.set_password(new_password)
+        user.save(update_fields=['password'])
+        
+        return Response({
+            'success': True,
+            'message': 'Mot de passe changé avec succès.'
+        })
+
+
+class GetPublicUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        """Retourne le profil public d'un utilisateur"""
+        try:
+            user = CustomUser.objects.get(pk=pk)
+        except CustomUser.DoesNotExist:
+            return Response({'success': False, 'message': 'Utilisateur introuvable.'}, status=404)
+        
+        return Response({'success': True, 'data': PublicUserSerializer(user).data})
+
 
 
 class VerifyEmailView(APIView):
@@ -221,4 +316,75 @@ class AdminUserHistoryView(APIView):
                 'last_login': user.last_login,
                 'connexions': connexions,
             },
+        })
+
+
+# ── Approbation utilisateurs ──────────────────────────────────────────────────
+
+class PendingUsersView(APIView):
+    permission_classes = [IsAuthenticated, IsExpert]
+
+    def get(self, request):
+        """Retourne tous les utilisateurs en attente de vérification"""
+        pending_users = CustomUser.objects.filter(is_verified=False).order_by('date_joined')
+        return Response({
+            'success': True,
+            'data': PendingUserSerializer(pending_users, many=True).data
+        })
+
+
+class ApproveUserView(APIView):
+    permission_classes = [IsAuthenticated, IsExpert]
+
+    def put(self, request, pk):
+        """Approuve un utilisateur en attente"""
+        try:
+            user = CustomUser.objects.get(pk=pk)
+        except CustomUser.DoesNotExist:
+            return Response({'success': False, 'message': 'Utilisateur introuvable.'}, status=404)
+
+        if user.is_verified:
+            return Response({
+                'success': False,
+                'message': 'Cet utilisateur est déjà vérifié.'
+            }, status=400)
+
+        user.is_verified = True
+        user.save(update_fields=['is_verified'])
+        send_approval_email(user.email, user.pseudo)
+
+        return Response({
+            'success': True,
+            'message': 'Utilisateur approuvé.',
+            'data': AdminUserSerializer(user).data
+        })
+
+
+class RejectUserView(APIView):
+    permission_classes = [IsAuthenticated, IsExpert]
+
+    def put(self, request, pk):
+        """Refuse un utilisateur en attente"""
+        try:
+            user = CustomUser.objects.get(pk=pk)
+        except CustomUser.DoesNotExist:
+            return Response({'success': False, 'message': 'Utilisateur introuvable.'}, status=404)
+
+        if user.is_verified:
+            return Response({
+                'success': False,
+                'message': 'Impossible de refuser un utilisateur déjà vérifié.'
+            }, status=400)
+
+        serializer = AdminRejectUserSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'success': False, 'errors': serializer.errors}, status=400)
+
+        motif = serializer.validated_data['motif']
+        send_rejection_email(user.email, user.pseudo, motif)
+        user.delete()
+
+        return Response({
+            'success': True,
+            'message': 'Utilisateur refusé et compte supprimé.'
         })

@@ -2,8 +2,10 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import ProfilePage from './pages/ProfilePage'
 import DashboardPage from './pages/DashboardPage'
 import AdminUsersPage from './pages/AdminUsersPage'
+import AdminPendingUsersPage from './pages/AdminPendingUsersPage'
 import AdminMaintenancePage from './pages/AdminMaintenancePage'
 import PublicStatsPage from './pages/PublicStatsPage'
 import AlertsPage from './pages/AlertsPage'
@@ -11,6 +13,9 @@ import AdminReportsPage from './pages/AdminReportsPage'
 import AdminSettingsPage from './pages/AdminSettingsPage'
 import ObjectListPage from './pages/ObjectListPage'
 import ObjectDetailPage from './pages/ObjectDetailPage'
+import ProfilePage from './pages/ProfilePage'
+import AdminPendingUsersPage from './pages/AdminPendingUsersPage'
+import SearchPage from './pages/SearchPage'
 
 const LEVEL_ORDER = ['debutant', 'intermediaire', 'avance', 'expert']
 
@@ -39,6 +44,36 @@ export default function App() {
       <Route
         path="/dashboard"
         element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}
+        path="/profile"
+        element={
+          <PrivateRoute>
+            <ProfilePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <ExpertRoute>
+            <AdminUsersPage />
+          </ExpertRoute>
+        }
+      />
+      <Route
+        path="/admin/pending"
+        element={
+          <ExpertRoute>
+            <AdminPendingUsersPage />
+          </ExpertRoute>
+        }
+      />
+      <Route
+        path="/admin/maintenance"
+        element={
+          <ExpertRoute>
+            <AdminMaintenancePage />
+          </ExpertRoute>
+        }
       />
       <Route
         path="/objects"
@@ -82,6 +117,23 @@ export default function App() {
       />
 
       {/* Catch-all */}
+      <Route
+        path="/profile"
+        element={
+          <PrivateRoute>
+            <ProfilePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/pending"
+        element={
+          <ExpertRoute>
+            <AdminPendingUsersPage />
+          </ExpertRoute>
+        }
+      />
+      <Route path="/search" element={<SearchPage />} />
       <Route
         path="/*"
         element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}

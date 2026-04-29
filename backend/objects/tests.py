@@ -787,3 +787,93 @@ class ObjectDetailHistoriqueTest(APITestCase):
         self.assertIn('zone', data)
         self.assertIn('statut', data)
         self.assertIn('type_objet', data)
+
+
+class PublicSearchObjectsTestCase(APITestCase):
+    """Tests pour la recherche publique des équipements"""
+
+    def setUp(self):
+        self.list_url = '/api/objects/search/'
+        
+        # Créer une catégorie
+        self.category = Category.objects.create(
+            nom='Climat',
+            description='Gestion climatique'
+        )
+        
+        # Créer des objets de test
+        self.obj_actif = ConnectedObject.objects.create(
+            unique_id='thermo_01',
+            nom='Thermostat Salon',
+            description='Gestion température salon',
+            type_objet='thermostat',
+            zone='Salon',
+            statut='actif',
+            category=self.category
+        )
+        
+        self.obj_inactif = ConnectedObject.objects.create(
+            unique_id='cam_01',
+            nom='Caméra Entrée',
+            description='Surveillance entrée',
+            type_objet='camera',
+            zone='RDC',
+            statut='inactif',
+            category=self.category
+        )
+
+    def test_search_public_no_auth_required(self):
+        """Vérifier que la recherche est publique"""
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_search_returns_all_objects_default(self):
+        """Test recherche sans filtres"""
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.data['count'], 2)
+
+    def test_filter_by_type_objet(self):
+        """Test filtrage par type d'objet"""
+        response = self.client.get(f'{self.list_url}?type_objet=thermostat')
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['data'][0]['nom'], 'Thermostat Salon')
+
+    def test_filter_by_statut(self):
+        """Test filtrage par statut"""
+        response = self.client.get(f'{self.list_url}?statut=actif')
+        self.assertEqual(response.data['count'], 1)
+
+    def test_filter_by_zone(self):
+        """Test filtrage par zone"""
+        response = self.client.get(f'{self.list_url}?zone=Salon')
+        self.assertEqual(response.data['count'], 1)
+
+    def test_search_by_name(self):
+        """Test recherche par nom"""
+        response = self.client.get(f'{self.list_url}?search=Thermostat')
+        self.assertEqual(response.data['count'], 1)
+
+    def test_search_by_description(self):
+        """Test recherche dans description"""
+        response = self.client.get(f'{self.list_url}?search=température')
+        self.assertEqual(response.data['count'], 1)
+
+    def test_combined_filters(self):
+        """Test combinaison de plusieurs filtres"""
+        response = self.client.get(f'{self.list_url}?type_objet=camera&statut=inactif')
+        self.assertEqual(response.data['count'], 1)
+
+    def test_no_sensitive_data_exposed(self):
+        """Vérifier que les données sensibles ne sont pas exposées"""
+        response = self.client.get(self.list_url)
+        obj_data = response.data['data'][0]
+        
+        # Champs publics présents
+        self.assertIn('nom', obj_data)
+        self.assertIn('type_objet', obj_data)
+        self.assertIn('zone', obj_data)
+        
+        # Données sensibles absentes
+        self.assertNotIn('consommation_kwh', obj_data)
+        self.assertNotIn('valeur_actuelle', obj_data)
+        self.assertNotIn('valeur_cible', obj_data)

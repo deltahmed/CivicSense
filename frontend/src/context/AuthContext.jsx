@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
-    try { await api.post('/auth/logout/') } catch { /* cookie déjà expiré */ }
+    await api.post('/auth/logout/')
     setUser(null)
     navigate('/')
   }
