@@ -62,6 +62,32 @@ class ServiceListViewTest(APITestCase):
         cls.s_intermediaire = make_service(nom='Intermédiaire', niveau_requis='intermediaire')
         cls.s_avance = make_service(nom='Avancé', niveau_requis='avance')
         cls.s_expert = make_service(nom='Expert', niveau_requis='expert')
+        
+        # Services avec différentes catégories pour les tests de filtrage
+        cls.s_energie_1 = Service.objects.create(
+            nom='Thermostat Intelligent', 
+            description='Gérez la température facilement',
+            categorie='energie', 
+            niveau_requis='debutant'
+        )
+        cls.s_energie_2 = Service.objects.create(
+            nom='Monitoring Consommation',
+            description='Analysez votre consommation énergétique',
+            categorie='energie',
+            niveau_requis='intermediaire'
+        )
+        cls.s_securite = Service.objects.create(
+            nom='Alarme Intégrée',
+            description='Sécurité renforcée pour votre domicile',
+            categorie='securite',
+            niveau_requis='debutant'
+        )
+        cls.s_confort = Service.objects.create(
+            nom='Domotique Complète',
+            description='Contrôlez tout votre maison',
+            categorie='confort',
+            niveau_requis='avance'
+        )
 
     def test_debutant_sees_only_debutant_services(self):
         self.client.force_authenticate(self.debutant)
@@ -95,6 +121,57 @@ class ServiceListViewTest(APITestCase):
         self.client.force_authenticate(self.debutant)
         r = self.client.get(self.URL)
         self.assertTrue(r.data['success'])
+
+    def test_filter_by_categorie(self):
+        """Test filtrage par catégorie"""
+        self.client.force_authenticate(self.debutant)
+        r = self.client.get(f'{self.URL}?categorie=energie')
+        self.assertEqual(r.status_code, 200)
+        noms = [s['nom'] for s in r.data['data']]
+        self.assertIn('Thermostat Intelligent', noms)
+        self.assertNotIn('Alarme Intégrée', noms)
+        self.assertNotIn('Domotique Complète', noms)
+
+    def test_filter_by_niveau_requis(self):
+        """Test filtrage par niveau requis"""
+        self.client.force_authenticate(self.avance)
+        r = self.client.get(f'{self.URL}?niveau_requis=avance')
+        self.assertEqual(r.status_code, 200)
+        noms = [s['nom'] for s in r.data['data']]
+        self.assertIn('Avancé', noms)
+        self.assertIn('Domotique Complète', noms)
+
+    def test_search_by_name(self):
+        """Test recherche par nom"""
+        self.client.force_authenticate(self.debutant)
+        r = self.client.get(f'{self.URL}?search=Thermostat')
+        self.assertEqual(r.status_code, 200)
+        noms = [s['nom'] for s in r.data['data']]
+        self.assertEqual(len(noms), 1)
+        self.assertIn('Thermostat Intelligent', noms)
+
+    def test_search_by_description(self):
+        """Test recherche dans la description"""
+        self.client.force_authenticate(self.debutant)
+        r = self.client.get(f'{self.URL}?search=température')
+        self.assertEqual(r.status_code, 200)
+        noms = [s['nom'] for s in r.data['data']]
+        self.assertIn('Thermostat Intelligent', noms)
+
+    def test_combined_filters(self):
+        """Test combinaison de filtres"""
+        self.client.force_authenticate(self.avance)
+        r = self.client.get(f'{self.URL}?categorie=energie&niveau_requis=intermediaire')
+        self.assertEqual(r.status_code, 200)
+        noms = [s['nom'] for s in r.data['data']]
+        self.assertEqual(len(noms), 1)
+        self.assertIn('Monitoring Consommation', noms)
+
+    def test_returns_count_field(self):
+        """Test que le nombre de services est retourné"""
+        self.client.force_authenticate(self.debutant)
+        r = self.client.get(self.URL)
+        self.assertIn('count', r.data)
 
 
 # ---------------------------------------------------------------------------
@@ -137,6 +214,14 @@ class ServiceDetailViewTest(APITestCase):
         self.client.get(self.url(self.s_debutant.pk))
         self.debutant.refresh_from_db()
         self.assertAlmostEqual(self.debutant.points, 0.50)
+
+    def test_access_increments_action_count(self):
+        """Test que action_count est incrémenté"""
+        self.client.force_authenticate(self.debutant)
+        initial_count = self.debutant.action_count
+        self.client.get(self.url(self.s_debutant.pk))
+        self.debutant.refresh_from_db()
+        self.assertGreater(self.debutant.action_count, initial_count)
 
     def test_level_blocked_does_not_add_points(self):
         self.client.force_authenticate(self.debutant)
