@@ -882,7 +882,3 @@ class PublicSearchObjectsTestCase(APITestCase):
         self.assertNotIn('valeur_actuelle', obj_data)
         self.assertNotIn('valeur_cible', obj_data)
 
-
-
-
-
