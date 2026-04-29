@@ -132,7 +132,7 @@ export default function RegisterPage() {
         <div className="auth-orb auth-orb-b" aria-hidden="true" />
         <section className="auth-card">
           <h1>CivicSense</h1>
-          <p style={{ marginTop: '1rem' }}>Un mail vous a ete envoye</p>
+          <p style={{ marginTop: '1rem' }}>Un mail vous a été envoyé</p>
           <p className="auth-footer"><Link to="/login">Retour à la connexion</Link></p>
         </section>
       </main>
