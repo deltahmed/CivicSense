@@ -11,6 +11,9 @@ import AdminReportsPage from './pages/AdminReportsPage'
 import AdminSettingsPage from './pages/AdminSettingsPage'
 import ObjectListPage from './pages/ObjectListPage'
 import ObjectDetailPage from './pages/ObjectDetailPage'
+import ProfilePage from './pages/ProfilePage'
+import AdminPendingUsersPage from './pages/AdminPendingUsersPage'
+import SearchPage from './pages/SearchPage'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -89,6 +92,23 @@ export default function App() {
           </ExpertRoute>
         }
       />
+      <Route
+        path="/profile"
+        element={
+          <PrivateRoute>
+            <ProfilePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/pending"
+        element={
+          <ExpertRoute>
+            <AdminPendingUsersPage />
+          </ExpertRoute>
+        }
+      />
+      <Route path="/search" element={<SearchPage />} />
       <Route
         path="/*"
         element={
