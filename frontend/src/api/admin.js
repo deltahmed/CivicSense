@@ -12,3 +12,6 @@ export const changePassword = (data) => api.post('/admin/change-password/', data
 export const downloadBackup = () => api.get('/admin/backup/', { responseType: 'blob' })
 export const getIntegrityCheck = () => api.get('/admin/integrity-check/')
 export const fixIntegrity = () => api.post('/admin/integrity-fix/')
+
+export const getSettings = () => api.get('/admin/settings/')
+export const updateSettings = (data, config = {}) => api.put('/admin/settings/', data, config)

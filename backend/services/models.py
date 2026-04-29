@@ -24,6 +24,10 @@ class Service(models.Model):
 
 
 class GlobalSettings(models.Model):
+    nom_residence = models.CharField(max_length=100, default='CivicSense')
+    banniere = models.ImageField(upload_to='settings/', blank=True, null=True)
+    couleur_theme = models.CharField(max_length=7, default='#378ADD')
+    message_inscription = models.TextField(blank=True)
     seuil_alerte_conso_kwh = models.FloatField(default=100.0, help_text="Seuil en kWh pour déclencher une alerte de consommation.")
     seuil_alerte_co2_ppm = models.IntegerField(default=1000, help_text="Seuil en PPM pour déclencher une alerte de qualité de l'air (CO2).")
     approbation_manuelle = models.BooleanField(default=True, help_text="Si coché, la suppression d'objet par un utilisateur standard requiert une approbation.")

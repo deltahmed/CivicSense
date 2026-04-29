@@ -15,12 +15,12 @@ class GlobalSettingsView(APIView):
 
     def get(self, request):
         settings = GlobalSettings.load()
-        serializer = GlobalSettingsSerializer(settings)
+        serializer = GlobalSettingsSerializer(settings, context={'request': request})
         return Response(serializer.data)
 
     def put(self, request):
         settings = GlobalSettings.load()
-        serializer = GlobalSettingsSerializer(settings, data=request.data, partial=True)
+        serializer = GlobalSettingsSerializer(settings, data=request.data, partial=True, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)

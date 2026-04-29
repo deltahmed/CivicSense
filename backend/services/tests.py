@@ -1,6 +1,28 @@
+import base64
+
+from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APITestCase
 from users.models import CustomUser
-from .models import Service
+from .models import GlobalSettings, Service
+
+PNG_1x1 = base64.b64decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+)
+
+
+def reset_global_settings():
+    cache.delete('global_settings')
+    s = GlobalSettings.load()
+    if s.banniere:
+        s.banniere.delete(save=False)
+    s.nom_residence = 'Residence Publique'
+    s.banniere = None
+    s.couleur_theme = '#112233'
+    s.approbation_manuelle = False
+    s.domaines_email_autorises = ['@test.fr']
+    s.message_inscription = 'Bienvenue'
+    s.save()
 
 
 def make_user(email='u@example.com', username='user1', pseudo='Pseudo1',
@@ -137,3 +159,187 @@ class ServiceDetailViewTest(APITestCase):
         self.client.force_authenticate(unverified)
         r = self.client.get(self.url(self.s_debutant.pk))
         self.assertEqual(r.status_code, 403)
+
+
+# ---------------------------------------------------------------------------
+# GET /api/public/settings/
+# ---------------------------------------------------------------------------
+
+class PublicSettingsViewTest(APITestCase):
+    URL = '/api/public/settings/'
+
+    @classmethod
+    def setUpTestData(cls):
+        reset_global_settings()
+
+    def test_returns_200_without_auth(self):
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 200)
+
+    def test_returns_only_public_fields(self):
+        r = self.client.get(self.URL)
+        self.assertEqual(set(r.data.keys()), {'nom_residence', 'banniere', 'couleur_theme'})
+
+    def test_returns_correct_values(self):
+        r = self.client.get(self.URL)
+        self.assertEqual(r.data['nom_residence'], 'Residence Publique')
+        self.assertEqual(r.data['couleur_theme'], '#112233')
+        self.assertIsNone(r.data['banniere'])
+
+
+# ---------------------------------------------------------------------------
+# GET /api/admin/settings/
+# ---------------------------------------------------------------------------
+
+class AdminSettingsGetTest(APITestCase):
+    URL = '/api/admin/settings/'
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.expert = make_user(
+            email='expert@gs.com', username='gs_expert', pseudo='GsExpert',
+            verified=True, level='expert',
+        )
+        cls.avance = make_user(
+            email='avance@gs.com', username='gs_avance', pseudo='GsAvance',
+            verified=True, level='avance',
+        )
+        cls.debutant = make_user(
+            email='debutant@gs.com', username='gs_debutant', pseudo='GsDebutant',
+            verified=True,
+        )
+
+    def test_returns_401_without_auth(self):
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 401)
+
+    def test_returns_403_for_non_expert(self):
+        for user in (self.avance, self.debutant):
+            with self.subTest(level=user.level):
+                self.client.force_authenticate(user)
+                r = self.client.get(self.URL)
+                self.assertEqual(r.status_code, 403)
+
+    def test_returns_200_for_expert(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 200)
+
+    def test_response_shape(self):
+        self.client.force_authenticate(self.expert)
+        r = self.client.get(self.URL)
+        expected = {'nom_residence', 'banniere', 'couleur_theme',
+                    'approbation_manuelle', 'domaines_email_autorises',
+                    'message_inscription'}
+        self.assertTrue(expected.issubset(r.data.keys()))
+        self.assertNotIn('id', r.data)
+
+
+# ---------------------------------------------------------------------------
+# PUT /api/admin/settings/
+# ---------------------------------------------------------------------------
+
+class AdminSettingsPutTest(APITestCase):
+    URL = '/api/admin/settings/'
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.expert = make_user(
+            email='expert@put.com', username='put_expert', pseudo='PutExpert',
+            verified=True, level='expert',
+        )
+        cls.avance = make_user(
+            email='avance@put.com', username='put_avance', pseudo='PutAvance',
+            verified=True, level='avance',
+        )
+
+    def setUp(self):
+        cache.delete('global_settings')
+        s = GlobalSettings.load()
+        if s.banniere:
+            s.banniere.delete(save=False)
+        s.nom_residence = 'CivicSense'
+        s.couleur_theme = '#378ADD'
+        s.approbation_manuelle = True
+        s.domaines_email_autorises = []
+        s.message_inscription = ''
+        s.banniere = None
+        s.save()
+        self.client.force_authenticate(self.expert)
+
+    def tearDown(self):
+        cache.delete('global_settings')
+
+    def _put(self, payload, **kwargs):
+        return self.client.put(self.URL, payload, **kwargs)
+
+    def test_returns_401_without_auth(self):
+        self.client.logout()
+        r = self.client.put(self.URL, {'nom_residence': 'X'}, format='json')
+        self.assertEqual(r.status_code, 401)
+
+    def test_returns_403_for_non_expert(self):
+        self.client.force_authenticate(self.avance)
+        r = self.client.put(self.URL, {'nom_residence': 'X'}, format='json')
+        self.assertEqual(r.status_code, 403)
+
+    def test_updates_text_fields(self):
+        for field, value in [
+            ('nom_residence', 'Nouveau Nom'),
+            ('couleur_theme', '#ff0000'),
+            ('message_inscription', 'Bienvenue !'),
+        ]:
+            with self.subTest(field=field):
+                r = self._put({field: value}, format='json')
+                self.assertEqual(r.status_code, 200)
+                self.assertEqual(r.data[field], value)
+
+    def test_updates_approbation_manuelle(self):
+        r = self._put({'approbation_manuelle': False}, format='json')
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(r.data['approbation_manuelle'])
+
+    def test_updates_domaines_email_autorises(self):
+        r = self._put(
+            {'domaines_email_autorises': ['@cy-tech.fr', '@example.com']},
+            format='json',
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data['domaines_email_autorises'], ['@cy-tech.fr', '@example.com'])
+
+    def test_domaines_vides_autorise_tous(self):
+        r = self._put({'domaines_email_autorises': []}, format='json')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data['domaines_email_autorises'], [])
+
+    def test_partial_update_preserves_other_fields(self):
+        r = self._put({'nom_residence': 'Modifie'}, format='json')
+        self.assertEqual(r.data['nom_residence'], 'Modifie')
+        self.assertEqual(r.data['couleur_theme'], '#378ADD')
+
+    def test_update_persists_in_db(self):
+        self._put({'nom_residence': 'Persiste'}, format='json')
+        cache.delete('global_settings')
+        self.assertEqual(GlobalSettings.load().nom_residence, 'Persiste')
+
+    def test_banner_upload(self):
+        banner = SimpleUploadedFile('banner_test.png', PNG_1x1, content_type='image/png')
+        r = self._put({'banniere': banner}, format='multipart')
+        self.assertEqual(r.status_code, 200)
+        self.assertIsNotNone(r.data['banniere'])
+        self.assertIn('.png', r.data['banniere'])
+        GlobalSettings.objects.get(pk=1).banniere.delete(save=False)
+
+    def test_invalid_image_returns_400(self):
+        fake = SimpleUploadedFile('notanimage.png', b'not image data', content_type='image/png')
+        r = self._put({'banniere': fake}, format='multipart')
+        self.assertEqual(r.status_code, 400)
+
+    def test_public_endpoint_reflects_update(self):
+        self._put(
+            {'nom_residence': 'Visible Public', 'couleur_theme': '#abcdef'},
+            format='json',
+        )
+        r = self.client.get('/api/public/settings/')
+        self.assertEqual(r.data['nom_residence'], 'Visible Public')
+        self.assertEqual(r.data['couleur_theme'], '#abcdef')
