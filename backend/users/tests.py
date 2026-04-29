@@ -21,7 +21,7 @@ def make_user(email='u@example.com', username='user1', pseudo='Pseudo1',
 # ---------------------------------------------------------------------------
 
 class RegisterViewTest(APITestCase):
-    URL = '/api/users/register/'
+    URL = '/api/auth/register/'
 
     VALID = {
         'email': 'new@example.com',
@@ -95,7 +95,7 @@ class RegisterViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class LoginViewTest(APITestCase):
-    URL = '/api/users/login/'
+    URL = '/api/auth/login/'
 
     @classmethod
     def setUpTestData(cls):
@@ -139,11 +139,13 @@ class LoginViewTest(APITestCase):
         r = self.login(password='WrongPass')
         self.assertEqual(r.status_code, 401)
         self.assertFalse(r.data['success'])
+        self.assertEqual(r.data['message'], 'Identifiants incorrects.')
 
     def test_unverified_account_returns_403(self):
         r = self.login(email='nv@example.com')
         self.assertEqual(r.status_code, 403)
         self.assertFalse(r.data['success'])
+        self.assertEqual(r.data['message'], 'Email non vérifié.')
 
     def test_unknown_email_returns_401(self):
         r = self.login(email='nobody@example.com')
@@ -170,7 +172,7 @@ class LoginViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class LogoutViewTest(APITestCase):
-    URL = '/api/users/logout/'
+    URL = '/api/auth/logout/'
 
     @classmethod
     def setUpTestData(cls):
@@ -198,7 +200,7 @@ class LogoutViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class MeViewTest(APITestCase):
-    URL = '/api/users/me/'
+    URL = '/api/auth/me/'
 
     @classmethod
     def setUpTestData(cls):
@@ -267,7 +269,7 @@ class VerifyEmailViewTest(APITestCase):
         cls.user.save(update_fields=['verification_token'])
 
     def url(self, token=None):
-        return f'/api/users/verify/{token or self.token}/'
+        return f'/api/auth/verify/{token or self.token}/'
 
     def test_valid_token_returns_200(self):
         r = self.client.get(self.url())
@@ -300,7 +302,7 @@ class VerifyEmailViewTest(APITestCase):
 # ---------------------------------------------------------------------------
 
 class AdminUserListViewTest(APITestCase):
-    URL = '/api/users/admin/users/'
+    URL = '/api/admin/users/'
 
     @classmethod
     def setUpTestData(cls):
@@ -344,7 +346,7 @@ class AdminUserDetailViewTest(APITestCase):
         cls.verified = make_user(verified=True)
 
     def url(self, pk=None):
-        return f'/api/users/admin/users/{pk or self.target.pk}/'
+        return f'/api/admin/users/{pk or self.target.pk}/'
 
     def test_get_returns_user_data(self):
         self.client.force_authenticate(self.expert)
@@ -354,7 +356,7 @@ class AdminUserDetailViewTest(APITestCase):
 
     def test_get_unknown_pk_returns_404(self):
         self.client.force_authenticate(self.expert)
-        r = self.client.get('/api/users/admin/users/9999/')
+        r = self.client.get('/api/admin/users/9999/')
         self.assertEqual(r.status_code, 404)
 
     def test_put_updates_is_active(self):
@@ -372,7 +374,7 @@ class AdminUserDetailViewTest(APITestCase):
 
     def test_delete_own_account_returns_400(self):
         self.client.force_authenticate(self.expert)
-        r = self.client.delete(f'/api/users/admin/users/{self.expert.pk}/')
+        r = self.client.delete(f'/api/admin/users/{self.expert.pk}/')
         self.assertEqual(r.status_code, 400)
         self.assertFalse(r.data['success'])
 
@@ -398,7 +400,7 @@ class AdminSetLevelViewTest(APITestCase):
         )
 
     def url(self):
-        return f'/api/users/admin/users/{self.target.pk}/level/'
+        return f'/api/admin/users/{self.target.pk}/set-level/'
 
     def test_set_valid_level(self):
         self.client.force_authenticate(self.expert)
@@ -415,7 +417,7 @@ class AdminSetLevelViewTest(APITestCase):
 
     def test_unknown_user_returns_404(self):
         self.client.force_authenticate(self.expert)
-        r = self.client.put('/api/users/admin/users/9999/level/', {'level': 'avance'})
+        r = self.client.put('/api/admin/users/9999/set-level/', {'level': 'avance'})
         self.assertEqual(r.status_code, 404)
 
     def test_non_expert_returns_403(self):
@@ -443,7 +445,7 @@ class AdminSetPointsViewTest(APITestCase):
         )
 
     def url(self):
-        return f'/api/users/admin/users/{self.target.pk}/points/'
+        return f'/api/admin/users/{self.target.pk}/set-points/'
 
     def test_set_points_updates_value(self):
         self.client.force_authenticate(self.expert)
@@ -465,7 +467,7 @@ class AdminSetPointsViewTest(APITestCase):
 
     def test_unknown_user_returns_404(self):
         self.client.force_authenticate(self.expert)
-        r = self.client.put('/api/users/admin/users/9999/points/', {'points': 1.0})
+        r = self.client.put('/api/admin/users/9999/set-points/', {'points': 1.0})
         self.assertEqual(r.status_code, 404)
 
 
@@ -487,7 +489,7 @@ class AdminUserHistoryViewTest(APITestCase):
         LoginHistory.objects.create(user=cls.target)
 
     def url(self):
-        return f'/api/users/admin/users/{self.target.pk}/history/'
+        return f'/api/admin/users/{self.target.pk}/history/'
 
     def test_returns_login_count_and_connexions(self):
         self.client.force_authenticate(self.expert)
@@ -497,7 +499,7 @@ class AdminUserHistoryViewTest(APITestCase):
 
     def test_unknown_user_returns_404(self):
         self.client.force_authenticate(self.expert)
-        r = self.client.get('/api/users/admin/users/9999/history/')
+        r = self.client.get('/api/admin/users/9999/history/')
         self.assertEqual(r.status_code, 404)
 
     def test_non_expert_returns_403(self):
@@ -516,6 +518,116 @@ class AdminUserHistoryViewTest(APITestCase):
 from objects.models import ConnectedObject, HistoriqueConso, Category          # noqa: E402
 from announcements.models import Announcement, DeletionRequest                 # noqa: E402
 from incidents.models import Incident, HistoriqueStatutIncident                # noqa: E402
+
+
+# ---------------------------------------------------------------------------
+# CDC p.3 — Flux complet auth : login / me / logout
+# ---------------------------------------------------------------------------
+
+class AuthFlowTest(APITestCase):
+    LOGIN_URL = '/api/auth/login/'
+    ME_URL = '/api/auth/me/'
+    LOGOUT_URL = '/api/auth/logout/'
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.debutant = make_user(
+            email='deb@x.com', username='deb', pseudo='Debutant',
+            password='StrongPass1', verified=True, level='debutant', points=0.0,
+        )
+        cls.intermediaire = make_user(
+            email='inter@x.com', username='inter', pseudo='Inter',
+            password='StrongPass1', verified=True, level='intermediaire', points=1.0,
+        )
+        cls.avance = make_user(
+            email='ava@x.com', username='ava', pseudo='Avance',
+            password='StrongPass1', verified=True, level='avance', points=3.0,
+        )
+        cls.expert = make_user(
+            email='exp@x.com', username='exp', pseudo='Expert',
+            password='StrongPass1', verified=True, level='expert', points=5.0,
+        )
+        cls.unverified = make_user(
+            email='unv@x.com', username='unv', pseudo='Unverified',
+            password='StrongPass1',
+        )
+
+    # ── Messages d'erreur CDC ────────────────────────────────────────────────
+
+    def test_wrong_credentials_message(self):
+        r = self.client.post(self.LOGIN_URL, {'email': 'deb@x.com', 'password': 'WrongPass'})
+        self.assertEqual(r.status_code, 401)
+        self.assertEqual(r.data['message'], 'Identifiants incorrects.')
+
+    def test_unverified_email_message(self):
+        r = self.client.post(self.LOGIN_URL, {'email': 'unv@x.com', 'password': 'StrongPass1'})
+        self.assertEqual(r.status_code, 403)
+        self.assertEqual(r.data['message'], 'Email non vérifié.')
+
+    def test_unknown_email_returns_401_not_404(self):
+        r = self.client.post(self.LOGIN_URL, {'email': 'nobody@x.com', 'password': 'x'})
+        self.assertEqual(r.status_code, 401)
+
+    # ── Level dans la réponse login (pour la redirection frontend) ───────────
+
+    def test_login_response_contains_level_debutant(self):
+        r = self.client.post(self.LOGIN_URL, {'email': 'deb@x.com', 'password': 'StrongPass1'})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data['data']['level'], 'debutant')
+
+    def test_login_response_contains_level_intermediaire(self):
+        r = self.client.post(self.LOGIN_URL, {'email': 'inter@x.com', 'password': 'StrongPass1'})
+        self.assertEqual(r.data['data']['level'], 'intermediaire')
+
+    def test_login_response_contains_level_avance(self):
+        r = self.client.post(self.LOGIN_URL, {'email': 'ava@x.com', 'password': 'StrongPass1'})
+        self.assertEqual(r.data['data']['level'], 'avance')
+
+    def test_login_response_contains_level_expert(self):
+        r = self.client.post(self.LOGIN_URL, {'email': 'exp@x.com', 'password': 'StrongPass1'})
+        self.assertEqual(r.data['data']['level'], 'expert')
+
+    # ── Restauration de session : GET /api/auth/me/ ──────────────────────────
+
+    def test_me_authenticated_returns_user(self):
+        self.client.force_authenticate(self.debutant)
+        r = self.client.get(self.ME_URL)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.data['success'])
+        self.assertEqual(r.data['data']['email'], 'deb@x.com')
+
+    def test_me_returns_level_field(self):
+        self.client.force_authenticate(self.avance)
+        r = self.client.get(self.ME_URL)
+        self.assertEqual(r.data['data']['level'], 'avance')
+
+    def test_me_unauthenticated_returns_401(self):
+        r = self.client.get(self.ME_URL)
+        self.assertEqual(r.status_code, 401)
+
+    def test_me_no_password_in_response(self):
+        self.client.force_authenticate(self.debutant)
+        r = self.client.get(self.ME_URL)
+        self.assertNotIn('password', str(r.data))
+
+    # ── Déconnexion ──────────────────────────────────────────────────────────
+
+    def test_logout_authenticated_returns_200(self):
+        self.client.force_authenticate(self.debutant)
+        r = self.client.post(self.LOGOUT_URL)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.data['success'])
+
+    def test_logout_unauthenticated_returns_401(self):
+        r = self.client.post(self.LOGOUT_URL)
+        self.assertEqual(r.status_code, 401)
+
+    def test_login_sets_httponly_jwt_cookie(self):
+        r = self.client.post(self.LOGIN_URL, {'email': 'deb@x.com', 'password': 'StrongPass1'})
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('access_token', r.cookies)
+        self.assertTrue(r.cookies['access_token']['httponly'])
+
 
 OBJECTS_COUNT = 11
 READINGS_PER_DAY = 4

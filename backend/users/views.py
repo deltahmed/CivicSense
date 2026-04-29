@@ -68,9 +68,9 @@ class LoginView(APIView):
         password = request.data.get('password', '')
         user = authenticate(request, username=email, password=password)
         if user is None:
-            return Response({'success': False, 'message': 'Identifiants invalides.'}, status=401)
+            return Response({'success': False, 'message': 'Identifiants incorrects.'}, status=401)
         if not user.is_verified:
-            return Response({'success': False, 'message': 'Compte non vérifié.'}, status=403)
+            return Response({'success': False, 'message': 'Email non vérifié.'}, status=403)
 
         user.last_login = timezone.now()
         user.login_count += 1

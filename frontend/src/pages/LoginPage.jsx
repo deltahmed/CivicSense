@@ -30,8 +30,10 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      await login(email, password)
-      navigate('/')
+      const data = await login(email, password)
+      const level = data.data?.level ?? 'debutant'
+      const redirects = { debutant: '/dashboard', intermediaire: '/dashboard', avance: '/gestion', expert: '/admin' }
+      navigate(redirects[level] ?? '/dashboard', { replace: true })
     } catch (err) {
       setError(err.response?.data?.message ?? 'Erreur de connexion.')
     } finally {
