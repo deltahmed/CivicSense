@@ -3,8 +3,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
+from django.core.mail import send_mail
+from django.conf import settings
 
 from users.permissions import IsVerified, IsExpert, IsAvance
+from users.models import CustomUser
 from .models import Announcement, DeletionRequest
 from .serializers import AnnouncementSerializer, DeletionRequestSerializer
 
@@ -53,11 +56,50 @@ class AnnouncementDetailView(APIView):
 
 
 class DeletionRequestView(APIView):
-    permission_classes = [IsAuthenticated, IsAvance]
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [IsAuthenticated(), IsExpert()]
+        return [IsAuthenticated(), IsAvance()]
+
+    def get(self, request):
+        queryset = (
+            DeletionRequest.objects
+            .select_related('objet', 'demandeur')
+            .filter(statut='en_attente')
+            .order_by('-created_at')
+        )
+        return Response({'success': True, 'data': DeletionRequestSerializer(queryset, many=True).data})
 
     def post(self, request):
+        objet_id = request.data.get('objet')
+        if objet_id and DeletionRequest.objects.filter(objet_id=objet_id, statut='en_attente').exists():
+            return Response(
+                {'success': False, 'message': 'Une demande de suppression est déjà en attente pour cet objet.'},
+                status=409,
+            )
+
         serializer = DeletionRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({'success': False, 'errors': serializer.errors}, status=400)
-        serializer.save(demandeur=request.user)
+        dr = serializer.save(demandeur=request.user)
+
+        admin_emails = list(CustomUser.objects.filter(level='expert').values_list('email', flat=True))
+        if admin_emails:
+            try:
+                send_mail(
+                    subject='CivicSense — Nouvelle demande de suppression',
+                    message=(
+                        f'Bonjour,\n\n'
+                        f'{request.user.pseudo} a soumis une demande de suppression '
+                        f'pour l\'objet « {dr.objet.nom} ».\n\n'
+                        f'Motif : {dr.motif}\n\n'
+                        f'Connectez-vous à l\'interface admin pour traiter cette demande.'
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=admin_emails,
+                )
+            except Exception:
+                pass
+
         return Response({'success': True, 'data': serializer.data}, status=201)

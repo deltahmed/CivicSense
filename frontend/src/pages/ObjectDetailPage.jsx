@@ -85,6 +85,11 @@ export default function ObjectDetailPage() {
   const [configStatus, setConfigStatus] = useState('idle')
   const [configErrorMsg, setConfigErrorMsg] = useState(null)
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteMotif, setDeleteMotif] = useState('')
+  const [deleteStatus, setDeleteStatus] = useState('idle')
+  const [deleteError, setDeleteError] = useState(null)
+
   useEffect(() => {
     api.get(`/objects/${id}/`)
       .then(res => {
@@ -122,6 +127,35 @@ export default function ObjectDetailPage() {
 
   const handleConfigChange = (key, value) => {
     setConfigValues(prev => ({ ...prev, [key]: value }))
+  }
+
+  const openDeleteModal = () => {
+    setDeleteMotif('')
+    setDeleteStatus('idle')
+    setDeleteError(null)
+    setShowDeleteModal(true)
+  }
+
+  const closeDeleteModal = () => {
+    if (deleteStatus === 'sending') return
+    setShowDeleteModal(false)
+  }
+
+  const handleDeleteSubmit = async () => {
+    if (!deleteMotif.trim()) {
+      setDeleteError('Le motif est obligatoire.')
+      return
+    }
+    setDeleteStatus('sending')
+    setDeleteError(null)
+    try {
+      await api.post('/deletion-requests/', { objet: object.id, motif: deleteMotif.trim() })
+      setDeleteStatus('done')
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Une erreur est survenue.'
+      setDeleteError(msg)
+      setDeleteStatus('error')
+    }
   }
 
   const handleConfigSave = async () => {
@@ -316,6 +350,15 @@ export default function ObjectDetailPage() {
           )}
         </section>
 
+        {/* Demande de suppression */}
+        {canEdit && (
+          <div className="od-delete-zone">
+            <button className="btn-delete-request" onClick={openDeleteModal} type="button">
+              Demander la suppression
+            </button>
+          </div>
+        )}
+
         {/* Historique récent */}
         <section className="od-section" aria-labelledby="histo-title">
           <h2 id="histo-title">Historique récent</h2>
@@ -347,6 +390,63 @@ export default function ObjectDetailPage() {
       <footer className="od-footer">
         <p>© 2025 CivicSense — Projet ING1</p>
       </footer>
+
+      {showDeleteModal && (
+        <div className="od-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <div className="od-modal">
+            {deleteStatus === 'done' ? (
+              <>
+                <p className="od-modal-success" role="status">
+                  Votre demande a été envoyée à l'administrateur.
+                </p>
+                <button className="btn-modal-close" onClick={closeDeleteModal} type="button">
+                  Fermer
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 id="modal-title" className="od-modal-title">Demander la suppression</h2>
+                <p className="od-modal-desc">
+                  Objet : <strong>{object.nom}</strong>
+                </p>
+                <label htmlFor="delete-motif" className="od-modal-label">
+                  Motif <span aria-hidden="true">*</span>
+                </label>
+                <textarea
+                  id="delete-motif"
+                  className="od-modal-textarea"
+                  rows={4}
+                  placeholder="Décrivez la raison de la demande de suppression…"
+                  value={deleteMotif}
+                  onChange={e => setDeleteMotif(e.target.value)}
+                  disabled={deleteStatus === 'sending'}
+                />
+                {deleteError && (
+                  <p className="od-modal-error" role="alert">{deleteError}</p>
+                )}
+                <div className="od-modal-actions">
+                  <button
+                    className="btn-modal-cancel"
+                    onClick={closeDeleteModal}
+                    type="button"
+                    disabled={deleteStatus === 'sending'}
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    className="btn-modal-submit"
+                    onClick={handleDeleteSubmit}
+                    type="button"
+                    disabled={deleteStatus === 'sending'}
+                  >
+                    {deleteStatus === 'sending' ? 'Envoi…' : 'Envoyer la demande'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
