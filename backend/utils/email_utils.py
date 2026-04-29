@@ -152,3 +152,84 @@ Si vous n'avez pas deman demandé cela, vous pouvez ignorer cet email.
         text_content=text_content,
         html_content=html_content,
     )
+
+
+def send_approval_email(user_email, user_pseudo):
+    """Envoie un email de confirmation d'approbation du compte"""
+    subject = "Votre compte CivicSense a été approuvé!"
+    
+    text_content = f"""
+Bonjour {user_pseudo},
+
+Félicitations! Votre compte CivicSense a été approuvé par l'administrateur.
+
+Vous pouvez maintenant vous connecter et accéder à toutes les fonctionnalités de la plateforme.
+
+Cordialement,
+L'équipe CivicSense
+    """
+    
+    html_content = f"""
+<html>
+    <body>
+        <h2>Compte approuvé!</h2>
+        <p>Bonjour <strong>{user_pseudo}</strong>,</p>
+        <p>Félicitations! Votre compte CivicSense a été <strong>approuvé</strong> par l'administrateur.</p>
+        <p>Vous pouvez maintenant vous connecter et accéder à toutes les fonctionnalités de la plateforme.</p>
+        <p style="color: #666; font-size: 12px; margin-top: 20px;">
+            Cordialement,<br/>
+            L'équipe CivicSense
+        </p>
+    </body>
+</html>
+    """
+    
+    return send_email_safe(
+        subject=subject,
+        recipient_list=[user_email],
+        text_content=text_content,
+        html_content=html_content,
+    )
+
+
+def send_rejection_email(user_email, user_pseudo, motif):
+    """Envoie un email de refus d'inscription avec motif"""
+    subject = "Demande d'inscription CivicSense - Refusée"
+    
+    text_content = f"""
+Bonjour {user_pseudo},
+
+Votre demande d'inscription à CivicSense a été refusée.
+
+Motif: {motif}
+
+Si vous pensez que c'est une erreur, veuillez contacter l'administrateur.
+
+Cordialement,
+L'équipe CivicSense
+    """
+    
+    html_content = f"""
+<html>
+    <body>
+        <h2>Demande d'inscription - Refusée</h2>
+        <p>Bonjour <strong>{user_pseudo}</strong>,</p>
+        <p>Nous regrettons de vous informer que votre demande d'inscription a été <strong>refusée</strong>.</p>
+        <p><strong>Motif:</strong> {motif}</p>
+        <p style="margin-top: 15px; color: #666;">
+            Si vous pensez que c'est une erreur, veuillez contacter l'administrateur.
+        </p>
+        <p style="color: #666; font-size: 12px; margin-top: 20px;">
+            Cordialement,<br/>
+            L'équipe CivicSense
+        </p>
+    </body>
+</html>
+    """
+    
+    return send_email_safe(
+        subject=subject,
+        recipient_list=[user_email],
+        text_content=text_content,
+        html_content=html_content,
+    )
