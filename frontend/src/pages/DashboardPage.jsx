@@ -13,7 +13,7 @@ export default function DashboardPage() {
         <nav aria-label="Navigation principale">
           <ul className="nav-links">
             <li><a href="#">Accueil</a></li>
-            <li><a href="#">Objets</a></li>
+            <li><Link to="/objects">Objets</Link></li>
             <li><a href="#">Services</a></li>
             <li><Link to="/alerts">Alertes</Link></li>
             {['avance', 'expert'].includes(user?.level) && <li><a href="#">Gestion</a></li>}

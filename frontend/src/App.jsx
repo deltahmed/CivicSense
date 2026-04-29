@@ -9,6 +9,8 @@ import PublicStatsPage from './pages/PublicStatsPage'
 import AlertsPage from './pages/AlertsPage'
 import AdminReportsPage from './pages/AdminReportsPage'
 import AdminSettingsPage from './pages/AdminSettingsPage'
+import ObjectListPage from './pages/ObjectListPage'
+import ObjectDetailPage from './pages/ObjectDetailPage'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -45,6 +47,22 @@ export default function App() {
           <ExpertRoute>
             <AdminMaintenancePage />
           </ExpertRoute>
+        }
+      />
+      <Route
+        path="/objects"
+        element={
+          <PrivateRoute>
+            <ObjectListPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/objects/:id"
+        element={
+          <PrivateRoute>
+            <ObjectDetailPage />
+          </PrivateRoute>
         }
       />
       <Route

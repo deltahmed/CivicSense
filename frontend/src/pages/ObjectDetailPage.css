@@ -1,0 +1,436 @@
+*:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.od-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f4f6f9;
+  color: #1a1a1a;
+}
+
+/* ── Header ── */
+
+.od-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #1a3a5c;
+  color: #fff;
+}
+
+.od-brand {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.od-header nav {
+  flex: 1;
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links a {
+  color: #cde;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.nav-links a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.btn-logout {
+  background: transparent;
+  border: 1px solid #8ab;
+  color: #cde;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Main ── */
+
+.od-main {
+  flex: 1;
+  padding: 20px 16px;
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* ── Fil d'Ariane ── */
+
+.od-breadcrumb {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.od-breadcrumb a {
+  color: #2c6fad;
+  text-decoration: none;
+}
+
+.od-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+/* ── Titre + badge statut ── */
+
+.od-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.od-title-row h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: #1a3a5c;
+}
+
+.od-badge {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.od-badge--actif {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.od-badge--inactif {
+  background: #f5f5f5;
+  color: #757575;
+}
+
+.od-badge--maintenance {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+/* ── Sections ── */
+
+.od-section {
+  background: #fff;
+  border: 1px solid #dde3ea;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.od-section h2 {
+  margin: 0 0 16px;
+  font-size: 1.05rem;
+  color: #1a3a5c;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+/* ── Grille infos ── */
+
+.od-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+  margin: 0;
+}
+
+.od-info-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.od-info-grid dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #888;
+  font-weight: 600;
+}
+
+.od-info-grid dd {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+}
+
+.od-info-grid code {
+  font-family: monospace;
+  font-size: 0.85rem;
+  background: #f0f4f8;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+/* ── Fieldset config ── */
+
+.od-fieldset {
+  border: 1px solid #dde3ea;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 0 0 16px;
+}
+
+.od-fieldset legend {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #444;
+  padding: 0 8px;
+}
+
+.od-fieldset--readonly {
+  background: #fafafa;
+}
+
+/* ── Lignes de champ ── */
+
+.od-field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.od-field-row:last-of-type {
+  margin-bottom: 0;
+}
+
+.od-field-row label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.od-field-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.od-field-control input,
+.od-field-control select {
+  padding: 8px 10px;
+  border: 1px solid #c8d0da;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: #fff;
+  color: #1a1a1a;
+  min-width: 0;
+  width: 100%;
+  max-width: 280px;
+  box-sizing: border-box;
+}
+
+.od-field-control input:disabled,
+.od-field-control select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.od-readonly-value {
+  font-size: 0.95rem;
+  color: #333;
+  padding: 8px 0;
+}
+
+/* ── Feedback statut ── */
+
+.od-status {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.od-status--saving {
+  color: #1565c0;
+  background: #e3f2fd;
+}
+
+.od-status--saved {
+  color: #2e7d32;
+  background: #e8f5e9;
+}
+
+.od-status--error {
+  color: #c62828;
+  background: #ffebee;
+}
+
+.od-error-msg {
+  font-size: 0.85rem;
+  color: #c62828;
+}
+
+/* ── Bouton sauvegarder ── */
+
+.od-save-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+.btn-save {
+  background: #1a3a5c;
+  color: #fff;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: #2c6fad;
+}
+
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Params lecture seule ── */
+
+.od-params-dl {
+  margin: 0;
+}
+
+.od-param-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.od-param-row:last-child {
+  border-bottom: none;
+}
+
+.od-param-row dt {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  min-width: 180px;
+}
+
+.od-param-row dd {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+}
+
+.od-no-config {
+  color: #888;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* ── États d'erreur/chargement ── */
+
+.od-page {
+  padding: 40px 16px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.od-state {
+  text-align: center;
+  color: #666;
+  padding: 40px 0;
+  font-size: 1rem;
+}
+
+.od-state--error {
+  color: #c62828;
+}
+
+.od-back {
+  display: inline-block;
+  margin-top: 16px;
+  color: #2c6fad;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+/* ── Footer ── */
+
+.od-footer {
+  padding: 16px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #999;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* ── Tablettes 768px ── */
+
+@media (min-width: 768px) {
+  .od-header {
+    padding: 14px 32px;
+  }
+
+  .od-main {
+    padding: 28px 32px;
+  }
+
+  .od-info-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .od-field-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .od-field-row label {
+    min-width: 200px;
+    flex-shrink: 0;
+  }
+
+  .od-field-control {
+    flex: 1;
+  }
+}
+
+/* ── Desktop 1024px ── */
+
+@media (min-width: 1024px) {
+  .od-main {
+    padding: 36px 48px;
+  }
+}

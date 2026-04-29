@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from users.permissions import IsVerified, IsAvance
 from users.utils import add_points
 from .models import ConnectedObject, HistoriqueConso
-from .serializers import ConnectedObjectSerializer, HistoriqueConsoSerializer
+from .serializers import ConnectedObjectSerializer, HistoriqueConsoSerializer, CategorySerializer
 
 
 class ObjectListView(APIView):
@@ -127,5 +127,46 @@ class ObjectAlertsView(APIView):
                 'efficacite': efficacite,
                 'maintenance_conseillee': maintenance
             })
-            
+
         return Response({'success': True, 'data': data})
+
+
+class ObjectConfigView(APIView):
+    permission_classes = [IsAuthenticated, IsAvance]
+
+    _ALLOWED_KEYS = {
+        'thermostat': {'temperature_cible', 'mode', 'plage_horaire'},
+        'eclairage': {'luminosite', 'horaire_allumage', 'horaire_extinction'},
+        'capteur': {'seuil_alerte_ppm'},
+        'compteur': {'conso_max_autorisee_kwh'},
+        'camera': set(),
+        'prise': set(),
+    }
+
+    def patch(self, request, pk):
+        try:
+            obj = ConnectedObject.objects.get(pk=pk)
+        except ConnectedObject.DoesNotExist:
+            return Response({'success': False, 'message': 'Objet introuvable.'}, status=404)
+
+        attrs = request.data.get('attributs_specifiques')
+        if not isinstance(attrs, dict):
+            return Response(
+                {'success': False, 'message': 'attributs_specifiques doit être un objet JSON.'},
+                status=400,
+            )
+
+        allowed = self._ALLOWED_KEYS.get(obj.type_objet, set())
+        unknown = set(attrs.keys()) - allowed
+        if unknown:
+            return Response(
+                {
+                    'success': False,
+                    'message': f"Clés non autorisées pour {obj.type_objet} : {', '.join(sorted(unknown))}",
+                },
+                status=400,
+            )
+
+        obj.attributs_specifiques = {**obj.attributs_specifiques, **attrs}
+        obj.save()
+        return Response({'success': True, 'data': ConnectedObjectSerializer(obj).data})
