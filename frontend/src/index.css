@@ -1,14 +1,8 @@
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-*:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
-
+/* Design Tokens - Compatibles avec Tailwind */
 :root {
   --color-primary: #2563eb;
   --color-primary-dark: #1d4ed8;
@@ -23,30 +17,25 @@
   --shadow: 0 1px 3px rgb(0 0 0 / 0.1);
 }
 
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background: var(--color-bg);
-  color: var(--color-text);
-  line-height: 1.5;
-  min-height: 100dvh;
-}
+/* Override Tailwind pour compatibilité avec l'existant */
+@layer base {
+  button {
+    @apply cursor-pointer font-inherit;
+  }
 
-a {
-  color: var(--color-primary);
-  text-decoration: none;
-}
+  a {
+    @apply text-blue-600 no-underline;
+  }
 
-a:hover {
-  text-decoration: underline;
-}
+  a:hover {
+    @apply underline;
+  }
 
-button {
-  cursor: pointer;
-  font: inherit;
-}
+  img {
+    @apply max-w-full h-auto block;
+  }
 
-img {
-  max-width: 100%;
-  height: auto;
-  display: block;
+  *:focus-visible {
+    @apply outline-2 outline-offset-2;
+  }
 }

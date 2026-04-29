@@ -6,7 +6,7 @@ Plateforme web IoT pour la gestion d'une résidence intelligente — projet acad
 
 - **Backend** : Django 5 + Django REST Framework + PostgreSQL
 - **Auth** : djangorestframework-simplejwt (JWT en httpOnly cookie)
-- **Frontend** : React 18 (Vite) + CSS vanilla
+- **Frontend** : React 18 (Vite) + Tailwind CSS + Responsive Design
 - **Graphiques** : recharts
 
 ---
@@ -193,6 +193,108 @@ curl.exe -X POST http://localhost:8000/api/users/logout/ -b cookies.txt
 ```
 
 > **Alternative** : utiliser [Postman](https://www.postman.com/) ou l'interface DRF navigable (`http://localhost:8000/api/`) qui gère les cookies automatiquement.
+
+---
+
+## Frontend - Tailwind CSS
+
+Le projet utilise **Tailwind CSS** pour le styling moderne et responsive.
+
+### Installation des dépendances frontend
+
+```powershell
+cd frontend
+npm install
+```
+
+**Dépendances Tailwind** (déjà incluses) :
+- `tailwindcss@^3.4.7` — Utility-first CSS framework
+- `postcss@^8.4.38` — CSS processor
+- `autoprefixer@^10.4.20` — Auto-prefix CSS
+
+### Configuration Tailwind
+
+Fichiers clés :
+- `tailwind.config.js` — Configuration des couleurs, dimensions, breakpoints
+- `postcss.config.js` — Configuration PostCSS
+- `src/index.css` — Directives Tailwind et design tokens
+
+### Utiliser Tailwind dans les composants
+
+```jsx
+// Exemple avec classes Tailwind
+export function Header() {
+  return (
+    <header className="sticky top-0 bg-white border-b shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-blue-600">CivicSense</h1>
+          
+          <nav className="hidden md:flex gap-6">
+            <a href="#" className="text-gray-700 hover:text-blue-600">Accueil</a>
+            <a href="#" className="text-gray-700 hover:text-blue-600">Objets</a>
+          </nav>
+          
+          <button className="px-4 py-2 text-red-600 hover:bg-red-50 border rounded">
+            Déconnexion
+          </button>
+        </div>
+      </div>
+    </header>
+  )
+}
+```
+
+### Responsive Design
+
+Tailwind utilise des préfixes pour les breakpoints :
+```jsx
+<div className="w-full md:w-1/2 lg:w-1/3">
+  {/* Desktop: 1/3, Tablet: 1/2, Mobile: 100% */}
+</div>
+```
+
+**Breakpoints disponibles** :
+- `sm:` → 640px
+- `md:` → 768px
+- `lg:` → 1024px
+- `xl:` → 1280px
+- `2xl:` → 1536px
+
+### Couleurs disponibles
+
+Les couleurs Tailwind standard sont disponibles. Couleur primaire personnalisée :
+```css
+/* Dans tailwind.config.js */
+colors: {
+  primary: { 500: '#3b82f6', 600: '#2563eb', /* ... */ }
+}
+```
+
+Utilisation :
+```jsx
+<button className="bg-primary-600 hover:bg-primary-700 text-white">
+  Valider
+</button>
+```
+
+### Mode développement
+
+```powershell
+cd frontend
+npm run dev
+```
+
+Tailwind en dev : Fast Refresh automatique + HMR (Hot Module Replacement)
+
+### Build pour production
+
+```powershell
+cd frontend
+npm run build
+```
+
+Tailwind purge automatiquement les classes CSS inutilisées pour un build optimisé.
 
 ---
 
