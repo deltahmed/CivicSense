@@ -80,7 +80,6 @@ export default function PublicStatsPage() {
       <header className="public-header">
         <div className="public-header-inner">
           <div className="hero-copy">
-            <p className="eyebrow">Module Information</p>
             <h1>CivicSense - Statistiques Publiques</h1>
             <p className="intro">
               Consultez les indicateurs de la résidence sans connexion.
