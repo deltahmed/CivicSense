@@ -191,3 +191,74 @@ class AdminStatsExportTest(APITestCase):
 
     def test_401_unauthenticated(self):
         self.assertEqual(self.client.get(self.URL).status_code, 401)
+
+
+# ── ExportReportView ───────────────────────────────────────────────────────────
+
+class ExportReportViewTest(APITestCase):
+    URL = '/api/reports/export/'
+
+    @classmethod
+    def setUpTestData(cls):
+        ConnectedObject.objects.all().delete()
+        Incident.objects.all().delete()
+
+        cls.user = make_user('export@x.com', pseudo='ExportU')
+        cls.unverified = make_user('unverif@x.com', verified=False, pseudo='Unverif')
+
+        now = timezone.now()
+        cls.obj = ConnectedObject.objects.create(unique_id='EXP1', nom='ExportObj', zone='Salon', type_objet='capteur')
+        HistoriqueConso.objects.create(objet=cls.obj, date=now - timedelta(days=3), valeur=12.0)
+        HistoriqueConso.objects.create(objet=cls.obj, date=now - timedelta(days=5), valeur=8.0)
+
+        Incident.objects.create(auteur=cls.user, type_incident='panne', description='test', statut='signale')
+        Incident.objects.create(auteur=cls.user, type_incident='autre', description='test', statut='resolu')
+
+    def test_401_unauthenticated(self):
+        self.assertEqual(self.client.get(self.URL).status_code, 401)
+
+    def test_403_non_verified(self):
+        self.client.force_authenticate(self.unverified)
+        self.assertEqual(self.client.get(self.URL).status_code, 403)
+
+    def test_csv_default(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('text/csv', r['Content-Type'])
+        self.assertIn(b'rapport.csv', r['Content-Disposition'].encode())
+
+    def test_csv_format_param(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL + '?format=csv')
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('text/csv', r['Content-Type'])
+
+    def test_csv_contenu(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL + '?format=csv')
+        for fragment in (b'CivicSense', b'Tableau des objets', b'Incidents', b'Objets en alerte'):
+            self.assertIn(fragment, r.content)
+
+    def test_csv_conso_totale(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL + '?format=csv&period=30d')
+        self.assertIn(b'20.00', r.content)
+
+    def test_pdf_format_param(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL + '?format=pdf')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r['Content-Type'], 'application/pdf')
+        self.assertTrue(r.content.startswith(b'%PDF'))
+
+    def test_pdf_attachment_header(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL + '?format=pdf')
+        self.assertIn('rapport.pdf', r['Content-Disposition'])
+
+    def test_period_filter(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL + '?format=csv&period=7d')
+        self.assertEqual(r.status_code, 200)
+        self.assertIn(b'7d', r.content)
