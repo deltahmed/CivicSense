@@ -13,9 +13,9 @@ import AdminReportsPage from './pages/AdminReportsPage'
 import AdminSettingsPage from './pages/AdminSettingsPage'
 import ObjectListPage from './pages/ObjectListPage'
 import ObjectDetailPage from './pages/ObjectDetailPage'
-import ProfilePage from './pages/ProfilePage'
-import AdminPendingUsersPage from './pages/AdminPendingUsersPage'
 import SearchPage from './pages/SearchPage'
+import PublicUsersPage from './pages/PublicUsersPage'
+import PublicUserDetailPage from './pages/PublicUserDetailPage'
 
 const LEVEL_ORDER = ['debutant', 'intermediaire', 'avance', 'expert']
 
@@ -44,36 +44,18 @@ export default function App() {
       <Route
         path="/dashboard"
         element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}
+      />
+      <Route
         path="/profile"
-        element={
-          <PrivateRoute>
-            <ProfilePage />
-          </PrivateRoute>
-        }
+        element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}
       />
       <Route
-        path="/admin/users"
-        element={
-          <ExpertRoute>
-            <AdminUsersPage />
-          </ExpertRoute>
-        }
+        path="/users"
+        element={<ProtectedRoute><PublicUsersPage /></ProtectedRoute>}
       />
       <Route
-        path="/admin/pending"
-        element={
-          <ExpertRoute>
-            <AdminPendingUsersPage />
-          </ExpertRoute>
-        }
-      />
-      <Route
-        path="/admin/maintenance"
-        element={
-          <ExpertRoute>
-            <AdminMaintenancePage />
-          </ExpertRoute>
-        }
+        path="/users/:id"
+        element={<ProtectedRoute><PublicUserDetailPage /></ProtectedRoute>}
       />
       <Route
         path="/objects"
@@ -87,6 +69,7 @@ export default function App() {
         path="/alerts"
         element={<ProtectedRoute><AlertsPage /></ProtectedRoute>}
       />
+      <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
 
       {/* Avancé et supérieur */}
       <Route
@@ -104,6 +87,10 @@ export default function App() {
         element={<ProtectedRoute minLevel="expert"><AdminUsersPage /></ProtectedRoute>}
       />
       <Route
+        path="/admin/pending"
+        element={<ProtectedRoute minLevel="expert"><AdminPendingUsersPage /></ProtectedRoute>}
+      />
+      <Route
         path="/admin/maintenance"
         element={<ProtectedRoute minLevel="expert"><AdminMaintenancePage /></ProtectedRoute>}
       />
@@ -117,23 +104,6 @@ export default function App() {
       />
 
       {/* Catch-all */}
-      <Route
-        path="/profile"
-        element={
-          <PrivateRoute>
-            <ProfilePage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/admin/pending"
-        element={
-          <ExpertRoute>
-            <AdminPendingUsersPage />
-          </ExpertRoute>
-        }
-      />
-      <Route path="/search" element={<SearchPage />} />
       <Route
         path="/*"
         element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}
