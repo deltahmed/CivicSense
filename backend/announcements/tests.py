@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from django.core.cache import cache
 from rest_framework.test import APITestCase
 from users.models import CustomUser
@@ -237,4 +238,123 @@ class DeletionRequestViewTest(APITestCase):
 
     def test_unauthenticated_returns_401(self):
         r = self.client.post(self.URL, {'objet': self.obj.pk, 'motif': 'X'})
+        self.assertEqual(r.status_code, 401)
+
+
+# ---------------------------------------------------------------------------
+# Nouvelles règles : doublon, email, GET admin (/api/deletion-requests/)
+# ---------------------------------------------------------------------------
+
+class DeletionRequestEnhancedTest(APITestCase):
+    URL = '/api/deletion-requests/'
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.avance = make_user(
+            email='av2@example.com', username='avance2', pseudo='Avance2',
+            verified=True, level='avance',
+        )
+        cls.avance2 = make_user(
+            email='av3@example.com', username='avance3', pseudo='Avance3',
+            verified=True, level='avance',
+        )
+        cls.expert = make_user(
+            email='ex2@example.com', username='expert2', pseudo='Expert2',
+            verified=True, level='expert',
+        )
+        cls.verified = make_user(
+            email='vf2@example.com', username='verified2', pseudo='Verified2',
+            verified=True,
+        )
+        cls.obj_a = make_object(unique_id='ENH-001')
+        cls.obj_b = make_object(unique_id='ENH-002')
+        cls.obj_c = make_object(unique_id='ENH-003')
+
+    # ── Doublon ─────────────────────────────────────────────────────────────
+
+    def test_duplicate_en_attente_returns_409(self):
+        self.client.force_authenticate(self.avance)
+        self.client.post(self.URL, {'objet': self.obj_a.pk, 'motif': 'Première demande'})
+        r = self.client.post(self.URL, {'objet': self.obj_a.pk, 'motif': 'Deuxième tentative'})
+        self.assertEqual(r.status_code, 409)
+        self.assertFalse(r.data['success'])
+
+    def test_duplicate_check_global_not_per_user(self):
+        # Un autre utilisateur avancé ne peut pas non plus soumettre pour le même objet en_attente
+        self.client.force_authenticate(self.avance)
+        self.client.post(self.URL, {'objet': self.obj_b.pk, 'motif': 'Premier'})
+        self.client.force_authenticate(self.avance2)
+        r = self.client.post(self.URL, {'objet': self.obj_b.pk, 'motif': 'Doublon autre user'})
+        self.assertEqual(r.status_code, 409)
+
+    def test_different_objets_both_allowed(self):
+        self.client.force_authenticate(self.avance)
+        r1 = self.client.post(self.URL, {'objet': self.obj_a.pk, 'motif': 'Motif A'})
+        r2 = self.client.post(self.URL, {'objet': self.obj_b.pk, 'motif': 'Motif B'})
+        self.assertEqual(r1.status_code, 201)
+        self.assertEqual(r2.status_code, 201)
+
+    # ── Email ────────────────────────────────────────────────────────────────
+
+    @patch('announcements.views.send_mail')
+    def test_post_sends_email_to_expert_admins(self, mock_send):
+        self.client.force_authenticate(self.avance)
+        r = self.client.post(self.URL, {'objet': self.obj_c.pk, 'motif': 'Email test'})
+        self.assertEqual(r.status_code, 201)
+        mock_send.assert_called_once()
+        call_kwargs = mock_send.call_args[1]
+        self.assertIn(self.expert.email, call_kwargs['recipient_list'])
+
+    @patch('announcements.views.send_mail', side_effect=Exception('SMTP down'))
+    def test_email_failure_does_not_block_creation(self, mock_send):
+        obj_d = make_object(unique_id='ENH-004')
+        self.client.force_authenticate(self.avance)
+        r = self.client.post(self.URL, {'objet': obj_d.pk, 'motif': 'Motif malgré email KO'})
+        self.assertEqual(r.status_code, 201)
+        self.assertTrue(DeletionRequest.objects.filter(objet=obj_d).exists())
+
+    # ── GET admin ────────────────────────────────────────────────────────────
+
+    def test_get_expert_returns_pending_only(self):
+        DeletionRequest.objects.create(demandeur=self.avance, objet=self.obj_a, motif='Test', statut='en_attente')
+        DeletionRequest.objects.create(demandeur=self.avance, objet=self.obj_b, motif='Déjà traitée', statut='approuvee')
+        self.client.force_authenticate(self.expert)
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.data['success'])
+        for entry in r.data['data']:
+            self.assertEqual(entry['statut'], 'en_attente')
+
+    def test_get_includes_objet_nom_and_demandeur_pseudo(self):
+        DeletionRequest.objects.create(demandeur=self.avance, objet=self.obj_a, motif='Champs', statut='en_attente')
+        self.client.force_authenticate(self.expert)
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 200)
+        entry = r.data['data'][0]
+        self.assertIn('objet_nom', entry)
+        self.assertIn('demandeur_pseudo', entry)
+
+    def test_get_avance_returns_403(self):
+        self.client.force_authenticate(self.avance)
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 403)
+
+    def test_get_verified_returns_403(self):
+        self.client.force_authenticate(self.verified)
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 403)
+
+    def test_get_unauthenticated_returns_401(self):
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 401)
+
+    # ── Permissions POST ─────────────────────────────────────────────────────
+
+    def test_post_verified_not_avance_returns_403(self):
+        self.client.force_authenticate(self.verified)
+        r = self.client.post(self.URL, {'objet': self.obj_a.pk, 'motif': 'Non autorisé'})
+        self.assertEqual(r.status_code, 403)
+
+    def test_post_unauthenticated_returns_401(self):
+        r = self.client.post(self.URL, {'objet': self.obj_a.pk, 'motif': 'Non auth'})
         self.assertEqual(r.status_code, 401)
