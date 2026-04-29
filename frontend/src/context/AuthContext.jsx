@@ -8,20 +8,20 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.get('/users/me/')
+    api.get('/auth/me/')
       .then(res => setUser(res.data.data))
       .catch(() => setUser(null))
       .finally(() => setLoading(false))
   }, [])
 
   async function login(email, password) {
-    const res = await api.post('/users/login/', { email, password })
+    const res = await api.post('/auth/login/', { email, password })
     setUser(res.data.data)
     return res.data
   }
 
   async function logout() {
-    await api.post('/users/logout/')
+    await api.post('/auth/logout/')
     setUser(null)
   }
 

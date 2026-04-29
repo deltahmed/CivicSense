@@ -10,7 +10,10 @@ from .models import CustomUser, LoginHistory
 from .permissions import IsExpert
 from .serializers import (
     RegisterSerializer,
+    PublicUserSerializer,
+    PrivateUserSerializer,
     UserProfileSerializer,
+    ChangePasswordSerializer,
     AdminUserSerializer,
     AdminUserUpdateSerializer,
     AdminSetLevelSerializer,
@@ -22,6 +25,7 @@ from django.urls import reverse
 from utils.email_utils import send_verification_email, send_approval_email, send_rejection_email
 from .utils import add_points, check_level_up
 from services.models import GlobalSettings
+
 
 
 def _set_auth_cookies(response, refresh):
@@ -137,14 +141,67 @@ class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response({'success': True, 'data': UserProfileSerializer(request.user).data})
+        """Retourne le profil complet de l'utilisateur connecté (profil privé)"""
+        return Response({'success': True, 'data': PrivateUserSerializer(request.user).data})
 
     def patch(self, request):
-        serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
+        """Modifie le profil de l'utilisateur connecté"""
+        serializer = PrivateUserSerializer(request.user, data=request.data, partial=True)
         if not serializer.is_valid():
             return Response({'success': False, 'errors': serializer.errors}, status=400)
         serializer.save()
         return Response({'success': True, 'data': serializer.data})
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """Change le mot de passe de l'utilisateur connecté"""
+        serializer = ChangePasswordSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'success': False, 'errors': serializer.errors}, status=400)
+        
+        user = request.user
+        old_password = serializer.validated_data['old_password']
+        new_password = serializer.validated_data['new_password']
+        
+        # Vérifier que l'ancien mot de passe est correct
+        if not user.check_password(old_password):
+            return Response({
+                'success': False,
+                'message': 'L\'ancien mot de passe est incorrect.'
+            }, status=400)
+        
+        # Vérifier que le nouveau mot de passe est différent
+        if old_password == new_password:
+            return Response({
+                'success': False,
+                'message': 'Le nouveau mot de passe doit être différent de l\'ancien.'
+            }, status=400)
+        
+        # Définir et sauvegarder le nouveau mot de passe
+        user.set_password(new_password)
+        user.save(update_fields=['password'])
+        
+        return Response({
+            'success': True,
+            'message': 'Mot de passe changé avec succès.'
+        })
+
+
+class GetPublicUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        """Retourne le profil public d'un utilisateur"""
+        try:
+            user = CustomUser.objects.get(pk=pk)
+        except CustomUser.DoesNotExist:
+            return Response({'success': False, 'message': 'Utilisateur introuvable.'}, status=404)
+        
+        return Response({'success': True, 'data': PublicUserSerializer(user).data})
+
 
 
 class VerifyEmailView(APIView):
