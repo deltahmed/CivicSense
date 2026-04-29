@@ -793,6 +793,10 @@ class PublicSearchObjectsTestCase(APITestCase):
     """Tests pour la recherche publique des équipements"""
 
     def setUp(self):
+        # Nettoyer la base de données pour éviter les doublons de tests précédents
+        ConnectedObject.objects.all().delete()
+        Category.objects.all().delete()
+        
         self.list_url = '/api/objects/search/'
         
         # Créer une catégorie

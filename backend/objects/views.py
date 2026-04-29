@@ -201,7 +201,7 @@ class PublicSearchObjectsView(APIView):
     def get(self, request):
         # Filtres avec valeurs par défaut
         type_objet = request.query_params.get('type_objet', '').strip()
-        statut = request.query_params.get('statut', 'actif').strip()
+        statut = request.query_params.get('statut', '').strip()
         zone = request.query_params.get('zone', '').strip()
         search = request.query_params.get('search', '').strip()
 
