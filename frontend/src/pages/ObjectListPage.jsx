@@ -19,38 +19,72 @@ const TYPE_LABELS = {
   prise: 'Prise',
 }
 
+const TYPE_OPTIONS = ['thermostat', 'camera', 'compteur', 'eclairage', 'capteur', 'prise']
+const STATUT_OPTIONS = ['actif', 'inactif', 'maintenance']
+
+function fmtDate(iso) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleString('fr-FR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
 export default function ObjectListPage() {
   const { user, logout } = useAuth()
+  const [allItems, setAllItems] = useState([])
   const [objects, setObjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState(null)
   const [search, setSearch] = useState('')
   const [filterZone, setFilterZone] = useState('')
   const [filterType, setFilterType] = useState('')
+  const [filterStatut, setFilterStatut] = useState('')
+  const [filterMarque, setFilterMarque] = useState('')
 
   useEffect(() => {
     document.title = 'Objets connectés - CivicSense'
-    api.get('/objects/')
-      .then(res => {
-        setObjects(res.data.data)
-        setLoading(false)
-      })
-      .catch(() => {
-        setFetchError('Impossible de charger les objets.')
-        setLoading(false)
-      })
   }, [])
 
-  const zones = [...new Set(objects.map(o => o.zone))].sort()
-  const types = [...new Set(objects.map(o => o.type_objet))].sort()
+  useEffect(() => {
+    const params = {}
+    if (search.trim()) params.search = search.trim()
+    if (filterType) params.type_objet = filterType
+    if (filterStatut) params.statut = filterStatut
+    if (filterZone) params.zone = filterZone
+    if (filterMarque) params.marque = filterMarque
 
-  const filtered = objects.filter(o => {
-    const q = search.toLowerCase()
-    const matchSearch = !q || o.nom.toLowerCase().includes(q) || o.zone.toLowerCase().includes(q)
-    const matchZone = !filterZone || o.zone === filterZone
-    const matchType = !filterType || o.type_objet === filterType
-    return matchSearch && matchZone && matchType
-  })
+    setLoading(true)
+    setFetchError(null)
+
+    const timer = setTimeout(() => {
+      api.get('/objects/', { params })
+        .then(res => {
+          const data = res.data.data
+          setObjects(data)
+          if (!Object.keys(params).length) setAllItems(data)
+          setLoading(false)
+        })
+        .catch(() => {
+          setFetchError('Impossible de charger les objets.')
+          setLoading(false)
+        })
+    }, search ? 300 : 0)
+
+    return () => clearTimeout(timer)
+  }, [search, filterType, filterStatut, filterZone, filterMarque])
+
+  const zones = [...new Set(allItems.map(o => o.zone))].sort()
+  const marques = [...new Set(allItems.map(o => o.marque).filter(Boolean))].sort()
+
+  const hasFilters = search || filterZone || filterType || filterStatut || filterMarque
+  const resetFilters = () => {
+    setSearch('')
+    setFilterZone('')
+    setFilterType('')
+    setFilterStatut('')
+    setFilterMarque('')
+  }
 
   return (
     <div className="ol-layout">
@@ -76,15 +110,29 @@ export default function ObjectListPage() {
         <h1>Objets connectés</h1>
 
         <section className="ol-filters" aria-label="Filtres">
-          <div className="ol-filter-field">
+          <div className="ol-filter-field ol-filter-field--wide">
             <label htmlFor="ol-search">Recherche</label>
             <input
               id="ol-search"
               type="search"
-              placeholder="Nom ou zone…"
+              placeholder="Nom ou description…"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
+          </div>
+          <div className="ol-filter-field">
+            <label htmlFor="ol-type">Type</label>
+            <select id="ol-type" value={filterType} onChange={e => setFilterType(e.target.value)}>
+              <option value="">Tous les types</option>
+              {TYPE_OPTIONS.map(t => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
+            </select>
+          </div>
+          <div className="ol-filter-field">
+            <label htmlFor="ol-statut">Statut</label>
+            <select id="ol-statut" value={filterStatut} onChange={e => setFilterStatut(e.target.value)}>
+              <option value="">Tous les statuts</option>
+              {STATUT_OPTIONS.map(s => <option key={s} value={s}>{STATUT_LABELS[s]}</option>)}
+            </select>
           </div>
           <div className="ol-filter-field">
             <label htmlFor="ol-zone">Zone</label>
@@ -94,24 +142,31 @@ export default function ObjectListPage() {
             </select>
           </div>
           <div className="ol-filter-field">
-            <label htmlFor="ol-type">Type</label>
-            <select id="ol-type" value={filterType} onChange={e => setFilterType(e.target.value)}>
-              <option value="">Tous les types</option>
-              {types.map(t => <option key={t} value={t}>{TYPE_LABELS[t] || t}</option>)}
+            <label htmlFor="ol-marque">Marque</label>
+            <select id="ol-marque" value={filterMarque} onChange={e => setFilterMarque(e.target.value)}>
+              <option value="">Toutes les marques</option>
+              {marques.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
+          {hasFilters && (
+            <div className="ol-filter-reset">
+              <button onClick={resetFilters} className="btn-reset" type="button">
+                Réinitialiser
+              </button>
+            </div>
+          )}
         </section>
 
         {loading && <p className="ol-state">Chargement…</p>}
         {fetchError && <p className="ol-state ol-state--error" role="alert">{fetchError}</p>}
 
-        {!loading && !fetchError && filtered.length === 0 && (
+        {!loading && !fetchError && objects.length === 0 && (
           <p className="ol-state">Aucun objet trouvé.</p>
         )}
 
-        {!loading && !fetchError && filtered.length > 0 && (
+        {!loading && !fetchError && objects.length > 0 && (
           <ul className="ol-grid" role="list">
-            {filtered.map(obj => (
+            {objects.map(obj => (
               <li key={obj.id} className="ol-card">
                 <Link to={`/objects/${obj.id}`} className="ol-card-link">
                   <div className="ol-card-top">
@@ -122,16 +177,20 @@ export default function ObjectListPage() {
                   </div>
                   <dl className="ol-card-meta">
                     <div>
-                      <dt>Zone</dt>
-                      <dd>{obj.zone}</dd>
-                    </div>
-                    <div>
                       <dt>Type</dt>
                       <dd>{TYPE_LABELS[obj.type_objet] || obj.type_objet}</dd>
                     </div>
                     <div>
-                      <dt>Batterie</dt>
-                      <dd>{obj.batterie} %</dd>
+                      <dt>Zone</dt>
+                      <dd>{obj.zone}</dd>
+                    </div>
+                    <div>
+                      <dt>Marque</dt>
+                      <dd>{obj.marque || '—'}</dd>
+                    </div>
+                    <div>
+                      <dt>Dernière int.</dt>
+                      <dd>{fmtDate(obj.derniere_interaction)}</dd>
                     </div>
                   </dl>
                 </Link>
@@ -142,7 +201,7 @@ export default function ObjectListPage() {
 
         {!loading && (
           <p className="ol-count">
-            {filtered.length} objet{filtered.length !== 1 ? 's' : ''} affiché{filtered.length !== 1 ? 's' : ''}
+            {objects.length} objet{objects.length !== 1 ? 's' : ''} affiché{objects.length !== 1 ? 's' : ''}
           </p>
         )}
       </main>

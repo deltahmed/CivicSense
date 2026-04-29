@@ -583,3 +583,207 @@ class ObjectConfigViewTest(APITestCase):
             format='json',
         )
         self.assertEqual(r.status_code, 403)
+
+
+# ── API — Filtres GET /api/objects/ ──────────────────────────────────────────
+
+class ObjectListFilterTest(APITestCase):
+    URL = '/api/objects/'
+
+    @classmethod
+    def setUpTestData(cls):
+        ConnectedObject.objects.all().delete()
+        cls.user = make_user(email='filt@x.com', username='filtuser', pseudo='FiltUser', verified=True)
+
+        cls.obj1 = make_object(
+            unique_id='F001', nom='Lampadaire LED',
+            description='Éclairage extérieur solaire', marque='Philips',
+            type_objet='eclairage', statut='actif', zone='Salon',
+        )
+        cls.obj2 = make_object(
+            unique_id='F002', nom='Thermostat Pro',
+            description='Régulation thermique intelligente', marque='Nest',
+            type_objet='thermostat', statut='inactif', zone='Cuisine',
+        )
+        cls.obj3 = make_object(
+            unique_id='F003', nom='Capteur CO2',
+            description='Mesure qualité air ambiant', marque='Philips',
+            type_objet='capteur', statut='maintenance', zone='Salon',
+        )
+
+    def test_no_filter_returns_all(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.data['success'])
+        self.assertEqual(len(r.data['data']), 3)
+
+    def test_search_by_nom(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'search': 'lampadaire'})
+        ids = [o['unique_id'] for o in r.data['data']]
+        self.assertIn('F001', ids)
+        self.assertNotIn('F002', ids)
+        self.assertNotIn('F003', ids)
+
+    def test_search_by_description(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'search': 'thermique'})
+        ids = [o['unique_id'] for o in r.data['data']]
+        self.assertEqual(ids, ['F002'])
+
+    def test_search_case_insensitive(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'search': 'LAMPADAIRE'})
+        ids = [o['unique_id'] for o in r.data['data']]
+        self.assertIn('F001', ids)
+
+    def test_search_matches_description_not_nom(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'search': 'solaire'})
+        ids = [o['unique_id'] for o in r.data['data']]
+        self.assertIn('F001', ids)
+        self.assertEqual(len(ids), 1)
+
+    def test_filter_marque_exact(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'marque': 'Philips'})
+        ids = [o['unique_id'] for o in r.data['data']]
+        self.assertIn('F001', ids)
+        self.assertIn('F003', ids)
+        self.assertNotIn('F002', ids)
+
+    def test_filter_marque_no_partial_match(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'marque': 'Phil'})
+        self.assertEqual(len(r.data['data']), 0)
+
+    def test_filter_type_objet(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'type_objet': 'thermostat'})
+        ids = [o['unique_id'] for o in r.data['data']]
+        self.assertEqual(ids, ['F002'])
+
+    def test_filter_statut_actif(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'statut': 'actif'})
+        ids = [o['unique_id'] for o in r.data['data']]
+        self.assertEqual(ids, ['F001'])
+
+    def test_filter_statut_maintenance(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'statut': 'maintenance'})
+        ids = [o['unique_id'] for o in r.data['data']]
+        self.assertEqual(ids, ['F003'])
+
+    def test_filter_zone(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'zone': 'Salon'})
+        ids = [o['unique_id'] for o in r.data['data']]
+        self.assertIn('F001', ids)
+        self.assertIn('F003', ids)
+        self.assertNotIn('F002', ids)
+
+    def test_combined_search_and_statut(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'search': 'Capteur', 'statut': 'maintenance'})
+        ids = [o['unique_id'] for o in r.data['data']]
+        self.assertEqual(ids, ['F003'])
+
+    def test_combined_marque_and_zone(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'marque': 'Philips', 'zone': 'Salon'})
+        ids = [o['unique_id'] for o in r.data['data']]
+        self.assertIn('F001', ids)
+        self.assertIn('F003', ids)
+        self.assertEqual(len(ids), 2)
+
+    def test_combined_type_and_zone_no_match(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'type_objet': 'thermostat', 'zone': 'Salon'})
+        self.assertEqual(len(r.data['data']), 0)
+
+    def test_no_match_returns_empty_list(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'marque': 'Marque_Inexistante'})
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.data['success'])
+        self.assertEqual(len(r.data['data']), 0)
+
+    def test_empty_search_param_ignored(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.URL, {'search': '   '})
+        self.assertEqual(len(r.data['data']), 3)
+
+    def test_unauthenticated_with_filter_returns_401(self):
+        r = self.client.get(self.URL, {'search': 'test'})
+        self.assertEqual(r.status_code, 401)
+
+
+# ── API — historique_recent dans GET /api/objects/<pk>/ ──────────────────────
+
+class ObjectDetailHistoriqueTest(APITestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = make_user(email='hr@x.com', username='hruser', pseudo='HRUser', verified=True)
+        cls.obj = make_object(unique_id='HR-001')
+        now = timezone.now()
+        for i in range(7):
+            HistoriqueConso.objects.create(
+                objet=cls.obj,
+                date=now - datetime.timedelta(hours=i),
+                valeur=float(i),
+            )
+
+    def url(self, pk=None):
+        return f'/api/objects/{pk or self.obj.pk}/'
+
+    def test_response_contains_historique_recent(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.url())
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('historique_recent', r.data['data'])
+
+    def test_historique_recent_max_5_entries(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.url())
+        self.assertEqual(len(r.data['data']['historique_recent']), 5)
+
+    def test_historique_recent_ordered_most_recent_first(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.url())
+        dates = [h['date'] for h in r.data['data']['historique_recent']]
+        self.assertEqual(dates, sorted(dates, reverse=True))
+
+    def test_historique_recent_empty_when_no_history(self):
+        obj2 = make_object(unique_id='HR-002')
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.url(pk=obj2.pk))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(list(r.data['data']['historique_recent']), [])
+
+    def test_historique_recent_has_required_fields(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.url())
+        entry = r.data['data']['historique_recent'][0]
+        self.assertIn('id', entry)
+        self.assertIn('date', entry)
+        self.assertIn('valeur', entry)
+        self.assertIn('objet', entry)
+
+    def test_historique_recent_fewer_than_5_when_less_history(self):
+        obj3 = make_object(unique_id='HR-003')
+        HistoriqueConso.objects.create(objet=obj3, date=timezone.now(), valeur=1.0)
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.url(pk=obj3.pk))
+        self.assertEqual(len(r.data['data']['historique_recent']), 1)
+
+    def test_object_attributes_still_present(self):
+        self.client.force_authenticate(self.user)
+        r = self.client.get(self.url())
+        data = r.data['data']
+        self.assertIn('nom', data)
+        self.assertIn('zone', data)
+        self.assertIn('statut', data)
+        self.assertIn('type_objet', data)

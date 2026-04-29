@@ -19,8 +19,27 @@ class ObjectListView(APIView):
         return [IsAuthenticated(), IsVerified()]
 
     def get(self, request):
-        objects = ConnectedObject.objects.all()
-        return Response({'success': True, 'data': ConnectedObjectSerializer(objects, many=True).data})
+        search = request.query_params.get('search', '').strip()
+        marque = request.query_params.get('marque', '').strip()
+        type_objet = request.query_params.get('type_objet', '').strip()
+        statut = request.query_params.get('statut', '').strip()
+        zone = request.query_params.get('zone', '').strip()
+
+        queryset = ConnectedObject.objects.all()
+        if search:
+            queryset = queryset.filter(
+                Q(nom__icontains=search) | Q(description__icontains=search)
+            )
+        if marque:
+            queryset = queryset.filter(marque=marque)
+        if type_objet:
+            queryset = queryset.filter(type_objet=type_objet)
+        if statut:
+            queryset = queryset.filter(statut=statut)
+        if zone:
+            queryset = queryset.filter(zone=zone)
+
+        return Response({'success': True, 'data': ConnectedObjectSerializer(queryset, many=True).data})
 
     def post(self, request):
         serializer = ConnectedObjectSerializer(data=request.data)
@@ -44,7 +63,10 @@ class ObjectDetailView(APIView):
         if obj is None:
             return Response({'success': False, 'message': 'Objet introuvable.'}, status=404)
         add_points(request.user, 0.50)
-        return Response({'success': True, 'data': ConnectedObjectSerializer(obj).data})
+        data = dict(ConnectedObjectSerializer(obj).data)
+        historique = HistoriqueConso.objects.filter(objet=obj).order_by('-date')[:5]
+        data['historique_recent'] = HistoriqueConsoSerializer(historique, many=True).data
+        return Response({'success': True, 'data': data})
 
     def get_permissions(self):
         if self.request.method == 'PATCH':

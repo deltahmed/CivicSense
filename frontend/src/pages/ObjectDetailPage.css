@@ -360,6 +360,46 @@
   font-style: italic;
 }
 
+/* ── Historique table ── */
+
+.od-histo-wrap {
+  overflow-x: auto;
+}
+
+.od-histo-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.od-histo-table th,
+.od-histo-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.od-histo-table th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #888;
+  font-weight: 600;
+  background: #fafafa;
+}
+
+.od-histo-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.od-histo-table tbody tr:hover td {
+  background: #f7f9fb;
+}
+
+.od-histo-val {
+  text-align: right;
+}
+
 /* ── États d'erreur/chargement ── */
 
 .od-page {

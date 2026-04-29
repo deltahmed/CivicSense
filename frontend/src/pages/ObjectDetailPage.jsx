@@ -4,6 +4,14 @@ import { useAuth } from '../context/AuthContext'
 import api from '../api/index'
 import './ObjectDetailPage.css'
 
+function fmtDate(iso) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleString('fr-FR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
 const ZONES = [
   'Salon', 'Cuisine', 'Chambre', 'Salle de bain', 'Bureau',
   'Entrée', 'Couloir', 'Garage', 'Jardin', 'Cave', 'Extérieur', 'Autre',
@@ -305,6 +313,33 @@ export default function ObjectDetailPage() {
 
           {configFields.length === 0 && (
             <p className="od-no-config">Aucun paramètre configurable pour ce type d'objet.</p>
+          )}
+        </section>
+
+        {/* Historique récent */}
+        <section className="od-section" aria-labelledby="histo-title">
+          <h2 id="histo-title">Historique récent</h2>
+          {object.historique_recent && object.historique_recent.length > 0 ? (
+            <div className="od-histo-wrap">
+              <table className="od-histo-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col" className="od-histo-val">Valeur (kWh)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {object.historique_recent.map(entry => (
+                    <tr key={entry.id}>
+                      <td>{fmtDate(entry.date)}</td>
+                      <td className="od-histo-val">{entry.valeur}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="od-no-config">Aucun historique disponible.</p>
           )}
         </section>
       </main>
