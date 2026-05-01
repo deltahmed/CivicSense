@@ -42,7 +42,7 @@ function getNavLinks(user) {
   return links
 }
 
-// ── Météo card ────────────────────────────────────────────────────────────────
+// ── Météo card ────────────────────────────────────────────────────────────────   
 function MeteoCard() {
   const [meteo, setMeteo] = useState(null)
   const [err, setErr]     = useState(false)
