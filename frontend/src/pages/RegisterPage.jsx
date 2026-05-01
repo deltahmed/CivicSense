@@ -7,9 +7,8 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const TYPE_MEMBRE_LABELS = {
   resident:     'Résident',
-  referent:     'Référent de quartier',
-  gardien:      'Gardien d\'immeuble',
-  gestionnaire: 'Gestionnaire',
+  referent:     'Référent',
+  syndic:       'Syndic',
 }
 
 export default function RegisterPage() {
@@ -28,6 +27,8 @@ export default function RegisterPage() {
   const [globalError, setGlobalError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [mouse, setMouse] = useState({ x: 50, y: 16, rx: 0, ry: 0 })
 
   function handleMouseMove(event) {
@@ -197,13 +198,35 @@ export default function RegisterPage() {
 
           <div className="field">
             <label htmlFor="password">Mot de passe</label>
-            <input id="password" name="password" type="password" value={form.password} onChange={handleChange} required minLength={8} autoComplete="new-password" />
+            <div className="password-field">
+              <input id="password" name="password" type={showPassword ? 'text' : 'password'} value={form.password} onChange={handleChange} required minLength={8} autoComplete="new-password" />
+              <button
+                type="button"
+                className={`password-toggle${showPassword ? ' password-toggle--visible' : ' password-toggle--hidden'}`}
+                onClick={() => setShowPassword(v => !v)}
+                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                aria-pressed={showPassword}
+              >
+                <span aria-hidden="true">👁️</span>
+              </button>
+            </div>
             {fieldErrors.password && <p className="auth-error" role="alert">{fieldErrors.password[0]}</p>}
           </div>
 
           <div className="field">
             <label htmlFor="confirmPassword">Confirmer le mot de passe</label>
-            <input id="confirmPassword" name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} required autoComplete="new-password" />
+            <div className="password-field">
+              <input id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} value={form.confirmPassword} onChange={handleChange} required autoComplete="new-password" />
+              <button
+                type="button"
+                className={`password-toggle${showConfirmPassword ? ' password-toggle--visible' : ' password-toggle--hidden'}`}
+                onClick={() => setShowConfirmPassword(v => !v)}
+                aria-label={showConfirmPassword ? 'Masquer la confirmation du mot de passe' : 'Afficher la confirmation du mot de passe'}
+                aria-pressed={showConfirmPassword}
+              >
+                <span aria-hidden="true">👁️</span>
+              </button>
+            </div>
             {fieldErrors.confirmPassword && <p className="auth-error" role="alert">{fieldErrors.confirmPassword[0]}</p>}
           </div>
 
@@ -214,6 +237,9 @@ export default function RegisterPage() {
 
         <p className="auth-footer">
           Déjà un compte ? <Link to="/login">Se connecter</Link>
+        </p>
+        <p className="auth-footer" style={{ marginTop: '.75rem', fontSize: '.85rem' }}>
+          <Link to="/">← Retour à l'accueil</Link>
         </p>
       </section>
     </main>

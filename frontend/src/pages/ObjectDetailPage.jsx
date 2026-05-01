@@ -26,6 +26,38 @@ const TYPE_LABELS = {
   prise: 'Prise',
 }
 
+const STATUT_OPTIONS = [
+  { value: 'actif', label: 'Actif' },
+  { value: 'inactif', label: 'Inactif' },
+  { value: 'maintenance', label: 'En maintenance' },
+]
+
+const CONNECTIVITE_OPTIONS = [
+  { value: 'wifi', label: 'Wi-Fi' },
+  { value: 'bluetooth', label: 'Bluetooth' },
+  { value: 'zigbee', label: 'Zigbee' },
+  { value: 'zwave', label: 'Z-Wave' },
+  { value: 'ethernet', label: 'Ethernet' },
+]
+
+const SIGNAL_OPTIONS = [
+  { value: 'fort', label: 'Fort' },
+  { value: 'moyen', label: 'Moyen' },
+  { value: 'faible', label: 'Faible' },
+]
+
+const INFO_FIELDS = [
+  { key: 'nom', label: 'Nom', type: 'text', required: true },
+  { key: 'description', label: 'Description', type: 'textarea' },
+  { key: 'marque', label: 'Marque', type: 'text' },
+  { key: 'zone', label: 'Zone / Pièce', type: 'text', required: true },
+  { key: 'statut', label: 'Statut', type: 'select', options: STATUT_OPTIONS },
+  { key: 'connectivite', label: 'Connectivité', type: 'select', options: CONNECTIVITE_OPTIONS },
+  { key: 'signal_force', label: 'Signal', type: 'select', options: SIGNAL_OPTIONS },
+  { key: 'batterie', label: 'Batterie (%)', type: 'number', min: 0, max: 100, step: 1 },
+  { key: 'consommation_kwh', label: 'Consommation (kWh)', type: 'number', min: 0, step: 0.01 },
+]
+
 const CONFIG_FIELDS = {
   thermostat: [
     { key: 'temperature_cible', label: 'Température cible (°C)', type: 'number', min: 5, max: 35, step: 0.5 },
@@ -62,9 +94,23 @@ function buildConfigState(fields, existing) {
   return state
 }
 
+function buildInfoState(existing) {
+  return {
+    nom: existing?.nom ?? '',
+    description: existing?.description ?? '',
+    marque: existing?.marque ?? '',
+    zone: existing?.zone ?? '',
+    statut: existing?.statut ?? 'actif',
+    connectivite: existing?.connectivite ?? 'wifi',
+    signal_force: existing?.signal_force ?? 'moyen',
+    batterie: existing?.batterie !== undefined && existing?.batterie !== null ? String(existing.batterie) : '',
+    consommation_kwh: existing?.consommation_kwh !== undefined && existing?.consommation_kwh !== null ? String(existing.consommation_kwh) : '',
+  }
+}
+
 function StatusBadge({ status }) {
   if (status === 'saving') return <span className="od-status od-status--saving" aria-live="polite">Sauvegarde…</span>
-  if (status === 'saved') return <span className="od-status od-status--saved" aria-live="polite">Enregistré ✓</span>
+  if (status === 'saved') return <span className="od-status od-status--saved" aria-live="polite">Enregistré</span>
   if (status === 'error') return <span className="od-status od-status--error" aria-live="polite">Erreur</span>
   return null
 }
@@ -72,15 +118,16 @@ function StatusBadge({ status }) {
 export default function ObjectDetailPage() {
   const { id } = useParams()
   const { user } = useAuth()
-  const canEdit           = ['avance', 'expert'].includes(user?.level)
+  const canEdit           = user?.level === 'expert'
   const canRequestDeletion = user?.level === 'avance'
 
   const [object, setObject] = useState(null)
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState(null)
 
-  const [zone, setZone] = useState('')
-  const [zoneStatus, setZoneStatus] = useState('idle')
+  const [editableInfo, setEditableInfo] = useState({})
+  const [infoStatus, setInfoStatus] = useState('idle')
+  const [infoErrorMsg, setInfoErrorMsg] = useState(null)
 
   const [configValues, setConfigValues] = useState({})
   const [configStatus, setConfigStatus] = useState('idle')
@@ -98,7 +145,7 @@ export default function ObjectDetailPage() {
       .then(res => {
         const obj = res.data.data
         setObject(obj)
-        setZone(obj.zone)
+        setEditableInfo(buildInfoState(obj))
         const fields = CONFIG_FIELDS[obj.type_objet] || []
         setConfigValues(buildConfigState(fields, obj.attributs_specifiques))
         document.title = `${obj.nom} - CivicSense`
@@ -116,26 +163,49 @@ export default function ObjectDetailPage() {
     }
   }, [id, canEdit])
 
-  const handleZoneChange = async (e) => {
-    const newZone = e.target.value
-    const prevZone = zone
-    setZone(newZone)
-    if (!canEdit) return
-    setZoneStatus('saving')
-    try {
-      const res = await api.patch(`/objects/${id}/`, { zone: newZone })
-      setObject(res.data.data)
-      setZoneStatus('saved')
-      setTimeout(() => setZoneStatus('idle'), 2000)
-    } catch {
-      setZone(prevZone)
-      setZoneStatus('error')
-      setTimeout(() => setZoneStatus('idle'), 3000)
-    }
+  const handleInfoChange = (key, value) => {
+    setEditableInfo(prev => ({ ...prev, [key]: value }))
   }
 
   const handleConfigChange = (key, value) => {
     setConfigValues(prev => ({ ...prev, [key]: value }))
+  }
+
+  const handleInfoSave = async () => {
+    if (!canEdit) return
+    setInfoStatus('saving')
+    setInfoErrorMsg(null)
+
+    const payload = {
+      nom: editableInfo.nom.trim(),
+      description: editableInfo.description,
+      marque: editableInfo.marque.trim(),
+      zone: editableInfo.zone.trim(),
+      statut: editableInfo.statut,
+      connectivite: editableInfo.connectivite,
+      signal_force: editableInfo.signal_force,
+    }
+
+    if (editableInfo.batterie !== '') {
+      payload.batterie = parseInt(editableInfo.batterie, 10)
+    }
+    if (editableInfo.consommation_kwh !== '') {
+      payload.consommation_kwh = parseFloat(editableInfo.consommation_kwh)
+    }
+
+    try {
+      const res = await api.patch(`/objects/${id}/`, payload)
+      const updated = res.data.data
+      setObject(updated)
+      setEditableInfo(buildInfoState(updated))
+      setInfoStatus('saved')
+      setTimeout(() => setInfoStatus('idle'), 2500)
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Erreur lors de la sauvegarde des informations.'
+      setInfoErrorMsg(msg)
+      setInfoStatus('error')
+      setTimeout(() => { setInfoStatus('idle'); setInfoErrorMsg(null) }, 4000)
+    }
   }
 
   const openDeleteModal = () => {
@@ -208,7 +278,6 @@ export default function ObjectDetailPage() {
   }
 
   const configFields = CONFIG_FIELDS[object.type_objet] || []
-  const zoneInList = ZONES.includes(zone)
 
   return (
     <div className="od-layout">
@@ -218,6 +287,7 @@ export default function ObjectDetailPage() {
           <span aria-hidden="true"> / </span>
           <span aria-current="page">{object.nom}</span>
         </nav>
+        <Link to="/objects" className="od-back od-back--top">← Retour aux objets</Link>
 
         <div className="od-title-row">
           <h1>{object.nom}</h1>
@@ -241,33 +311,72 @@ export default function ObjectDetailPage() {
           </dl>
         </section>
 
+        {canEdit && (
+          <section className="od-section" aria-labelledby="edit-info-title">
+            <h2 id="edit-info-title">Modifier les informations</h2>
+            <fieldset className="od-fieldset">
+              <legend>Champs modifiables</legend>
+              {INFO_FIELDS.map(field => (
+                <div key={field.key} className="od-field-row">
+                  <label htmlFor={`info-${field.key}`}>{field.label}</label>
+                  <div className="od-field-control">
+                    {field.type === 'select' ? (
+                      <select
+                        id={`info-${field.key}`}
+                        value={editableInfo[field.key] ?? ''}
+                        onChange={e => handleInfoChange(field.key, e.target.value)}
+                        disabled={infoStatus === 'saving'}
+                      >
+                        {field.options.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    ) : field.type === 'textarea' ? (
+                      <textarea
+                        id={`info-${field.key}`}
+                        value={editableInfo[field.key] ?? ''}
+                        onChange={e => handleInfoChange(field.key, e.target.value)}
+                        disabled={infoStatus === 'saving'}
+                        rows={4}
+                      />
+                    ) : (
+                      <input
+                        id={`info-${field.key}`}
+                        type={field.type}
+                        min={field.min}
+                        max={field.max}
+                        step={field.step}
+                        value={editableInfo[field.key] ?? ''}
+                        onChange={e => handleInfoChange(field.key, e.target.value)}
+                        disabled={infoStatus === 'saving'}
+                        required={field.required}
+                      />
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              <div className="od-save-row">
+                <button
+                  className="btn-save"
+                  onClick={handleInfoSave}
+                  disabled={infoStatus === 'saving'}
+                  type="button"
+                >
+                  {infoStatus === 'saving' ? 'Sauvegarde…' : 'Sauvegarder les informations'}
+                </button>
+                <StatusBadge status={infoStatus} />
+                {infoErrorMsg && infoStatus === 'error' && (
+                  <span className="od-error-msg" role="alert">{infoErrorMsg}</span>
+                )}
+              </div>
+            </fieldset>
+          </section>
+        )}
+
         {/* Configuration */}
         <section className="od-section" aria-labelledby="config-title">
           <h2 id="config-title">Configuration</h2>
-
-          {/* Zone */}
-          <fieldset className="od-fieldset">
-            <legend>Zone / Pièce</legend>
-            <div className="od-field-row">
-              <label htmlFor="zone-select">Pièce</label>
-              <div className="od-field-control">
-                {canEdit ? (
-                  <select
-                    id="zone-select"
-                    value={zone}
-                    onChange={handleZoneChange}
-                    disabled={zoneStatus === 'saving'}
-                  >
-                    {!zoneInList && <option value={zone}>{zone}</option>}
-                    {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
-                  </select>
-                ) : (
-                  <span className="od-readonly-value">{zone}</span>
-                )}
-                <StatusBadge status={zoneStatus} />
-              </div>
-            </div>
-          </fieldset>
 
           {/* Paramètres par type — mode édition */}
           {configFields.length > 0 && canEdit && (

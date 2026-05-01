@@ -335,7 +335,7 @@ class Command(BaseCommand):
             pk=1,
             defaults={
                 'nom_residence':          'Résidence Les Acacias',
-                'seuil_alerte_conso_kwh': 80.0,
+                'seuil_alerte_conso_kwh': 100.0,
                 'seuil_alerte_co2_ppm':   900,
                 'approbation_manuelle':   True,
                 'message_inscription':    'Bienvenue dans la résidence Les Acacias. Votre compte sera validé par le syndic sous 48h.',

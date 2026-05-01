@@ -28,8 +28,8 @@
 }
 
 .sd-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #cbd5e1;
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
@@ -81,7 +81,7 @@
   gap: 2rem;
   padding: 1rem 1.75rem;
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  background: linear-gradient(180deg, var(--color-surface-2) 0%, var(--color-surface) 100%);
   flex-wrap: wrap;
 }
 
@@ -109,10 +109,11 @@
 }
 
 .sd-objet-card {
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  background: linear-gradient(180deg, #fafbfc 0%, #f3f6f9 100%);
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-md);
   padding: 1rem;
+  box-shadow: var(--shadow-xs);
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 .sd-objet-card:hover { border-color: var(--color-primary); box-shadow: var(--shadow-xs); }
@@ -120,13 +121,13 @@
 .sd-objet-card h3 {
   font-size: .9rem;
   font-weight: 700;
-  color: var(--color-text);
+  color: #0f172a;
   margin-bottom: .375rem;
 }
 
 .sd-objet-card p {
   font-size: .8rem;
-  color: var(--color-text-muted);
+  color: #334155;
   line-height: 1.4;
   margin-bottom: .625rem;
   display: -webkit-box;
@@ -147,8 +148,8 @@
 /* ─── Service Details ───────────────────────────────────── */
 .sd-details {
   padding: 1.25rem 1.75rem;
-  background: var(--color-surface-2);
-  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #cbd5e1;
 }
 .sd-details p {
   font-size: .9rem;
@@ -175,9 +176,10 @@
   align-items: center;
   gap: .25rem;
   padding: 1.25rem;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  background: linear-gradient(180deg, #fafbfc 0%, #f3f6f9 100%);
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
   text-align: center;
 }
 .sd-stat-card--success { border-color: var(--color-success); background: var(--color-success-bg); }
@@ -187,7 +189,7 @@
 .sd-stat-value {
   font-size: 1.75rem;
   font-weight: 900;
-  color: var(--color-text);
+  color: #0f172a;
   line-height: 1;
 }
 .sd-stat-card--success .sd-stat-value { color: var(--color-success); }
@@ -197,7 +199,7 @@
 .sd-stat-label {
   font-size: .75rem;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: #334155;
   text-transform: uppercase;
   letter-spacing: .03em;
 }
@@ -214,7 +216,7 @@
   display: inline-flex;
   align-items: center;
   padding: .625rem 1.25rem;
-  background: var(--service-color, var(--color-primary));
+  background: linear-gradient(135deg, var(--service-color, var(--color-primary)), color-mix(in srgb, var(--service-color, var(--color-primary)) 80%, white));
   color: #fff;
   border-radius: var(--radius);
   font-size: .875rem;

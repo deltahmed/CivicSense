@@ -234,9 +234,9 @@ class ObjectDetailViewTest(APITestCase):
     @classmethod
     def setUpTestData(cls):
         cls.verified = make_user(verified=True)
-        cls.avance = make_user(
+        cls.expert = make_user(
             email='av@example.com', username='avance', pseudo='Avance',
-            verified=True, level='avance',
+            verified=True, level='expert',
         )
         cls.obj = make_object()
 
@@ -264,8 +264,8 @@ class ObjectDetailViewTest(APITestCase):
         r = self.client.get(self.url())
         self.assertEqual(r.status_code, 401)
 
-    def test_patch_avance_updates_nom(self):
-        self.client.force_authenticate(self.avance)
+    def test_patch_expert_updates_nom(self):
+        self.client.force_authenticate(self.expert)
         r = self.client.patch(self.url(), {'nom': 'Nouveau nom'})
         self.assertEqual(r.status_code, 200)
         self.obj.refresh_from_db()
@@ -393,9 +393,9 @@ class ObjectDetailZonePatchTest(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.avance = make_user(
+        cls.expert = make_user(
             email='avz@example.com', username='avancez', pseudo='AvanceZ',
-            verified=True, level='avance',
+            verified=True, level='expert',
         )
         cls.verified = make_user(
             email='vfz@example.com', username='verifiedz', pseudo='VerifiedZ',
@@ -406,15 +406,15 @@ class ObjectDetailZonePatchTest(APITestCase):
     def url(self):
         return f'/api/objects/{self.obj.pk}/'
 
-    def test_patch_zone_avance_returns_200_with_new_zone(self):
-        self.client.force_authenticate(self.avance)
+    def test_patch_zone_expert_returns_200_with_new_zone(self):
+        self.client.force_authenticate(self.expert)
         r = self.client.patch(self.url(), {'zone': 'Salon'})
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.data['success'])
         self.assertEqual(r.data['data']['zone'], 'Salon')
 
     def test_patch_zone_persists_in_db(self):
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         self.client.patch(self.url(), {'zone': 'Bureau'})
         self.obj.refresh_from_db()
         self.assertEqual(self.obj.zone, 'Bureau')
@@ -443,9 +443,9 @@ class ObjectConfigViewTest(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.avance = make_user(
+        cls.expert = make_user(
             email='avc@example.com', username='avancec', pseudo='AvanceC',
-            verified=True, level='avance',
+            verified=True, level='expert',
         )
         cls.verified = make_user(
             email='vfc@example.com', username='verifiedc', pseudo='VerifiedC',
@@ -463,7 +463,7 @@ class ObjectConfigViewTest(APITestCase):
     # ── Succès par type ──
 
     def test_patch_thermostat_temperature_et_mode(self):
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         payload = {'attributs_specifiques': {'temperature_cible': 21, 'mode': 'auto'}}
         r = self.client.patch(self.config_url(self.thermostat), payload, format='json')
         self.assertEqual(r.status_code, 200)
@@ -473,14 +473,14 @@ class ObjectConfigViewTest(APITestCase):
         self.assertEqual(attrs['mode'], 'auto')
 
     def test_patch_thermostat_plage_horaire(self):
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         payload = {'attributs_specifiques': {'plage_horaire': '08:00-22:00'}}
         r = self.client.patch(self.config_url(self.thermostat), payload, format='json')
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.data['data']['attributs_specifiques']['plage_horaire'], '08:00-22:00')
 
     def test_patch_eclairage_luminosite_et_horaires(self):
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         payload = {'attributs_specifiques': {'luminosite': 80, 'horaire_allumage': '07:00', 'horaire_extinction': '23:00'}}
         r = self.client.patch(self.config_url(self.eclairage), payload, format='json')
         self.assertEqual(r.status_code, 200)
@@ -489,21 +489,21 @@ class ObjectConfigViewTest(APITestCase):
         self.assertEqual(attrs['horaire_allumage'], '07:00')
 
     def test_patch_capteur_seuil_alerte_ppm(self):
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         payload = {'attributs_specifiques': {'seuil_alerte_ppm': 1000}}
         r = self.client.patch(self.config_url(self.capteur), payload, format='json')
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.data['data']['attributs_specifiques']['seuil_alerte_ppm'], 1000)
 
     def test_patch_compteur_conso_max(self):
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         payload = {'attributs_specifiques': {'conso_max_autorisee_kwh': 50.0}}
         r = self.client.patch(self.config_url(self.compteur), payload, format='json')
         self.assertEqual(r.status_code, 200)
         self.assertAlmostEqual(r.data['data']['attributs_specifiques']['conso_max_autorisee_kwh'], 50.0)
 
     def test_patch_attrs_vides_ok(self):
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         r = self.client.patch(self.config_url(self.thermostat), {'attributs_specifiques': {}}, format='json')
         self.assertEqual(r.status_code, 200)
 
@@ -514,7 +514,7 @@ class ObjectConfigViewTest(APITestCase):
             unique_id='CFG-MERGE', type_objet='thermostat',
             attributs_specifiques={'temperature_cible': 20},
         )
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         r = self.client.patch(f'{self.BASE}{obj.pk}/config/', {'attributs_specifiques': {'mode': 'manuel'}}, format='json')
         self.assertEqual(r.status_code, 200)
         attrs = r.data['data']['attributs_specifiques']
@@ -534,7 +534,7 @@ class ObjectConfigViewTest(APITestCase):
     # ── Erreurs de validation ──
 
     def test_patch_cle_inconnue_returns_400(self):
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         payload = {'attributs_specifiques': {'cle_inconnue': 'valeur'}}
         r = self.client.patch(self.config_url(self.thermostat), payload, format='json')
         self.assertEqual(r.status_code, 400)
@@ -542,24 +542,24 @@ class ObjectConfigViewTest(APITestCase):
         self.assertIn('thermostat', r.data['message'])
 
     def test_patch_cle_mauvais_type_returns_400(self):
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         payload = {'attributs_specifiques': {'luminosite': 80}}
         r = self.client.patch(self.config_url(self.thermostat), payload, format='json')
         self.assertEqual(r.status_code, 400)
 
     def test_patch_attributs_non_dict_returns_400(self):
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         r = self.client.patch(self.config_url(self.thermostat), {'attributs_specifiques': 'mauvais'}, format='json')
         self.assertEqual(r.status_code, 400)
         self.assertFalse(r.data['success'])
 
     def test_patch_attributs_absents_returns_400(self):
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         r = self.client.patch(self.config_url(self.thermostat), {}, format='json')
         self.assertEqual(r.status_code, 400)
 
     def test_patch_type_sans_cles_autorisees_returns_400_si_body_non_vide(self):
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         payload = {'attributs_specifiques': {'quelque_chose': 'valeur'}}
         r = self.client.patch(self.config_url(self.camera), payload, format='json')
         self.assertEqual(r.status_code, 400)
@@ -567,7 +567,7 @@ class ObjectConfigViewTest(APITestCase):
     # ── Permissions ──
 
     def test_patch_inconnu_returns_404(self):
-        self.client.force_authenticate(self.avance)
+        self.client.force_authenticate(self.expert)
         r = self.client.patch(f'{self.BASE}9999/config/', {'attributs_specifiques': {}}, format='json')
         self.assertEqual(r.status_code, 404)
 

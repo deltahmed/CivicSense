@@ -8,6 +8,7 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [mouse, setMouse] = useState({ x: 50, y: 16, rx: 0, ry: 0 })
@@ -30,10 +31,8 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      const data = await login(email, password)
-      const level = data.data?.level ?? 'debutant'
-      const redirects = { debutant: '/dashboard', intermediaire: '/dashboard', avance: '/gestion', expert: '/admin' }
-      navigate(redirects[level] ?? '/dashboard', { replace: true })
+      await login(email, password)
+      navigate('/dashboard', { replace: true })
     } catch (err) {
       const status = err.response?.status
       const msg = err.response?.data?.message ?? ''
@@ -87,14 +86,25 @@ export default function LoginPage() {
 
           <div className="field">
             <label htmlFor="password">Mot de passe</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-            />
+            <div className="password-field">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                className={`password-toggle${showPassword ? ' password-toggle--visible' : ' password-toggle--hidden'}`}
+                onClick={() => setShowPassword(v => !v)}
+                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                aria-pressed={showPassword}
+              >
+                <span aria-hidden="true">👁️</span>
+              </button>
+            </div>
           </div>
 
           <button type="submit" className="btn-primary" disabled={loading}>
@@ -104,6 +114,9 @@ export default function LoginPage() {
 
         <p className="auth-footer">
           Pas encore de compte ? <Link to="/register">S'inscrire</Link>
+        </p>
+        <p className="auth-footer" style={{ marginTop: '.75rem', fontSize: '.85rem' }}>
+          <Link to="/">← Retour à l'accueil</Link>
         </p>
       </section>
     </main>

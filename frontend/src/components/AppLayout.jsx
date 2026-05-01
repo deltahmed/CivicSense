@@ -148,7 +148,7 @@ export default function AppLayout({ children }) {
 
       <footer className="app-footer">
         <div className="footer-inner">
-          <p>© 2026 CivicSense — Projet ING1</p>
+          <p>© 2026 CivicSense</p>
           <p className="footer-user">
             Connecté en tant que <strong>{user?.pseudo}</strong>
           </p>

@@ -20,16 +20,15 @@ const STATUT_OPTIONS = [
   { value: 'maintenance', label: 'En maintenance' },
 ]
 
-const ZONES_OPTIONS = [
-  { value: '', label: 'Toutes les zones' },
-  { value: 'RDC', label: 'Rez-de-chaussée' },
-  { value: 'Cave', label: 'Cave' },
-  { value: 'Extérieur', label: 'Extérieur' },
-  { value: 'Chambre', label: 'Chambre' },
-  { value: 'Cuisine', label: 'Cuisine' },
-  { value: 'Salon', label: 'Salon' },
-  { value: 'Salle de bain', label: 'Salle de bain' },
-]
+const ZONE_LABELS = {
+  RDC: 'Rez-de-chaussée',
+  Cave: 'Cave',
+  Extérieur: 'Extérieur',
+  Chambre: 'Chambre',
+  Cuisine: 'Cuisine',
+  Salon: 'Salon',
+  'Salle de bain': 'Salle de bain',
+}
 
 function getStatutColor(statut) {
   switch (statut) {
@@ -55,6 +54,7 @@ export default function SearchPage() {
   const [typeObjet, setTypeObjet] = useState('')
   const [statut, setStatut] = useState('')
   const [zone, setZone] = useState('')
+  const [zoneOptions, setZoneOptions] = useState([{ value: '', label: 'Toutes les zones' }])
 
   const [searched, setSearched] = useState(false)
 
@@ -79,6 +79,26 @@ export default function SearchPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    api.get('/objects/zones/')
+      .then(response => {
+        const zones = (response.data?.data ?? [])
+          .map(value => String(value).trim())
+          .filter(Boolean)
+        const uniqueZones = [...new Set(zones)]
+        setZoneOptions([
+          { value: '', label: 'Toutes les zones' },
+          ...uniqueZones.map(value => ({
+            value,
+            label: ZONE_LABELS[value] || value,
+          })),
+        ])
+      })
+      .catch(() => {
+        setZoneOptions([{ value: '', label: 'Toutes les zones' }])
+      })
+  }, [])
 
   const handleSearch = e => {
     e.preventDefault()
@@ -136,7 +156,7 @@ export default function SearchPage() {
             onChange={e => setZone(e.target.value)}
             className="filter-select"
           >
-            {ZONES_OPTIONS.map(opt => (
+            {zoneOptions.map(opt => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>

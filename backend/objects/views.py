@@ -70,7 +70,7 @@ class ObjectDetailView(APIView):
 
     def get_permissions(self):
         if self.request.method == 'PATCH':
-            return [IsAuthenticated(), IsAvance()]
+            return [IsAuthenticated(), IsExpert()]
         return [IsAuthenticated(), IsVerified()]
 
     def patch(self, request, pk):
@@ -156,7 +156,7 @@ class ObjectAlertsView(APIView):
 
 
 class ObjectConfigView(APIView):
-    permission_classes = [IsAuthenticated, IsAvance]
+    permission_classes = [IsAuthenticated, IsExpert]
 
     _ALLOWED_KEYS = {
         'thermostat': {'temperature_cible', 'mode', 'plage_horaire'},

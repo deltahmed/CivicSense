@@ -61,7 +61,7 @@ export default function ConsoEauPage() {
   const variationSign = variation > 0 ? '+' : ''
 
   return (
-    <main className="conso-page page-content">
+    <main className="conso-page conso-page--eau page-content">
       <title>Consommation d'eau — CivicSense</title>
 
       <nav className="conso-breadcrumb" aria-label="Fil d'Ariane">

@@ -67,9 +67,10 @@ export default function ConsoEnergiePage() {
   const graphData = data ? mergeGraphiques(data.graphique, data.graphique_precedent) : []
   const variation = data?.variation_pct ?? 0
   const variationSign = variation > 0 ? '+' : ''
+  const seuilAlerte = data?.seuil_alerte_kwh ? Math.round(data.seuil_alerte_kwh) : null
 
   return (
-    <main className="conso-page page-content">
+    <main className="conso-page conso-page--energie page-content">
       <title>Consommation d'énergie — CivicSense</title>
 
       <nav className="conso-breadcrumb" aria-label="Fil d'Ariane">
@@ -90,7 +91,7 @@ export default function ConsoEnergiePage() {
       {data?.alerte_active && (
         <div className="conso-alerte" role="alert">
           <span aria-hidden="true">⚠️</span>
-          Surconsommation détectée — total {data.total_kwh} kWh dépasse le seuil de {data.seuil_alerte_kwh} kWh
+          Surconsommation détectée — total {Math.round(data.total_kwh)} kWh dépasse le seuil de {seuilAlerte} kWh
         </div>
       )}
 
@@ -159,9 +160,9 @@ export default function ConsoEnergiePage() {
               <YAxis tick={{ fontSize: 11 }} tickLine={false} unit=" kWh" width={65} />
               <Tooltip content={<CustomTooltip />} />
               <Legend formatter={v => v === 'valeur' ? 'Actuel' : 'Précédent'} />
-              {data.seuil_alerte_kwh && (
+              {seuilAlerte && (
                 <ReferenceLine
-                  y={data.seuil_alerte_kwh / 30}
+                  y={seuilAlerte / 30}
                   stroke="#ef4444"
                   strokeDasharray="4 4"
                   label={{ value: 'Seuil', position: 'right', fontSize: 11, fill: '#ef4444' }}

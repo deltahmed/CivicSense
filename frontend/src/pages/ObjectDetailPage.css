@@ -248,8 +248,24 @@
   box-sizing: border-box;
 }
 
+.od-field-control textarea {
+  padding: 8px 10px;
+  border: 1px solid #c8d0da;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: #fff;
+  color: #1a1a1a;
+  min-width: 0;
+  width: 100%;
+  max-width: 520px;
+  min-height: 96px;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
 .od-field-control input:disabled,
-.od-field-control select:disabled {
+.od-field-control select:disabled,
+.od-field-control textarea:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -610,6 +626,13 @@
   color: #2c6fad;
   text-decoration: none;
   font-size: 0.9rem;
+}
+
+.od-back--top {
+  display: inline-block;
+  margin-top: 0;
+  margin-bottom: 14px;
+  font-weight: 600;
 }
 
 /* ── Footer ── */
