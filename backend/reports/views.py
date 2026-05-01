@@ -20,7 +20,7 @@ from incidents.models import Incident
 from objects.models import ConnectedObject, HistoriqueConso
 from services.models import Service
 from users.models import CustomUser, LoginHistory
-from users.permissions import IsExpert, IsVerified
+from users.permissions import IsAvance, IsExpert, IsVerified
 
 
 class _IgnoreFormatNegotiation(DefaultContentNegotiation):
@@ -179,7 +179,7 @@ class UsageReportView(APIView):
 
 
 class AdminStatsView(APIView):
-    permission_classes = [IsAuthenticated, IsExpert]
+    permission_classes = [IsAuthenticated, IsAvance]
 
     def get(self, request):
         period = request.query_params.get('period', '30d')
@@ -187,7 +187,7 @@ class AdminStatsView(APIView):
 
 
 class AdminStatsExportView(APIView):
-    permission_classes = [IsAuthenticated, IsExpert]
+    permission_classes = [IsAuthenticated, IsAvance]
 
     def get(self, request):
         fmt = request.query_params.get('fmt', 'csv')

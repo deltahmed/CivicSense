@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from users.permissions import IsExpert
+from users.permissions import IsAvance
 from .models import GlobalSettings
 from .serializers import GlobalSettingsSerializer
 
@@ -11,7 +11,7 @@ class GlobalSettingsView(APIView):
     View and edit the application's global settings.
     Requires Expert permission.
     """
-    permission_classes = [IsAuthenticated, IsExpert]
+    permission_classes = [IsAuthenticated, IsAvance]
 
     def get(self, request):
         settings = GlobalSettings.load()

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api'
+import { getAuthenticatedNavLinks } from '../utils/access'
 import './PublicStatsPage.css'
 
 // ── Météo : Open-Meteo, sans clé API ─────────────────────────────────────────
@@ -27,19 +28,7 @@ function wmoLabel(code) {
 
 // ── Liens nav selon niveau ────────────────────────────────────────────────────
 function getNavLinks(user) {
-  if (!user) return []
-  const links = [
-    { to:'/dashboard', label:'Accueil' },
-    { to:'/objects',   label:'Objets' },
-    { to:'/services',  label:'Services' },
-    { to:'/users',     label:'Membres' },
-    { to:'/search',    label:'Recherche' },
-  ]
-  if (user.level === 'expert') {
-    links.push({ to:'/alerts',      label:'Alertes' })
-    links.push({ to:'/admin/users', label:'Admin' })
-  }
-  return links
+  return user ? getAuthenticatedNavLinks(user) : []
 }
 
 // ── Météo card ────────────────────────────────────────────────────────────────   
@@ -110,7 +99,6 @@ function fmtDateAnnonce(iso) {
 
 export default function PublicStatsPage() {
   const { user, logout } = useAuth()
-  const navigate          = useNavigate()
   const [stats, setStats]             = useState(EMPTY_STATS)
   const [statsLoaded, setStatsLoaded] = useState(false)
   const [annonces, setAnnonces]       = useState([])

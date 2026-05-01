@@ -56,7 +56,7 @@ class AnnouncementDetailView(APIView):
 
 
 class DeletionRequestDetailView(APIView):
-    permission_classes = [IsAuthenticated, IsExpert]
+    permission_classes = [IsAuthenticated, IsAvance]
 
     def patch(self, request, pk):
         try:

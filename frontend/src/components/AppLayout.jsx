@@ -2,19 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api'
+import { getAuthenticatedNavLinks } from '../utils/access'
 import './AppLayout.css'
 
 function getNavLinks(user) {
-  const links = [
-    { to: '/dashboard', label: 'Accueil' },
-    { to: '/objects',   label: 'Objets' },
-    { to: '/services',  label: 'Services' },
-    { to: '/users',     label: 'Membres' },
-    { to: '/search',    label: 'Recherche' },
-  ]
+  const links = getAuthenticatedNavLinks(user)
   if (user?.level === 'expert') {
-    links.push({ to: '/alerts',          label: 'Alertes' })
-    links.push({ to: '/admin/users',     label: 'Admin' })
     links.push({ to: '/admin/pending',   label: 'Inscriptions', badge: 'pending' })
     links.push({ to: '/admin/deletions', label: 'Suppressions', badge: 'deletions' })
   }

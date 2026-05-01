@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { getLandingRouteForLevel } from '../utils/access'
 import './LoginPage.css'
 
 export default function LoginPage() {
@@ -31,8 +32,8 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      await login(email, password)
-      navigate('/dashboard', { replace: true })
+      const res = await login(email, password)
+      navigate(getLandingRouteForLevel(res.data?.level), { replace: true })
     } catch (err) {
       const status = err.response?.status
       const msg = err.response?.data?.message ?? ''

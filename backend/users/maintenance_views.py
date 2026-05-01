@@ -7,12 +7,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .permissions import IsExpert
+from .permissions import IsAvance
 from .utils import LEVEL_THRESHOLDS
 
 
 class AdminChangePasswordView(APIView):
-    permission_classes = [IsAuthenticated, IsExpert]
+    permission_classes = [IsAuthenticated, IsAvance]
 
     def post(self, request):
         old_password = request.data.get('old_password', '')
@@ -45,7 +45,7 @@ class AdminChangePasswordView(APIView):
 
 
 class AdminBackupView(APIView):
-    permission_classes = [IsAuthenticated, IsExpert]
+    permission_classes = [IsAuthenticated, IsAvance]
 
     def get(self, request):
         out = StringIO()
@@ -57,7 +57,7 @@ class AdminBackupView(APIView):
 
 
 class AdminIntegrityCheckView(APIView):
-    permission_classes = [IsAuthenticated, IsExpert]
+    permission_classes = [IsAuthenticated, IsAvance]
 
     def get(self, request):
         from objects.models import ConnectedObject
@@ -104,7 +104,7 @@ class AdminIntegrityCheckView(APIView):
 
 
 class AdminIntegrityFixView(APIView):
-    permission_classes = [IsAuthenticated, IsExpert]
+    permission_classes = [IsAuthenticated, IsAvance]
 
     def post(self, request):
         from objects.models import ConnectedObject
