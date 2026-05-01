@@ -159,7 +159,7 @@
   align-items: center;
   gap: 1rem;
   padding: 1.25rem;
-  background: var(--color-surface);
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-2) 100%);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   text-decoration: none;
@@ -167,6 +167,12 @@
   cursor: pointer;
   font-family: inherit;
   transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
+}
+.residence-service-card,
+.residence-service-card:hover,
+.residence-service-card:focus-visible,
+.residence-service-card * {
+  text-decoration: none;
 }
 .residence-service-card:hover {
   box-shadow: var(--shadow-md);
@@ -254,7 +260,7 @@
   align-items: center;
   gap: 1.25rem;
   padding: 1.5rem;
-  background: var(--color-surface);
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-2) 100%);
   border: 1px solid var(--color-border);
   border-left: 4px solid var(--service-color, var(--color-primary));
   border-radius: var(--radius-lg);
@@ -286,9 +292,10 @@
   gap: 1rem;
   margin-bottom: 1.5rem;
   padding: 1rem 1.25rem;
-  background: var(--color-surface);
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-2) 100%);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
 }
 
 .sv-filter-field {
@@ -308,7 +315,7 @@
 
 .sv-filter-field select {
   padding: .5rem .75rem;
-  background: var(--color-surface-2);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   color: var(--color-text);
@@ -342,10 +349,11 @@
 
 /* ─── Objets Grid ─────────────────────────────────────── */
 .sv-objects {
-  background: var(--color-surface);
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-2) 100%);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
+  box-shadow: var(--shadow-xs);
 }
 
 .sv-count {
@@ -371,14 +379,15 @@
 }
 
 .sv-card {
-  background: var(--color-surface-2);
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-2) 100%);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 .sv-card:hover {
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--shadow-md);
 }
 
 .sv-card-link {
@@ -387,6 +396,7 @@
   text-decoration: none;
   color: inherit;
 }
+.sv-card-link:hover { text-decoration: none; }
 
 .sv-card-top {
   display: flex;
@@ -399,7 +409,7 @@
 .sv-card-nom {
   font-size: .9rem;
   font-weight: 700;
-  color: var(--color-text);
+  color: #0f172a;
 }
 
 .sv-badge {
@@ -416,7 +426,7 @@
   color: var(--color-success);
 }
 .sv-badge--inactif {
-  background: var(--color-surface);
+  background: var(--color-surface-2);
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
 }
@@ -430,7 +440,7 @@
   align-items: center;
   gap: .5rem;
   font-size: .75rem;
-  color: var(--color-text-muted);
+  color: #334155;
 }
 
 /* ─── Alert Cards ─────────────────────────────────────── */

@@ -310,7 +310,7 @@ export default function AdminUsersPage() {
                     <div className="user-name-cell">
                       <span className="user-name-full">
                         {user.first_name && user.last_name
-                          ? `${user.first_name} · ${user.last_name}`
+                          ? `${user.first_name} ${user.last_name}`
                           : user.pseudo}
                       </span>
                       <span className="user-name-pseudo">@{user.pseudo}</span>

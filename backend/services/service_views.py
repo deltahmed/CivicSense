@@ -116,7 +116,7 @@ class ConsoEnergieView(APIView):
         moy_prev = round(total_prev / nb_jours_prev, 2)
 
         settings_obj = GlobalSettings.load()
-        seuil = settings_obj.seuil_alerte_conso_kwh
+        seuil = int(round(settings_obj.seuil_alerte_conso_kwh))
 
         objets_data = list(objets.values('id', 'nom', 'type_objet', 'zone', 'statut', 'consommation_kwh'))
 

@@ -1,10 +1,13 @@
 .service-card-link {
   text-decoration: none;
   color: var(--color-text);
+  display: block;
 }
+.service-card-link:hover { text-decoration: none; color: var(--color-text); }
+.service-card-link * { text-decoration: none; }
 
 .service-card {
-  background: var(--color-surface);
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-2) 100%);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 1.25rem;
@@ -16,7 +19,7 @@
 }
 
 .service-card:hover {
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
   border-color: var(--color-primary);
   transform: translateY(-2px);
 }

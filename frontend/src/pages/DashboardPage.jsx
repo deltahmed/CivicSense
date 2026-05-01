@@ -51,6 +51,13 @@ const RESIDENCE_SERVICES = [
   { id: 'dechets', nom: 'Gestion des déchets',       description: 'Collectes et suivi des conteneurs',  icon: '♻️', couleur: '#22c55e' },
 ]
 
+const SERVICE_ROUTES = {
+  acces: '/services/acces',
+  energie: '/services/energie',
+  eau: '/services/eau',
+  dechets: '/services/dechets',
+}
+
 // Mapping des types d'objets par service
 const SERVICE_OBJECT_TYPES = {
   acces:   ['serrure', 'digicode', 'capteur_porte'],
@@ -103,7 +110,12 @@ export default function DashboardPage() {
 
     api.get('/announcements/').then(res => {
       const list = res.data?.data ?? []
-      setAnnonces(list.filter(a => a.visible).slice(0, 3))
+      setAnnonces(
+        list
+          .filter(a => a.visible)
+          .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+          .slice(0, 3)
+      )
     }).catch(() => {})
 
     if (isAvancePlus) {
@@ -246,7 +258,6 @@ export default function DashboardPage() {
       <section className="dash-section">
         <div className="dash-section-header">
           <h2 className="dash-section-title">Services</h2>
-          <Link to="/services" className="dash-see-all">Voir tous →</Link>
         </div>
         <div className="dash-services-grid">
           {RESIDENCE_SERVICES.map(s => {
@@ -257,7 +268,7 @@ export default function DashboardPage() {
             const activeCount = serviceObjects.filter(o => o.statut === 'actif').length
 
             return (
-              <Link key={s.id} to="/services" className="dash-service-card" style={{ '--service-color': s.couleur }}>
+              <Link key={s.id} to={SERVICE_ROUTES[s.id] || '/services'} className="dash-service-card" style={{ '--service-color': s.couleur }}>
                 <span className="dash-service-icon">{s.icon}</span>
                 <p className="dash-service-nom">{s.nom}</p>
                 <p className="dash-service-desc">{s.description}</p>

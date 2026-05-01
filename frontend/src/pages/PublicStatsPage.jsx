@@ -42,7 +42,7 @@ function getNavLinks(user) {
   return links
 }
 
-// ── Météo card ────────────────────────────────────────────────────────────────
+// ── Météo card ────────────────────────────────────────────────────────────────   
 function MeteoCard() {
   const [meteo, setMeteo] = useState(null)
   const [err, setErr]     = useState(false)
@@ -86,6 +86,22 @@ function MeteoCard() {
 
 // ── Page principale ───────────────────────────────────────────────────────────
 const EMPTY_STATS = { nom_residence:'Résidence Les Lilas', score_sante:0, objets_actifs:0, incidents_en_cours:0, total_objets:0 }
+const SERVICE_CATALOG = [
+  { id: 'acces', nom: 'Gestion d\'accès', description: 'Contrôle des serrures et digicodes', categorie: 'Accès' },
+  { id: 'energie', nom: 'Consommation d\'énergie', description: 'Suivi et optimisation électrique', categorie: 'Énergie' },
+  { id: 'eau', nom: 'Consommation d\'eau', description: 'Monitoring et détection de fuites', categorie: 'Eau' },
+  { id: 'dechets', nom: 'Gestion des déchets', description: 'Collectes et suivi des conteneurs', categorie: 'Déchets' },
+]
+const SERVICE_ROUTES = {
+  acces: '/services/acces',
+  energie: '/services/energie',
+  eau: '/services/eau',
+  dechets: '/services/dechets',
+}
+
+function sortByNewest(items) {
+  return [...items].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+}
 
 function fmtDateAnnonce(iso) {
   if (!iso) return ''
@@ -102,6 +118,10 @@ export default function PublicStatsPage() {
   const [menuOpen, setMenuOpen]       = useState(false)
   const [mouse, setMouse]             = useState({ rx:0, ry:0 })
   const navLinks = getNavLinks(user)
+  const visibleServices = SERVICE_CATALOG.map(service => {
+    const apiService = services.find(item => item.id === service.id)
+    return apiService ? { ...service, ...apiService } : service
+  })
 
   useEffect(() => { document.title = 'CivicSense — Résidence Les Lilas' }, [])
 
@@ -112,10 +132,9 @@ export default function PublicStatsPage() {
       .finally(() => setStatsLoaded(true))
 
     api.get('/announcements/')
-      .then(r => setAnnonces((r.data?.data ?? []).filter(a => a.visible)))
+      .then(r => setAnnonces(sortByNewest((r.data?.data ?? []).filter(a => a.visible)).slice(0, 3)))
       .catch(() => {})
 
-    // Services : GET est maintenant public
     api.get('/services/')
       .then(r => setServices(r.data?.data ?? []))
       .catch(() => {})
@@ -194,18 +213,11 @@ export default function PublicStatsPage() {
           style={{ transform:`perspective(1000px) rotateX(${mouse.ry}deg) rotateY(${mouse.rx}deg)`, transition:'transform .4s ease' }}
         >
           <div className="ps-hero-copy">
-            <div className="ps-hero-badge">Module Information</div>
             <h1 className="ps-hero-title">
               Bienvenue à la<br />
               <span className="ps-hero-accent">{stats.nom_residence}</span>
             </h1>
             <p className="ps-hero-sub">12 rue des Lilas, 75020 Paris</p>
-            {!user && (
-              <nav className="ps-hero-actions" aria-label="Accès au portail">
-                <Link className="ps-btn-primary" to="/login">Se connecter</Link>
-                <Link className="ps-btn-secondary" to="/register">Créer un compte</Link>
-              </nav>
-            )}
             {user && (
               <nav className="ps-hero-actions" aria-label="Accès rapide">
                 <Link className="ps-btn-primary" to="/dashboard">Tableau de bord</Link>
@@ -263,23 +275,33 @@ export default function PublicStatsPage() {
         </section>
 
         {/* ── NOS SERVICES ──────────────────────────────────────────────── */}
-        {services.length > 0 && (
-          <section className="ps-section" aria-labelledby="services-title">
-            <h2 id="services-title" className="ps-section-title">Nos services</h2>
-            <p className="ps-services-intro">
-              CivicSense centralise la gestion de votre résidence en une seule plateforme.
-            </p>
-            <div className="ps-services-grid">
-              {services.map(svc => (
-                <div key={svc.id} className="ps-service-card">
+        <section className="ps-section" aria-labelledby="services-title">
+          <h2 id="services-title" className="ps-section-title">Nos services</h2>
+          <p className="ps-services-intro">
+            CivicSense centralise les 4 services que nous proposons.
+          </p>
+          <div className="ps-services-grid">
+            {visibleServices.map(svc => {
+              const card = (
+                <>
                   <h3 className="ps-service-title">{svc.nom}</h3>
                   <p className="ps-service-desc">{svc.description}</p>
                   {svc.categorie && <span className="ps-service-chip">{svc.categorie}</span>}
+                </>
+              )
+
+              return user ? (
+                <Link key={svc.id} to={SERVICE_ROUTES[svc.id] || '/services'} className="ps-service-card ps-service-card--link">
+                  {card}
+                </Link>
+              ) : (
+                <div key={svc.id} className="ps-service-card ps-service-card--static" aria-disabled="true">
+                  {card}
                 </div>
-              ))}
-            </div>
-          </section>
-        )}
+              )
+            })}
+          </div>
+        </section>
 
         {/* Actualités & événements */}
         {annonces.length > 0 && (
@@ -306,13 +328,7 @@ export default function PublicStatsPage() {
 
         {/* CTA bas de page (visiteurs seulement) */}
         {!user && (
-          <section className="ps-cta" aria-label="Rejoindre la résidence">
-            <div className="ps-cta-inner">
-              <p className="ps-cta-title">Vous êtes résident ?</p>
-              <p className="ps-cta-sub">Créez un compte pour accéder au portail complet : objets, signalements, services et plus.</p>
-              <Link className="ps-btn-primary" to="/register">Créer mon compte</Link>
-            </div>
-          </section>
+          null
         )}
       </main>
 
