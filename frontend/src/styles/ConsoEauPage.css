@@ -1,0 +1,7 @@
+/* ── Surcharge couleur pour ConsoEauPage ─────────────────────────────────── */
+.conso-period-btn--eau-active {
+  background: #06b6d4;
+  border-color: #06b6d4;
+  color: #fff;
+  font-weight: 600;
+}

@@ -1,112 +1,101 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import api from '../api'
-import ServiceCard from '../components/ServiceCard'
 import '../styles/ServicesPage.css'
 
-const CATEGORIES = [
-  { value: 'energie',     label: 'Énergie' },
-  { value: 'securite',   label: 'Sécurité' },
-  { value: 'confort',    label: 'Confort' },
-  { value: 'information', label: 'Information' },
-]
-
-const LEVELS = [
-  { value: 'debutant',      label: 'Débutant' },
-  { value: 'intermediaire', label: 'Intermédiaire' },
-  { value: 'avance',        label: 'Avancé' },
-  { value: 'expert',        label: 'Expert' },
+const RESIDENCE_SERVICES = [
+  {
+    id: 'acces',
+    nom: 'Gestion d\'accès',
+    description: 'Contrôle des serrures, digicodes et accès à la résidence',
+    icon: '🚪',
+    couleur: '#3b82f6',
+    objectTypes: ['serrure', 'digicode', 'capteur_porte'],
+  },
+  {
+    id: 'energie',
+    nom: 'Consommation d\'énergie',
+    description: 'Suivi et optimisation de la consommation électrique',
+    icon: '⚡',
+    couleur: '#f59e0b',
+    objectTypes: ['compteur', 'prise', 'eclairage', 'thermostat'],
+  },
+  {
+    id: 'eau',
+    nom: 'Consommation d\'eau',
+    description: 'Monitoring de la consommation en eau et détection de fuites',
+    icon: '💧',
+    couleur: '#06b6d4',
+    objectTypes: ['compteur_eau', 'capteur_fuite'],
+  },
+  {
+    id: 'dechets',
+    nom: 'Gestion des déchets',
+    description: 'Calendrier des collectes et suivi du taux de remplissage',
+    icon: '♻️',
+    couleur: '#22c55e',
+    objectTypes: ['capteur_remplissage'],
+  },
 ]
 
 export default function ServicesPage() {
-  const [services, setServices] = useState([])
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState(null)
-  const [searched, setSearched] = useState(false)
+  const [objects, setObjects] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const [search,      setSearch]      = useState('')
-  const [categorie,   setCategorie]   = useState('')
-  const [niveauRequis, setNiveauRequis] = useState('')
+  useEffect(() => {
+    document.title = 'Services — CivicSense'
+    api.get('/objects/')
+      .then(res => setObjects(res.data?.data ?? []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
-  const handleSearch = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    setSearched(true)
-    try {
-      const params = new URLSearchParams()
-      if (search)       params.append('search',      search)
-      if (categorie)    params.append('categorie',   categorie)
-      if (niveauRequis) params.append('niveau_requis', niveauRequis)
-      const res = await api.get(`/services/?${params}`)
-      setServices(res.data.data ?? [])
-    } catch {
-      setError('Erreur lors du chargement des services.')
-      setServices([])
-    } finally {
-      setLoading(false)
+  const getStats = (service) => {
+    const objs = objects.filter(o =>
+      service.objectTypes.some(t => o.type_objet === t)
+    )
+    return {
+      total: objs.length,
+      actifs: objs.filter(o => o.statut === 'actif').length,
     }
   }
 
-  const handleReset = () => {
-    setSearch('')
-    setCategorie('')
-    setNiveauRequis('')
-    setServices([])
-    setSearched(false)
-  }
-
   return (
-    <div className="services-page page-content">
+    <main className="services-page page-content">
       <div className="services-heading">
         <h1>Services</h1>
-        <p className="services-subtitle">Consultez les services disponibles pour votre niveau</p>
+        <p className="services-subtitle">Les 4 services connectés de votre résidence</p>
       </div>
 
-      <form className="services-filters" onSubmit={handleSearch}>
-        <div className="sf-inputs">
-          <input
-            type="text"
-            placeholder="Rechercher par nom ou description..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="sf-input"
-            aria-label="Recherche textuelle"
-          />
-          <select value={categorie} onChange={e => setCategorie(e.target.value)} className="sf-select" aria-label="Catégorie">
-            <option value="">Toutes les catégories</option>
-            {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-          </select>
-          <select value={niveauRequis} onChange={e => setNiveauRequis(e.target.value)} className="sf-select" aria-label="Niveau">
-            <option value="">Tous les niveaux</option>
-            {LEVELS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
-          </select>
-        </div>
-        <div className="sf-actions">
-          <button type="submit" className="sf-btn-search">Rechercher</button>
-          {searched && (
-            <button type="button" className="sf-btn-reset" onClick={handleReset}>Réinitialiser</button>
-          )}
-        </div>
-      </form>
-
-      {error && <p className="services-error">{error}</p>}
-
-      {!searched ? (
-        <div className="services-empty-state">
-          <p>Utilisez les filtres ci-dessus pour trouver un service.</p>
-        </div>
-      ) : loading ? (
+      {loading ? (
         <p className="services-loading">Chargement...</p>
-      ) : services.length === 0 ? (
-        <p className="services-empty">Aucun service trouvé avec ces critères.</p>
       ) : (
-        <>
-          <p className="services-count">{services.length} service{services.length > 1 ? 's' : ''}</p>
-          <div className="services-grid">
-            {services.map(service => <ServiceCard key={service.id} service={service} />)}
-          </div>
-        </>
+        <div className="residence-services-grid">
+          {RESIDENCE_SERVICES.map(service => {
+            const stats = getStats(service)
+            return (
+              <Link
+                key={service.id}
+                to={`/services/${service.id}`}
+                className="residence-service-card"
+                style={{ '--service-color': service.couleur }}
+              >
+                <div className="rsc-icon" aria-hidden="true">{service.icon}</div>
+                <div className="rsc-content">
+                  <h2 className="rsc-nom">{service.nom}</h2>
+                  <p className="rsc-desc">{service.description}</p>
+                  <div className="rsc-stats">
+                    <span>{stats.total} objet{stats.total !== 1 ? 's' : ''}</span>
+                    <span>·</span>
+                    <span>{stats.actifs} actif{stats.actifs !== 1 ? 's' : ''}</span>
+                  </div>
+                </div>
+                <span className="rsc-arrow" aria-hidden="true">→</span>
+              </Link>
+            )
+          })}
+        </div>
       )}
-    </div>
+    </main>
   )
 }

@@ -19,6 +19,10 @@ import PublicUsersPage from './pages/PublicUsersPage'
 import PublicUserDetailPage from './pages/PublicUserDetailPage'
 import ServicesPage from './pages/ServicesPage'
 import ServiceDetailPage from './pages/ServiceDetailPage'
+import GestionAccesPage from './pages/GestionAccesPage'
+import ConsoEnergiePage from './pages/ConsoEnergiePage'
+import ConsoEauPage from './pages/ConsoEauPage'
+import GestionDechetsPage from './pages/GestionDechetsPage'
 import ObjectAddPage from './pages/ObjectAddPage'
 import AdminDeletionsPage from './pages/AdminDeletionsPage'
 
@@ -50,8 +54,12 @@ export default function App() {
       <Route path="/profile"   element={<ProtectedLayout><ProfilePage /></ProtectedLayout>} />
       <Route path="/users"     element={<ProtectedLayout><PublicUsersPage /></ProtectedLayout>} />
       <Route path="/users/:id" element={<ProtectedLayout><PublicUserDetailPage /></ProtectedLayout>} />
-      <Route path="/services"     element={<ProtectedLayout><ServicesPage /></ProtectedLayout>} />
-      <Route path="/services/:id" element={<ProtectedLayout><ServiceDetailPage /></ProtectedLayout>} />
+      <Route path="/services"          element={<ProtectedLayout><ServicesPage /></ProtectedLayout>} />
+      <Route path="/services/acces"    element={<ProtectedLayout><GestionAccesPage /></ProtectedLayout>} />
+      <Route path="/services/energie"  element={<ProtectedLayout><ConsoEnergiePage /></ProtectedLayout>} />
+      <Route path="/services/eau"      element={<ProtectedLayout><ConsoEauPage /></ProtectedLayout>} />
+      <Route path="/services/dechets"  element={<ProtectedLayout><GestionDechetsPage /></ProtectedLayout>} />
+      <Route path="/services/:id"      element={<ProtectedLayout><ServiceDetailPage /></ProtectedLayout>} />
       <Route path="/objects"      element={<ProtectedLayout><ObjectListPage /></ProtectedLayout>} />
       <Route path="/objects/new"  element={<ProtectedLayout minLevel="avance"><ObjectAddPage /></ProtectedLayout>} />
       <Route path="/objects/:id"  element={<ProtectedLayout><ObjectDetailPage /></ProtectedLayout>} />

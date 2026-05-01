@@ -20,10 +20,19 @@ class Category(models.Model):
 TYPE_OBJET_CHOICES = [
     ('thermostat', 'Thermostat'),
     ('camera', 'Caméra'),
-    ('compteur', 'Compteur'),
+    ('compteur', 'Compteur électrique'),
     ('eclairage', 'Éclairage'),
     ('capteur', 'Capteur'),
-    ('prise', 'Prise'),
+    ('prise', 'Prise connectée'),
+    # Gestion d'accès
+    ('serrure', 'Serrure connectée'),
+    ('digicode', 'Digicode'),
+    ('capteur_porte', 'Capteur de porte'),
+    # Consommation d'eau
+    ('compteur_eau', "Compteur d'eau"),
+    ('capteur_fuite', 'Capteur de fuite'),
+    # Gestion des déchets
+    ('capteur_remplissage', 'Capteur de remplissage'),
 ]
 
 STATUT_CHOICES = [
@@ -193,3 +202,24 @@ class Alert(models.Model):
 
     def __str__(self):
         return f'{self.nom} ({self.get_priorite_display()})'
+
+
+class AccesLog(models.Model):
+    DIRECTION_CHOICES = [
+        ('entree', 'Entrée'),
+        ('sortie', 'Sortie'),
+    ]
+
+    objet = models.ForeignKey(ConnectedObject, on_delete=models.CASCADE, related_name='acces_logs')
+    direction = models.CharField(max_length=10, choices=DIRECTION_CHOICES, default='entree')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    acces_autorise = models.BooleanField(default=True)
+    utilisateur_pseudo = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = "historique d'accès"
+        verbose_name_plural = "historiques d'accès"
+
+    def __str__(self):
+        return f'{self.objet.nom} — {self.direction} — {self.timestamp:%d/%m/%Y %H:%M}'

@@ -307,10 +307,16 @@
   transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
 }
 .dash-service-card:hover {
-  border-color: var(--color-primary);
+  border-color: var(--service-color, var(--color-primary));
   box-shadow: var(--shadow);
   transform: translateY(-2px);
   text-decoration: none;
+}
+
+.dash-service-icon {
+  display: inline-block;
+  font-size: 1.5rem;
+  margin-bottom: .4rem;
 }
 
 .dash-service-cat {
@@ -335,6 +341,14 @@
   color: var(--color-text-muted);
   margin: 0;
   line-height: 1.45;
+}
+
+.dash-service-count {
+  display: block;
+  font-size: .7rem;
+  color: var(--color-text-muted);
+  margin-top: .375rem;
+  opacity: .8;
 }
 
 /* ─── Score santé unit ──────────────────────────────────────────────────────── */

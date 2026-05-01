@@ -1,0 +1,186 @@
+/* ── Gestion d'accès ─────────────────────────────────────────────────────── */
+*:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+.acces-page { padding: 1rem; max-width: 1100px; margin: 0 auto; }
+
+.acces-breadcrumb {
+  font-size: 0.875rem;
+  color: var(--color-muted, #6b7280);
+  margin-bottom: 1.25rem;
+}
+.acces-breadcrumb a { color: var(--color-primary, #3b82f6); text-decoration: none; }
+.acces-breadcrumb a:hover { text-decoration: underline; }
+
+/* Header */
+.acces-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+.acces-header-icon { font-size: 2.5rem; }
+.acces-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0; }
+.acces-header p  { margin: 0.25rem 0 0; color: var(--color-muted, #6b7280); font-size: 0.9rem; }
+
+/* KPIs */
+.acces-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+.acces-kpi {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  text-align: center;
+  border-left: 4px solid var(--color-border, #e5e7eb);
+}
+.acces-kpi--success  { border-left-color: #22c55e; }
+.acces-kpi--warning  { border-left-color: #f59e0b; }
+.acces-kpi--danger   { border-left-color: #ef4444; }
+.acces-kpi-value { display: block; font-size: 1.75rem; font-weight: 700; }
+.acces-kpi-label { font-size: 0.8rem; color: var(--color-muted, #6b7280); }
+
+/* Section */
+.acces-section { margin-bottom: 2.5rem; }
+.acces-section h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
+
+.acces-state { color: var(--color-muted, #6b7280); text-align: center; padding: 2rem; }
+
+/* Portes */
+.acces-portes-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.625rem; }
+
+.acces-porte-card {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-left: 4px solid #e5e7eb;
+}
+.acces-porte-card--actif       { border-left-color: #22c55e; }
+.acces-porte-card--inactif     { border-left-color: #f59e0b; }
+.acces-porte-card--maintenance { border-left-color: #ef4444; }
+
+.acces-porte-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.acces-porte-nom  { font-weight: 600; font-size: 0.95rem; }
+.acces-porte-meta { font-size: 0.8rem; color: var(--color-muted, #6b7280); display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.acces-batt-low   { color: #ef4444; font-weight: 600; }
+
+.acces-porte-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* Badges */
+.acces-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.acces-badge--actif       { background: #dcfce7; color: #16a34a; }
+.acces-badge--inactif     { background: #fef9c3; color: #a16207; }
+.acces-badge--maintenance { background: #fee2e2; color: #dc2626; }
+
+/* Boutons */
+.acces-btn {
+  padding: 0.4rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.acces-btn--secondary { background: var(--color-surface, #f3f4f6); color: inherit; border: 1px solid var(--color-border, #d1d5db); }
+.acces-btn--secondary:hover { background: #e5e7eb; }
+.acces-btn--success   { background: #22c55e; color: #fff; }
+.acces-btn--success:hover { background: #16a34a; }
+.acces-btn--danger    { background: #ef4444; color: #fff; }
+.acces-btn--danger:hover  { background: #dc2626; }
+.acces-btn:disabled   { opacity: 0.6; cursor: not-allowed; }
+
+/* Filtres historique */
+.acces-histo-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.acces-filter-field { display: flex; flex-direction: column; gap: 0.25rem; }
+.acces-filter-field label { font-size: 0.8rem; font-weight: 500; color: var(--color-muted, #6b7280); }
+.acces-filter-field select {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 0.5rem;
+  background: var(--color-surface, #fff);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.acces-histo-summary {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-muted, #6b7280);
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.acces-histo-summary--danger { color: #ef4444; font-weight: 600; }
+
+/* Table */
+.acces-histo-table-wrapper { overflow-x: auto; border-radius: 0.75rem; border: 1px solid var(--color-border, #e5e7eb); }
+.acces-histo-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.acces-histo-table th {
+  background: var(--color-surface-2, #f9fafb);
+  padding: 0.6rem 0.875rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--color-muted, #6b7280);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+.acces-histo-table td {
+  padding: 0.6rem 0.875rem;
+  border-bottom: 1px solid var(--color-border, #f3f4f6);
+  white-space: nowrap;
+}
+.acces-histo-table tr:last-child td { border-bottom: none; }
+.acces-histo-table tr:hover td { background: var(--color-surface-2, #f9fafb); }
+.acces-row--refused td { background: #fff5f5; }
+.acces-row--refused:hover td { background: #fee2e2; }
+
+.acces-dir { font-weight: 500; }
+.acces-dir--entree { color: #2563eb; }
+.acces-dir--sortie { color: #7c3aed; }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .acces-page { padding: 1.5rem 2rem; }
+  .acces-kpi-grid { grid-template-columns: repeat(4, 1fr); }
+  .acces-histo-filters { flex-direction: row; flex-wrap: wrap; }
+  .acces-filter-field { flex: 1 1 140px; }
+  .acces-porte-card { flex-direction: row; align-items: center; justify-content: space-between; }
+}
+
+@media (min-width: 1024px) {
+  .acces-page { padding: 2rem 3rem; }
+  .acces-kpi-value { font-size: 2rem; }
+}

@@ -1,0 +1,210 @@
+/* ── Consommation énergie / eau (partagé via conso-*) ─────────────────────── */
+*:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+.conso-page { padding: 1rem; max-width: 1100px; margin: 0 auto; }
+
+.conso-breadcrumb {
+  font-size: 0.875rem;
+  color: var(--color-muted, #6b7280);
+  margin-bottom: 1.25rem;
+}
+.conso-breadcrumb a { color: var(--color-primary, #3b82f6); text-decoration: none; }
+.conso-breadcrumb a:hover { text-decoration: underline; }
+
+/* Header */
+.conso-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border-left: 5px solid #f59e0b;
+}
+.conso-header--eau {
+  background: linear-gradient(135deg, #ecfeff, #cffafe);
+  border-left-color: #06b6d4;
+}
+.conso-header-icon { font-size: 2.5rem; }
+.conso-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0; }
+.conso-header p  { margin: 0.25rem 0 0; color: var(--color-muted, #6b7280); font-size: 0.9rem; }
+
+/* Alerte */
+.conso-alerte {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  color: #dc2626;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Sélecteur de période */
+.conso-period-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.conso-period-btn {
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 999px;
+  background: var(--color-surface, #fff);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.conso-period-btn--active {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: #fff;
+  font-weight: 600;
+}
+.conso-period-btn--active--eau {
+  background: #06b6d4;
+  border-color: #06b6d4;
+  color: #fff;
+}
+.conso-period-btn:hover:not(.conso-period-btn--active) { background: #f9fafb; }
+
+/* KPIs */
+.conso-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+.conso-kpi {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  text-align: center;
+}
+.conso-kpi--success { border-color: #86efac; background: #f0fdf4; }
+.conso-kpi--danger  { border-color: #fca5a5; background: #fef2f2; }
+.conso-kpi-value { display: block; font-size: 1.6rem; font-weight: 700; }
+.conso-kpi-unit  { font-size: 0.8rem; color: var(--color-muted, #6b7280); margin-left: 2px; }
+.conso-kpi-label { display: block; font-size: 0.78rem; color: var(--color-muted, #6b7280); margin-top: 0.2rem; }
+
+/* Chart */
+.conso-chart-section {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+.conso-chart-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 1rem; }
+.conso-chart-placeholder {
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-muted, #6b7280);
+  font-size: 0.9rem;
+}
+
+.conso-tooltip {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.conso-tooltip-date { font-weight: 600; margin-bottom: 0.25rem; }
+
+/* Sections */
+.conso-section { margin-bottom: 2rem; }
+.conso-section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 0.875rem; }
+
+/* Objets */
+.conso-objets-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+
+.conso-objet-card {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.conso-objet-info { flex: 1 1 0; min-width: 0; }
+.conso-objet-nom  { font-weight: 600; font-size: 0.9rem; display: block; }
+.conso-objet-meta {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--color-muted, #6b7280);
+}
+.conso-objet-conso { display: flex; align-items: baseline; gap: 0.2rem; }
+.conso-objet-value { font-size: 1.1rem; font-weight: 700; }
+.conso-objet-unit  { font-size: 0.75rem; color: var(--color-muted, #6b7280); }
+
+.conso-link-btn {
+  padding: 0.35rem 0.75rem;
+  background: var(--color-surface-2, #f3f4f6);
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  text-decoration: none;
+  white-space: nowrap;
+  color: inherit;
+}
+.conso-link-btn:hover { background: #e5e7eb; }
+
+/* Fuite sections */
+.conso-fuites-grid { display: grid; gap: 0.5rem; }
+.conso-fuite-card {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.conso-fuite-card--alerte { border-color: #fca5a5; background: #fef2f2; }
+.conso-fuite-nom  { font-weight: 600; font-size: 0.9rem; }
+.conso-fuite-meta { font-size: 0.8rem; color: var(--color-muted, #6b7280); }
+.conso-fuite-status { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 500; }
+.conso-fuite-status--ok     { color: #16a34a; }
+.conso-fuite-status--alerte { color: #dc2626; }
+
+/* Badges */
+.conso-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.conso-badge--actif       { background: #dcfce7; color: #16a34a; }
+.conso-badge--inactif     { background: #fef9c3; color: #a16207; }
+.conso-badge--maintenance { background: #fee2e2; color: #dc2626; }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .conso-page { padding: 1.5rem 2rem; }
+  .conso-kpi-grid { grid-template-columns: repeat(4, 1fr); }
+  .conso-fuites-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+  .conso-page { padding: 2rem 3rem; }
+  .conso-kpi-value { font-size: 1.9rem; }
+}

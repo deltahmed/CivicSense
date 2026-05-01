@@ -53,3 +53,25 @@ class GlobalSettings(models.Model):
             settings, created = cls.objects.get_or_create(pk=1)
             cache.set('global_settings', settings, timeout=None)  # Cache "forever"
         return settings
+
+
+class CollecteDechet(models.Model):
+    TYPE_CHOICES = [
+        ('recyclage', 'Recyclage'),
+        ('ordures', 'Ordures ménagères'),
+        ('verre', 'Verre'),
+    ]
+
+    type_dechet = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    prochaine_collecte = models.DateField()
+    heure = models.TimeField(default='07:00:00')
+    active = models.BooleanField(default=True)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['prochaine_collecte']
+        verbose_name = 'collecte de déchet'
+        verbose_name_plural = 'collectes de déchets'
+
+    def __str__(self):
+        return f'{self.get_type_dechet_display()} — {self.prochaine_collecte}'

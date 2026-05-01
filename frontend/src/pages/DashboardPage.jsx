@@ -43,6 +43,22 @@ function MeteoWidget() {
   )
 }
 
+// Les 4 services proposés par la résidence
+const RESIDENCE_SERVICES = [
+  { id: 'acces',   nom: 'Gestion d\'accès',         description: 'Contrôle des serrures et digicodes', icon: '🚪', couleur: '#3b82f6' },
+  { id: 'energie', nom: 'Consommation d\'énergie',   description: 'Suivi et optimisation électrique',   icon: '⚡', couleur: '#f59e0b' },
+  { id: 'eau',     nom: 'Consommation d\'eau',       description: 'Monitoring et détection de fuites',  icon: '💧', couleur: '#06b6d4' },
+  { id: 'dechets', nom: 'Gestion des déchets',       description: 'Collectes et suivi des conteneurs',  icon: '♻️', couleur: '#22c55e' },
+]
+
+// Mapping des types d'objets par service
+const SERVICE_OBJECT_TYPES = {
+  acces:   ['serrure', 'digicode', 'capteur_porte'],
+  energie: ['compteur', 'prise', 'eclairage', 'thermostat'],
+  eau:     ['compteur_eau', 'capteur_fuite'],
+  dechets: ['capteur_remplissage'],
+}
+
 // ── Niveaux ───────────────────────────────────────────────────────────────────
 const LEVEL_META = {
   debutant:      { label: 'Débutant',      color: '#6b7280' },
@@ -57,7 +73,8 @@ const LEVEL_NEXT       = { debutant: 'intermediaire', intermediaire: 'avance', a
 export default function DashboardPage() {
   const { user } = useAuth()
   const [publicStats, setPublicStats] = useState({ score_sante: null, objets_actifs: 0, incidents_en_cours: 0, total_objets: 0, en_maintenance: 0 })
-  const [services, setServices]       = useState([])
+  const [allObjects, setAllObjects]   = useState([])
+  const [alerts, setAlerts]           = useState([])
   const [annonces, setAnnonces]       = useState([])
   const [triggeredAlerts, setTriggeredAlerts] = useState([])
   const [pendingUsers, setPendingUsers]       = useState(0)
@@ -74,9 +91,15 @@ export default function DashboardPage() {
       .then(res => { if (res.data?.data) setPublicStats(p => ({ ...p, ...res.data.data })) })
       .catch(() => {})
 
-    api.get('/services/').then(res => {
-      if (res.data.success) setServices((res.data.data ?? []).slice(0, 4))
-    }).catch(() => {})
+    // Charger les objets pour les stats des services
+    api.get('/objects/')
+      .then(res => { if (res.data?.data) setAllObjects(res.data.data) })
+      .catch(() => {})
+
+    // Charger les alertes
+    api.get('/objects/alerts/')
+      .then(res => { if (res.data?.data) setAlerts(res.data.data) })
+      .catch(() => {})
 
     api.get('/announcements/').then(res => {
       const list = res.data?.data ?? []
@@ -219,28 +242,33 @@ export default function DashboardPage() {
 
       </div>
 
-      {/* ── Services ── */}
-      {services.length > 0 && (
-        <section className="dash-section">
-          <div className="dash-section-header">
-            <h2 className="dash-section-title">Services disponibles</h2>
-            <Link to="/services" className="dash-see-all">Voir tous →</Link>
-          </div>
-          <div className="dash-services-grid">
-            {services.map(s => (
-              <Link key={s.id} to={`/services/${s.id}`} className="dash-service-card">
-                <span className="dash-service-cat">{s.categorie}</span>
+      {/* ── Services de la résidence ── */}
+      <section className="dash-section">
+        <div className="dash-section-header">
+          <h2 className="dash-section-title">Services</h2>
+          <Link to="/services" className="dash-see-all">Voir tous →</Link>
+        </div>
+        <div className="dash-services-grid">
+          {RESIDENCE_SERVICES.map(s => {
+            const serviceTypes = SERVICE_OBJECT_TYPES[s.id] || []
+            const serviceObjects = allObjects.filter(obj =>
+              serviceTypes.some(t => obj.type_objet === t)
+            )
+            const activeCount = serviceObjects.filter(o => o.statut === 'actif').length
+
+            return (
+              <Link key={s.id} to="/services" className="dash-service-card" style={{ '--service-color': s.couleur }}>
+                <span className="dash-service-icon">{s.icon}</span>
                 <p className="dash-service-nom">{s.nom}</p>
-                <p className="dash-service-desc">
-                  {s.description && s.description.length > 80
-                    ? `${s.description.slice(0, 80)}…`
-                    : s.description}
-                </p>
+                <p className="dash-service-desc">{s.description}</p>
+                <span className="dash-service-count">
+                  {serviceObjects.length} objet{serviceObjects.length !== 1 ? 's' : ''} · {activeCount} actif{activeCount !== 1 ? 's' : ''}
+                </span>
               </Link>
-            ))}
-          </div>
-        </section>
-      )}
+            )
+          })}
+        </div>
+      </section>
 
     </div>
   )
