@@ -318,7 +318,7 @@ class DeletionRequestEnhancedTest(APITestCase):
     def test_get_expert_returns_pending_only(self):
         DeletionRequest.objects.create(demandeur=self.avance, objet=self.obj_a, motif='Test', statut='en_attente')
         DeletionRequest.objects.create(demandeur=self.avance, objet=self.obj_b, motif='Déjà traitée', statut='approuvee')
-        self.client.force_authenticate(self.expert)
+        self.client.force_authenticate(self.avance)
         r = self.client.get(self.URL)
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.data['success'])
@@ -327,17 +327,17 @@ class DeletionRequestEnhancedTest(APITestCase):
 
     def test_get_includes_objet_nom_and_demandeur_pseudo(self):
         DeletionRequest.objects.create(demandeur=self.avance, objet=self.obj_a, motif='Champs', statut='en_attente')
-        self.client.force_authenticate(self.expert)
+        self.client.force_authenticate(self.avance)
         r = self.client.get(self.URL)
         self.assertEqual(r.status_code, 200)
         entry = r.data['data'][0]
         self.assertIn('objet_nom', entry)
         self.assertIn('demandeur_pseudo', entry)
 
-    def test_get_avance_returns_403(self):
+    def test_get_avance_returns_200(self):
         self.client.force_authenticate(self.avance)
         r = self.client.get(self.URL)
-        self.assertEqual(r.status_code, 403)
+        self.assertEqual(r.status_code, 200)
 
     def test_get_verified_returns_403(self):
         self.client.force_authenticate(self.verified)

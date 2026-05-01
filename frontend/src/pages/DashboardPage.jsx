@@ -225,7 +225,7 @@ export default function DashboardPage() {
       <div className="dash-two-col">
 
         {/* ── Alertes déclenchées (expert uniquement) ── */}
-        {isExpert && (
+        {isAvancePlus && (
           <section className="dash-section">
             <div className="dash-section-header">
               <h2 className="dash-section-title">Alertes déclenchées</h2>

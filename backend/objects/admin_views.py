@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.mail import send_mail
 from django.conf import settings
 
-from users.permissions import IsExpert
+from users.permissions import IsAvance
 from .models import Category, ConnectedObject
 from .serializers import CategorySerializer
 from announcements.models import DeletionRequest
@@ -19,14 +19,14 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticated, IsExpert]
+    permission_classes = [IsAuthenticated, IsAvance]
 
 
 class AdminObjectDeleteView(APIView):
     """
     API endpoint for direct object deletion by an expert.
     """
-    permission_classes = [IsAuthenticated, IsExpert]
+    permission_classes = [IsAuthenticated, IsAvance]
 
     def delete(self, request, pk):
         try:
@@ -42,7 +42,7 @@ class DeletionRequestViewSet(viewsets.ReadOnlyModelViewSet):
     API endpoint for experts to list and process deletion requests.
     """
     serializer_class = DeletionRequestSerializer
-    permission_classes = [IsAuthenticated, IsExpert]
+    permission_classes = [IsAuthenticated, IsAvance]
 
     def get_queryset(self):
         queryset = DeletionRequest.objects.select_related('objet', 'demandeur').all()

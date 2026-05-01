@@ -4,7 +4,6 @@ import {
   getAllUsers,
   updateUser,
   deleteUser,
-  setUserLevel,
   setUserPoints,
   getUserHistory,
 } from '../api/admin'
@@ -20,6 +19,8 @@ const LEVEL_LABELS = {
 }
 const TYPE_LABELS = {
   resident: 'Résident',
+  referent: 'Référent',
+  syndic: 'Syndic',
   gardien: 'Gardien',
   gestionnaire: 'Gestionnaire',
 }
@@ -55,7 +56,6 @@ export default function AdminUsersPage() {
   const [historyModal, setHistoryModal] = useState(null)
   const [deleteModal, setDeleteModal] = useState(null)
 
-  const [newLevel, setNewLevel] = useState('')
   const [newPoints, setNewPoints] = useState('')
   const [modalLoading, setModalLoading] = useState(false)
   const [modalError, setModalError] = useState(null)
@@ -85,7 +85,6 @@ export default function AdminUsersPage() {
   useEffect(() => {
     function onKeyDown(e) {
       if (e.key !== 'Escape') return
-      setLevelModal(null)
       setPointsModal(null)
       setHistoryModal(null)
       setDeleteModal(null)
@@ -122,25 +121,7 @@ export default function AdminUsersPage() {
   }
 
   // ── Level modal ──────────────────────────────────────────────────────────────
-  function openLevelModal(user) {
-    setNewLevel(user.level)
-    setModalError(null)
-    setLevelModal(user)
-  }
-
-  async function handleSetLevel() {
-    setModalLoading(true)
-    setModalError(null)
-    try {
-      const res = await setUserLevel(levelModal.id, newLevel)
-      setUsers(prev => prev.map(u => (u.id === levelModal.id ? res.data.data : u)))
-      setLevelModal(null)
-    } catch (err) {
-      setModalError(err.response?.data?.message || 'Erreur lors de la mise à jour.')
-    } finally {
-      setModalLoading(false)
-    }
-  }
+  // Niveau editing removed: points only
 
   // ── Points modal ─────────────────────────────────────────────────────────────
   function openPointsModal(user) {
@@ -329,13 +310,7 @@ export default function AdminUsersPage() {
                     </span>
                   </td>
                   <td data-label="Actions" className="actions-cell">
-                    <button
-                      className="btn btn--sm btn--outline"
-                      onClick={() => openLevelModal(user)}
-                      aria-label={`Modifier le niveau de ${user.pseudo}`}
-                    >
-                      Niveau
-                    </button>
+                    {/* "Niveau" button removed — on modifie uniquement les points */}
                     <button
                       className="btn btn--sm btn--outline"
                       onClick={() => openPointsModal(user)}
@@ -395,29 +370,7 @@ export default function AdminUsersPage() {
       )}
 
       {/* ── Modal : modifier le niveau ─────────────────────────────────────────── */}
-      {levelModal && (
-        <Modal id="level-modal-title" title={`Modifier le niveau — ${levelModal.pseudo}`} onClose={closeModal}>
-          {modalError && <p className="modal__error" role="alert">{modalError}</p>}
-          <div className="modal__field">
-            <label htmlFor="level-select">Niveau</label>
-            <select
-              id="level-select"
-              value={newLevel}
-              onChange={e => setNewLevel(e.target.value)}
-            >
-              {LEVELS.map(l => (
-                <option key={l} value={l}>{LEVEL_LABELS[l]}</option>
-              ))}
-            </select>
-          </div>
-          <div className="modal__actions">
-            <button className="btn btn--primary" onClick={handleSetLevel} disabled={modalLoading}>
-              {modalLoading ? 'Enregistrement…' : 'Enregistrer'}
-            </button>
-            <button className="btn btn--ghost" onClick={closeModal}>Annuler</button>
-          </div>
-        </Modal>
-      )}
+      {/* Niveau modal removed — only points modal kept */}
 
       {/* ── Modal : modifier les points ───────────────────────────────────────── */}
       {pointsModal && (

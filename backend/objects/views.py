@@ -156,7 +156,7 @@ class ObjectAlertsView(APIView):
 
 
 class ObjectConfigView(APIView):
-    permission_classes = [IsAuthenticated, IsExpert]
+    permission_classes = [IsAuthenticated, IsAvance]
 
     _ALLOWED_KEYS = {
         'thermostat': {'temperature_cible', 'mode', 'plage_horaire'},
@@ -248,7 +248,7 @@ class AlertRuleDetailView(APIView):
 
 
 class AdminTriggeredAlertsView(APIView):
-    permission_classes = [IsAuthenticated, IsExpert]
+    permission_classes = [IsAuthenticated, IsAvance]
 
     def get(self, request):
         alerts = Alert.objects.filter(active=True).select_related('objet_concerne', 'created_by')

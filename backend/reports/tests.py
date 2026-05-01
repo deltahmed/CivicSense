@@ -81,6 +81,7 @@ class AdminStatsTest(APITestCase):
         Incident.objects.all().delete()
 
         cls.expert = make_user('exp@x.com', level='expert', pseudo='ExpertU')
+        cls.avance = make_user('ava@x.com', level='avance', pseudo='AvanceU')
         cls.deb = make_user('deb@x.com', pseudo='DebU')
 
         LoginHistory.objects.create(user=cls.expert)
@@ -103,6 +104,10 @@ class AdminStatsTest(APITestCase):
     def test_403_non_expert(self):
         self.client.force_authenticate(self.deb)
         self.assertEqual(self.client.get(self.URL).status_code, 403)
+
+    def test_avance_can_access(self):
+        self.client.force_authenticate(self.avance)
+        self.assertEqual(self.client.get(self.URL).status_code, 200)
 
     def test_200_structure(self):
         self.client.force_authenticate(self.expert)
@@ -163,6 +168,7 @@ class AdminStatsExportTest(APITestCase):
     @classmethod
     def setUpTestData(cls):
         cls.expert = make_user('expx@x.com', level='expert', pseudo='ExpX')
+        cls.avance = make_user('avax@x.com', level='avance', pseudo='AvanceX')
         cls.deb = make_user('debx@x.com', pseudo='DebX')
 
     def test_csv_default_format(self):
@@ -188,6 +194,10 @@ class AdminStatsExportTest(APITestCase):
     def test_403_non_expert(self):
         self.client.force_authenticate(self.deb)
         self.assertEqual(self.client.get(self.URL).status_code, 403)
+
+    def test_avance_can_access(self):
+        self.client.force_authenticate(self.avance)
+        self.assertEqual(self.client.get(self.URL).status_code, 200)
 
     def test_401_unauthenticated(self):
         self.assertEqual(self.client.get(self.URL).status_code, 401)
