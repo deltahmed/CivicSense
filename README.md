@@ -2,235 +2,223 @@
 
 Plateforme web IoT pour la gestion d'une résidence intelligente — projet académique ING1.
 
-## Stack
-
-- **Backend** : Django 5 + Django REST Framework + PostgreSQL
-- **Auth** : djangorestframework-simplejwt (JWT en httpOnly cookie)
-- **Frontend** : React 18 (Vite) + CSS vanilla
-- **Graphiques** : recharts
+Stack : Django 5 + React 18 + Tailwind CSS + PostgreSQL
 
 ---
 
-## Lancer en local (Windows)
+## � Installation de Docker
 
-### Prérequis
-
-- **Python 3.11+** — [python.org](https://www.python.org/downloads/) — cocher "Add Python to PATH" à l'installation
-- **Node.js 18+** — [nodejs.org](https://nodejs.org/)
-- **PostgreSQL 15+** — [postgresql.org](https://www.postgresql.org/download/windows/) — noter le mot de passe du compte `postgres`
-
----
-
-### 1. Setup automatique (une seule fois)
-
-```powershell
-powershell -ExecutionPolicy Bypass -File setup.ps1
+### Windows & Mac
+1. Télécharge **Docker Desktop** → [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
+2. Installe et lance l'application
+3. Vérifie l'installation :
+```bash
+docker --version
+docker compose version
 ```
 
-Le script fait tout : BDD, venv, dépendances, `.env`, migrations, compte admin.
-Compte créé : `admin@civicsense.local` / `admin1234`
+### Linux
 
----
-
-### Détail des étapes manuelles (si le script échoue)
-
-#### 1. Créer la base de données PostgreSQL (une seule fois)
-
-Ouvrir **SQL Shell (psql)** depuis le menu Démarrer et exécuter :
-
-```sql
-CREATE DATABASE civicsense;
-\q
+**Si Docker est déjà installé** (via le dépôt officiel Docker — `docker-ce` + `containerd.io`) :
+```bash
+sudo apt install docker-compose-plugin
 ```
 
----
+**Si Docker n'est pas encore installé** (installation complète depuis zéro) :
+```bash
+# Supprimer les anciens paquets si présents
+sudo apt remove docker docker.io containerd runc
 
-### 2. Configurer les variables d'environnement (une seule fois)
+# Ajouter le dépôt officiel Docker
+sudo apt update
+sudo apt install ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
 
-```powershell
-cd backend
-copy .env.example .env
+# Installer Docker CE + Compose plugin
+sudo apt update
+sudo apt install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
-Ouvrir `.env` et remplir au minimum :
+Dans les deux cas :
+```bash
+# Vérifier l'installation
+docker --version
+docker compose version
 
-```
-SECRET_KEY=une-chaine-aleatoire-longue-ici
-DB_PASSWORD=ton_mot_de_passe_postgres
-```
-
-> `SECRET_KEY` est obligatoire — Django refuse de démarrer sans elle.  
-> Générer une clé : `python -c "import secrets; print(secrets.token_hex(50))"`
-
----
-
-### 3. Créer le venv et installer les dépendances (une seule fois)
-
-```powershell
-cd backend
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-> Le venv est activé quand le prompt affiche `(venv)` en préfixe.
-
----
-
-### 4. Appliquer les migrations (une seule fois, puis à chaque modif de modèle)
-
-```powershell
-python manage.py migrate
+# (Optionnel) Utiliser Docker sans sudo
+sudo usermod -aG docker $USER
+# Redémarrer le terminal après cette commande
 ```
 
 ---
 
-### 5. Créer un compte admin (une seule fois)
+## Démarrage
 
-```powershell
-python manage.py createsuperuser
+### 1. Configure le `.env`
+
+Backend :
+```bash
+cp backend/.env.example backend/.env
 ```
 
-Ou créer un utilisateur vérifié directement via le shell Django :
-
-```powershell
-python manage.py shell
+Frontend :
+```bash
+cp frontend/.env.example frontend/.env
 ```
 
-```python
-from users.models import CustomUser
-u = CustomUser.objects.create_user(
-    email='admin@civicsense.local',
-    username='admin',
-    pseudo='Admin',
-    password='admin1234',
-    is_verified=True,
-)
-u.level = 'expert'
-u.save()
-exit()
+### 2. Lance Docker
+
+```bash
+docker compose up
+```
+
+Au premier lancement :
+- Crée la DB PostgreSQL
+- Exécute les migrations Django
+- Crée l'utilisateur admin (credentials du `.env`)
+- Remplit la DB avec des données de test
+- Démarre le backend et frontend
+
+Accès :
+- Frontend : http://localhost:5173
+- Backend API : http://localhost:8000
+- Admin Django : http://localhost:8000/admin
+
+---
+
+## Commandes utiles
+
+```bash
+# Arrêter
+docker compose down
+
+# Logs
+docker compose logs -f
+
+# Nettoyer (vider la DB)
+docker compose down -v
+
+# Shell Django
+docker compose exec backend python manage.py shell
+
+# PostgreSQL
+docker compose exec db psql -U civicsense -d civicsense
+
+# Reconstruire les images
+docker compose build --no-cache
 ```
 
 ---
 
-### 6. Lancer le backend
+## Comptes par défaut (dev)
 
-```powershell
-cd backend
-venv\Scripts\activate
-python manage.py runserver
-```
-
-- API : `http://localhost:8000`
-- Admin Django : `http://localhost:8000/admin/`
-- API navigable DRF : `http://localhost:8000/api/users/`
+- Email : `admin@civicsense.local`
+- Password : `admin1234`
 
 ---
 
-### 7. Lancer le frontend (dans un autre terminal)
+## Structure
 
-```powershell
-cd frontend
-npm install
-npm run dev
 ```
-
-Frontend : `http://localhost:5173`
-
-> Le proxy Vite redirige `/api` → `http://localhost:8000`. Les cookies httpOnly fonctionnent sans configuration CORS supplémentaire.
-
----
-
-### Relancer après un redémarrage
-
-```powershell
-# Terminal 1 — backend
-cd backend ; venv\Scripts\activate ; python manage.py runserver
-
-# Terminal 2 — frontend
-cd frontend ; npm run dev
+.
+├── backend/               # Django
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── .env
+├── frontend/              # React
+│   ├── package.json
+│   ├── Dockerfile
+│   └── .env
+├── docker-compose.yml
+└── README.md
 ```
 
 ---
 
-### Tester les routes avec curl (PowerShell)
+## Développement
 
-#### Inscription
+Les fichiers sont synchronisés en live :
+- Backend : Django autoreload
+- Frontend : Hot Module Reload (Vite)
 
-```powershell
-curl.exe -X POST http://localhost:8000/api/users/register/ `
-  -H "Content-Type: application/json" `
-  -d '{"email":"test@example.com","username":"testuser","pseudo":"TestUser","password":"StrongPass1","type_membre":"resident"}'
+Ajouter une dépendance :
+
+Python :
+```bash
+docker compose exec backend pip install package-name
+docker compose exec backend pip freeze > requirements.txt
 ```
 
-#### Connexion (stocke les cookies JWT)
-
-```powershell
-curl.exe -X POST http://localhost:8000/api/users/login/ `
-  -H "Content-Type: application/json" `
-  -c cookies.txt `
-  -d '{"email":"admin@civicsense.local","password":"admin1234"}'
-```
-
-#### Profil connecté (utilise les cookies)
-
-```powershell
-curl.exe http://localhost:8000/api/users/me/ -b cookies.txt
-```
-
-#### Vérification email
-
-```powershell
-# Récupérer le token depuis le shell Django :
-# CustomUser.objects.get(email='test@example.com').verification_token
-curl.exe http://localhost:8000/api/users/verify/TON-TOKEN-ICI/
-```
-
-#### Déconnexion
-
-```powershell
-curl.exe -X POST http://localhost:8000/api/users/logout/ -b cookies.txt
-```
-
-> **Alternative** : utiliser [Postman](https://www.postman.com/) ou l'interface DRF navigable (`http://localhost:8000/api/`) qui gère les cookies automatiquement.
-
----
-
-### Lancer les tests
-
-```powershell
-cd backend
-venv\Scripts\activate
-python manage.py test users --verbosity=2
+npm :
+```bash
+docker compose exec frontend npm install package-name
 ```
 
 ---
 
-### Commandes Django utiles
+## Docs
 
-```powershell
-# Après avoir modifié un modèle
-python manage.py makemigrations
-python manage.py migrate
+- API : [SEARCH_API.md](SEARCH_API.md)
+- Dépendances : [DEPENDENCIES.md](DEPENDENCIES.md)
 
-# Shell interactif avec accès aux modèles
-python manage.py shell
+---
 
-# Vérifier les migrations sans les appliquer
-python manage.py migrate --check
+## Problèmes
+
+**Frontend ne se connecte pas**
+```bash
+docker compose logs backend
+```
+
+**Database corrompue**
+```bash
+docker compose down -v
+docker compose up
+```
+
+**Arrêt forcé**
+```bash
+docker compose kill
+docker container prune -f
 ```
 
 ---
 
-## Convention de commits
+## Tests
 
-| Préfixe | Usage |
-|---|---|
-| `feat:` | Nouvelle fonctionnalité |
-| `fix:` | Correction de bug |
-| `style:` | CSS / formatage (sans logique) |
-| `docs:` | Documentation uniquement |
-| `chore:` | Config, dépendances, tooling |
-| `refactor:` | Refactoring sans changement de comportement |
+Lancer les tests du backend :
 
-Exemple : `feat: add JWT login endpoint`
+```bash
+docker compose exec backend python manage.py test users --verbosity=2
+
+# Tous les tests
+docker compose exec backend python manage.py test
+```
+
+---
+
+## Commandes Django
+
+Migrations :
+```bash
+docker compose exec backend python manage.py makemigrations
+docker compose exec backend python manage.py migrate
+docker compose exec backend python manage.py migrate --check
+```
+
+Autres :
+```bash
+docker compose exec backend python manage.py shell
+docker compose exec backend python manage.py createsuperuser
+```
+
+---
+
+## Notes
+
+- Aucun virtualenv Python requis
+- Aucune installation Node.js requise
+- Aucune configuration PostgreSQL requise
+
