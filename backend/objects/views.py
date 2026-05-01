@@ -5,10 +5,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from users.permissions import IsVerified, IsAvance
+from users.permissions import IsVerified, IsAvance, IsExpert
 from users.utils import add_points
-from .models import ConnectedObject, HistoriqueConso
-from .serializers import ConnectedObjectSerializer, HistoriqueConsoSerializer, CategorySerializer
+from .models import ConnectedObject, HistoriqueConso, Alert
+from .serializers import ConnectedObjectSerializer, HistoriqueConsoSerializer, CategorySerializer, AlertSerializer
 
 
 class ObjectListView(APIView):
@@ -106,48 +106,50 @@ class ObjectAlertsView(APIView):
 
     def get(self, request):
         thirty_days_ago = timezone.now() - timedelta(days=30)
-        seven_days_ago = timezone.now() - timedelta(days=7)
-        
-        # Optimisation : On agrège les données côté base de données (1 seule requête O(1))
+        # Seuil attendu : 6 lectures/jour × 30 jours = 180 entrées max
+        INTERACTIONS_ESPEREES = 180
+
         qs = ConnectedObject.objects.annotate(
-            interactions_30j=Count('historique_conso', filter=Q(historique_conso__date__gte=thirty_days_ago)),
-            conso_30j=Sum('historique_conso__valeur', filter=Q(historique_conso__date__gte=thirty_days_ago))
+            interactions_30j=Count(
+                'historique_conso',
+                filter=Q(historique_conso__date__gte=thirty_days_ago),
+            ),
+            conso_30j=Sum(
+                'historique_conso__valeur',
+                filter=Q(historique_conso__date__gte=thirty_days_ago),
+            ),
         )
-        
-        seuil_bas = 0.1
-        seuil_moyen = 0.5
-        
+
         data = []
         for obj in qs:
-            conso = obj.conso_30j or 0.0
-            interactions = obj.interactions_30j
-            
-            # Calcul du score sécurisé (évite la division par zéro)
-            score = 0.0
-            if conso > 0:
-                score = interactions / conso
-                
-            if score < seuil_bas:
-                efficacite = "inefficace"
-            elif score < seuil_moyen:
-                efficacite = "à surveiller"
+            interactions = obj.interactions_30j or 0
+            conso = float(obj.conso_30j or 0.0)
+            score = round(interactions / INTERACTIONS_ESPEREES, 3)
+
+            if obj.statut == 'maintenance':
+                efficacite = 'inefficace'
+            elif obj.statut == 'inactif':
+                efficacite = 'à surveiller'
+            elif interactions >= 100:
+                efficacite = 'efficace'
+            elif interactions >= 20:
+                efficacite = 'à surveiller'
             else:
-                efficacite = "efficace"
-                
-            maintenance = False
-            if obj.derniere_interaction and obj.derniere_interaction < seven_days_ago:
-                maintenance = True
-                
+                efficacite = 'inefficace'
+
+            maintenance = obj.statut == 'maintenance' or interactions < 5
+
             data.append({
-                'id': obj.id,
-                'unique_id': obj.unique_id,
-                'nom': obj.nom,
-                'zone': obj.zone,
-                'interactions_30j': interactions,
-                'conso_30j': conso,
-                'score': score,
-                'efficacite': efficacite,
-                'maintenance_conseillee': maintenance
+                'id':                   obj.id,
+                'unique_id':            obj.unique_id,
+                'nom':                  obj.nom,
+                'zone':                 obj.zone,
+                'statut':               obj.statut,
+                'interactions_30j':     interactions,
+                'conso_30j':            conso,
+                'score':                score,
+                'efficacite':           efficacite,
+                'maintenance_conseillee': maintenance,
             })
 
         return Response({'success': True, 'data': data})
@@ -192,6 +194,97 @@ class ObjectConfigView(APIView):
         obj.attributs_specifiques = {**obj.attributs_specifiques, **attrs}
         obj.save()
         return Response({'success': True, 'data': ConnectedObjectSerializer(obj).data})
+
+
+class AlertRuleListView(APIView):
+    permission_classes = [IsAuthenticated, IsAvance]
+
+    def get(self, request):
+        qs = Alert.objects.select_related('objet_concerne', 'created_by').all()
+        objet_id = request.query_params.get('objet_id')
+        if objet_id:
+            qs = qs.filter(objet_concerne_id=objet_id)
+        return Response({'success': True, 'data': AlertSerializer(qs, many=True).data})
+
+    def post(self, request):
+        serializer = AlertSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'success': False, 'errors': serializer.errors}, status=400)
+        serializer.save(created_by=request.user)
+        return Response({'success': True, 'data': serializer.data}, status=201)
+
+
+class AlertRuleDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsAvance]
+
+    def _get(self, pk):
+        try:
+            return Alert.objects.select_related('objet_concerne', 'created_by').get(pk=pk)
+        except Alert.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        alert = self._get(pk)
+        if alert is None:
+            return Response({'success': False, 'message': 'Alerte introuvable.'}, status=404)
+        return Response({'success': True, 'data': AlertSerializer(alert).data})
+
+    def patch(self, request, pk):
+        alert = self._get(pk)
+        if alert is None:
+            return Response({'success': False, 'message': 'Alerte introuvable.'}, status=404)
+        serializer = AlertSerializer(alert, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response({'success': False, 'errors': serializer.errors}, status=400)
+        serializer.save()
+        return Response({'success': True, 'data': serializer.data})
+
+    def delete(self, request, pk):
+        alert = self._get(pk)
+        if alert is None:
+            return Response({'success': False, 'message': 'Alerte introuvable.'}, status=404)
+        alert.delete()
+        return Response({'success': True, 'message': 'Alerte supprimée.'})
+
+
+class AdminTriggeredAlertsView(APIView):
+    permission_classes = [IsAuthenticated, IsExpert]
+
+    def get(self, request):
+        alerts = Alert.objects.filter(active=True).select_related('objet_concerne', 'created_by')
+        triggered = []
+        for a in alerts:
+            if a.declenchee:
+                triggered.append({
+                    'id':             a.id,
+                    'nom':            a.nom,
+                    'description':    a.description,
+                    'type_alerte':    a.type_alerte,
+                    'priorite':       a.priorite,
+                    'seuil':          a.seuil,
+                    'operateur':      a.operateur,
+                    'valeur_cle':     a.valeur_cle,
+                    'valeur_comparee': a.valeur_comparee,
+                    'objet_id':       a.objet_concerne_id,
+                    'objet_nom':      a.objet_concerne.nom if a.objet_concerne else None,
+                    'objet_zone':     a.objet_concerne.zone if a.objet_concerne else None,
+                    'created_at':     a.created_at,
+                })
+        triggered.sort(key=lambda x: ['critique', 'moyen', 'faible'].index(x['priorite']))
+        return Response({'success': True, 'count': len(triggered), 'data': triggered})
+
+
+class ObjectZonesView(APIView):
+    permission_classes = [IsAuthenticated, IsVerified]
+
+    def get(self, request):
+        zones = (
+            ConnectedObject.objects
+            .values_list('zone', flat=True)
+            .distinct()
+            .order_by('zone')
+        )
+        return Response({'success': True, 'data': list(zones)})
 
 
 class PublicSearchObjectsView(APIView):

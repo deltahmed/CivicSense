@@ -52,15 +52,14 @@ export default function SearchPage() {
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
-  const [typeObjet, setTypeObjet] = useState('actif')
-  const [statut, setStatut] = useState('actif')
+  const [typeObjet, setTypeObjet] = useState('')
+  const [statut, setStatut] = useState('')
   const [zone, setZone] = useState('')
 
-  useEffect(() => {
-    performSearch()
-  }, [])
+  const [searched, setSearched] = useState(false)
 
   const performSearch = async () => {
+    setSearched(true)
     setLoading(true)
     setError('')
 
@@ -83,10 +82,6 @@ export default function SearchPage() {
 
   const handleSearch = e => {
     e.preventDefault()
-    performSearch()
-  }
-
-  const handleFilterChange = () => {
     performSearch()
   }
 
@@ -114,10 +109,7 @@ export default function SearchPage() {
         <div className="filters-row">
           <select
             value={typeObjet}
-            onChange={e => {
-              setTypeObjet(e.target.value)
-              handleFilterChange()
-            }}
+            onChange={e => setTypeObjet(e.target.value)}
             className="filter-select"
           >
             {TYPE_OBJET_OPTIONS.map(opt => (
@@ -129,10 +121,7 @@ export default function SearchPage() {
 
           <select
             value={statut}
-            onChange={e => {
-              setStatut(e.target.value)
-              handleFilterChange()
-            }}
+            onChange={e => setStatut(e.target.value)}
             className="filter-select"
           >
             {STATUT_OPTIONS.map(opt => (
@@ -144,10 +133,7 @@ export default function SearchPage() {
 
           <select
             value={zone}
-            onChange={e => {
-              setZone(e.target.value)
-              handleFilterChange()
-            }}
+            onChange={e => setZone(e.target.value)}
             className="filter-select"
           >
             {ZONES_OPTIONS.map(opt => (
@@ -163,6 +149,10 @@ export default function SearchPage() {
 
       {loading ? (
         <div className="loading">Chargement...</div>
+      ) : !searched ? (
+        <div className="no-results">
+          <p>Utilisez les filtres ci-dessus et cliquez sur Rechercher.</p>
+        </div>
       ) : results.length === 0 ? (
         <div className="no-results">
           <p>Aucun équipement trouvé avec ces critères.</p>

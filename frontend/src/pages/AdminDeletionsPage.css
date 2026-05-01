@@ -1,0 +1,196 @@
+/* ─── Page ─────────────────────────────────────────────────────────────────── */
+.adp-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+@media (min-width: 768px) { .adp-page { padding: 2rem 1.5rem; } }
+
+/* ─── Header ─────────────────────────────────────────────────────────────────── */
+.adp-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin-bottom: 1.5rem;
+}
+.adp-title {
+  font-size: clamp(1.4rem, 4vw, 1.8rem);
+  font-weight: 900;
+  letter-spacing: -.03em;
+  margin: 0 0 .2rem;
+  color: var(--color-text);
+}
+.adp-subtitle {
+  font-size: .85rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ─── Banners ─────────────────────────────────────────────────────────────────── */
+.adp-banner {
+  padding: .65rem 1rem;
+  border-radius: var(--radius);
+  font-size: .875rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+.adp-banner--ok  { background: var(--color-success-bg); color: var(--color-success); }
+.adp-banner--err { background: var(--color-error-bg);   color: var(--color-error); }
+
+/* ─── States ─────────────────────────────────────────────────────────────────── */
+.adp-state { color: var(--color-text-muted); font-size: .875rem; }
+
+.adp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  padding: 3rem 1rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+.adp-empty-icon { font-size: 2.5rem; }
+
+/* ─── Cards ─────────────────────────────────────────────────────────────────── */
+.adp-list { display: flex; flex-direction: column; gap: 1rem; }
+
+.adp-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-error);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.adp-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: .75rem;
+}
+
+.adp-card-info { display: flex; flex-direction: column; gap: .2rem; }
+
+.adp-obj-name {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -.02em;
+}
+
+.adp-meta {
+  font-size: .78rem;
+  color: var(--color-text-muted);
+}
+
+.adp-status {
+  display: inline-flex;
+  padding: .2rem .7rem;
+  border-radius: var(--radius-full);
+  font-size: .7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  background: color-mix(in srgb, #f59e0b 15%, transparent);
+  color: #d97706;
+  border: 1.5px solid color-mix(in srgb, #f59e0b 40%, transparent);
+  flex-shrink: 0;
+}
+
+.adp-motif {
+  font-size: .85rem;
+  color: var(--color-text);
+  margin: 0 0 1rem;
+  line-height: 1.5;
+  padding: .625rem .875rem;
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--color-border);
+}
+.adp-motif-label {
+  font-weight: 700;
+  color: var(--color-text-muted);
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.adp-actions { display: flex; gap: .625rem; flex-wrap: wrap; }
+
+/* ─── Buttons ─────────────────────────────────────────────────────────────────── */
+.adp-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: .5rem 1.1rem;
+  border-radius: var(--radius);
+  font-size: .875rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+.adp-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.adp-btn--danger {
+  background: var(--color-error);
+  color: #fff;
+}
+.adp-btn--danger:hover:not(:disabled) {
+  background: #c0392b;
+  box-shadow: 0 4px 14px rgb(239 68 68 / .3);
+  transform: translateY(-1px);
+}
+
+.adp-btn--outline {
+  background: transparent;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.adp-btn--outline:hover:not(:disabled) { background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
+
+.adp-btn--ghost {
+  background: transparent;
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+.adp-btn--ghost:hover:not(:disabled) { background: var(--color-surface-2); color: var(--color-text); }
+
+/* ─── Modal ─────────────────────────────────────────────────────────────────── */
+.adp-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / .5);
+  backdrop-filter: blur(4px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.adp-modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  max-width: 26rem;
+  width: 100%;
+  box-shadow: 0 20px 60px rgb(0 0 0 / .2);
+}
+.adp-modal-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0 0 .875rem;
+  color: var(--color-text);
+}
+.adp-modal-body {
+  font-size: .9rem;
+  color: var(--color-text);
+  margin: 0 0 1.25rem;
+  line-height: 1.6;
+}
+.adp-modal-actions { display: flex; gap: .625rem; flex-wrap: wrap; }

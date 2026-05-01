@@ -1,41 +1,71 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
+import api from '../api'
 
-const AlertsDashboardWidget = () => {
-  const [alerts, setAlerts] = useState([]);
+const TYPE_REASON = {
+  surconsommation_energie: 'Surconsommation',
+  batterie_faible:         'Batterie faible',
+  maintenance_requise:     'Maintenance requise',
+  valeur_capteur:          'Valeur capteur',
+  autre:                   'Alerte déclenchée',
+}
+
+export default function AlertsDashboardWidget() {
+  const [items, setItems] = useState([])
+
+  const load = useCallback(() => {
+    api.get('/objects/alert-rules/').then(res => {
+      if (!res.data.success) return
+      const triggered = res.data.data
+        .filter(r => r.declenchee && r.active)
+        .map(r => ({
+          id:      r.id,
+          nom:     r.nom,
+          reason:  TYPE_REASON[r.type_alerte] ?? 'Alerte déclenchée',
+          priorite: r.priorite,
+          objet_id: r.objet_concerne,
+          objet_nom: r.objet_nom,
+        }))
+      setItems(triggered)
+    }).catch(() => {})
+  }, [])
 
   useEffect(() => {
-    fetch('/api/objects/alerts/')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          // On ne garde que les alertes sévères pour le widget "rapide"
-          const activeAlerts = data.data.filter(
-            o => o.efficacite === 'inefficace' || o.maintenance_conseillee
-          );
-          setAlerts(activeAlerts);
-        }
-      })
-      .catch(err => console.error(err));
-  }, []);
+    load()
+    // Rafraîchit quand l'utilisateur revient sur l'onglet/la fenêtre
+    window.addEventListener('focus', load)
+    return () => window.removeEventListener('focus', load)
+  }, [load])
+
+  if (items.length === 0) return <p className="alerts-widget-empty">Aucune alerte déclenchée.</p>
 
   return (
-    <div className="alerts-widget" style={{ border: '2px solid red', padding: '15px', borderRadius: '8px', background: '#ffe6e6' }}>
-      <h3 style={{ color: 'red', marginTop: 0 }}>🚨 Alertes Actives ({alerts.length})</h3>
-      {alerts.length === 0 ? (
-        <p style={{ color: 'green', fontWeight: 'bold' }}>Aucune alerte critique en cours.</p>
-      ) : (
-        <ul style={{ margin: 0, paddingLeft: '20px' }}>
-          {alerts.slice(0, 5).map(obj => (
-            <li key={obj.id} style={{ marginBottom: '5px' }}>
-              <strong>{obj.nom} ({obj.zone})</strong> : 
-              {obj.maintenance_conseillee ? ' Maintenance urgente' : ` Rendement inefficace`}
-            </li>
-          ))}
-        </ul>
+    <div className="alerts-widget">
+      <div className="alerts-widget-header">
+        <span className="alerts-widget-title">Alertes déclenchées</span>
+        <span className="alerts-widget-count">{items.length}</span>
+      </div>
+      <ul className="alerts-widget-list">
+        {items.slice(0, 6).map(item => (
+          <li key={item.id} className="alerts-widget-item">
+            <span className="awi-dot" data-priorite={item.priorite} />
+            <div className="awi-content">
+              <span className="awi-name">{item.nom}</span>
+              {item.objet_nom && (
+                item.objet_id
+                  ? <Link to={`/objects/${item.objet_id}`} className="awi-obj">{item.objet_nom}</Link>
+                  : <span className="awi-obj">{item.objet_nom}</span>
+              )}
+              <span className="awi-reason">{item.reason}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+      {items.length > 6 && (
+        <Link to="/alerts" className="alerts-widget-more">
+          +{items.length - 6} autres → voir tout
+        </Link>
       )}
-      {alerts.length > 5 && <p style={{ fontSize: '0.9em', color: 'gray' }}>...et {alerts.length - 5} autres objets.</p>}
     </div>
-  );
-};
-
-export default AlertsDashboardWidget;
+  )
+}

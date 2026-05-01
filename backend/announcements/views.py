@@ -12,13 +12,13 @@ from .models import Announcement, DeletionRequest
 from .serializers import AnnouncementSerializer, DeletionRequestSerializer
 
 
-@method_decorator(cache_page(60 * 15), name='get')
+@method_decorator(cache_page(60 * 5), name='get')
 class AnnouncementListView(APIView):
 
     def get_permissions(self):
         if self.request.method == 'POST':
             return [IsAuthenticated(), IsExpert()]
-        return [IsAuthenticated(), IsVerified()]
+        return []  # Lecture publique : les annonces sont des informations résidence
 
     def get(self, request):
         announcements = Announcement.objects.filter(visible=True)
@@ -55,20 +55,54 @@ class AnnouncementDetailView(APIView):
         return Response({'success': True, 'message': 'Annonce supprimée.'})
 
 
+class DeletionRequestDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsExpert]
+
+    def patch(self, request, pk):
+        try:
+            dr = DeletionRequest.objects.select_related('objet', 'demandeur').get(pk=pk)
+        except DeletionRequest.DoesNotExist:
+            return Response({'success': False, 'message': 'Demande introuvable.'}, status=404)
+
+        if dr.statut != 'en_attente':
+            return Response({'success': False, 'message': 'Cette demande a déjà été traitée.'}, status=400)
+
+        action = request.data.get('action')
+        if action not in ('approuver', 'refuser'):
+            return Response({'success': False, 'message': 'Action invalide.'}, status=400)
+
+        if action == 'approuver':
+            nom = dr.objet.nom
+            dr.objet.delete()
+            return Response({'success': True, 'message': f'Objet « {nom} » supprimé.'})
+
+        dr.statut = 'refusee'
+        dr.save()
+        return Response({'success': True, 'message': 'Demande refusée.', 'data': DeletionRequestSerializer(dr).data})
+
+
 class DeletionRequestView(APIView):
 
     def get_permissions(self):
-        if self.request.method == 'GET':
-            return [IsAuthenticated(), IsExpert()]
         return [IsAuthenticated(), IsAvance()]
 
     def get(self, request):
-        queryset = (
-            DeletionRequest.objects
-            .select_related('objet', 'demandeur')
-            .filter(statut='en_attente')
-            .order_by('-created_at')
-        )
+        if request.user.level == 'expert':
+            # L'admin voit toutes les demandes en attente
+            queryset = (
+                DeletionRequest.objects
+                .select_related('objet', 'demandeur')
+                .filter(statut='en_attente')
+                .order_by('-created_at')
+            )
+        else:
+            # L'avancé voit uniquement ses propres demandes
+            queryset = (
+                DeletionRequest.objects
+                .select_related('objet', 'demandeur')
+                .filter(demandeur=request.user)
+                .order_by('-created_at')
+            )
         return Response({'success': True, 'data': DeletionRequestSerializer(queryset, many=True).data})
 
     def post(self, request):

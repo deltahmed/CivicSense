@@ -109,7 +109,7 @@ class AdminRejectUserSerializer(serializers.Serializer):
 class PendingUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'pseudo', 'type_membre', 'date_joined')
+        fields = ('id', 'email', 'pseudo', 'first_name', 'last_name', 'type_membre', 'date_joined')
         read_only_fields = fields
 
 

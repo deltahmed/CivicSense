@@ -1,92 +1,247 @@
 import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import api from '../api'
 import AlertsDashboardWidget from './AlertsDashboardWidget'
-import ServiceCard from '../components/ServiceCard'
 import './DashboardPage.css'
 
+// ── Météo ─────────────────────────────────────────────────────────────────────
+function wmoLabel(code) {
+  if (code === 0)           return { label: 'Ciel dégagé',          icon: '☀️' }
+  if (code <= 2)            return { label: 'Partiellement nuageux', icon: '⛅' }
+  if (code <= 3)            return { label: 'Couvert',               icon: '☁️' }
+  if (code <= 49)           return { label: 'Brouillard',            icon: '🌫️' }
+  if (code <= 57)           return { label: 'Bruine',                icon: '🌦️' }
+  if (code <= 67)           return { label: 'Pluie',                 icon: '🌧️' }
+  if (code <= 77)           return { label: 'Neige',                 icon: '❄️' }
+  if (code <= 82)           return { label: 'Averses',               icon: '🌦️' }
+  if (code <= 99)           return { label: 'Orage',                 icon: '⛈️' }
+  return { label: 'Variable', icon: '🌤️' }
+}
+
+function MeteoWidget() {
+  const [meteo, setMeteo] = useState(null)
+  useEffect(() => {
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=48.8566&longitude=2.3522&current=temperature_2m,apparent_temperature,weathercode,windspeed_10m,relative_humidity_2m&timezone=Europe%2FParis')
+      .then(r => r.json())
+      .then(d => setMeteo(d.current))
+      .catch(() => {})
+  }, [])
+  if (!meteo) return null
+  const { label, icon } = wmoLabel(meteo.weathercode)
+  return (
+    <div className="dash-meteo">
+      <span className="dash-meteo-icon" aria-hidden="true">{icon}</span>
+      <div className="dash-meteo-info">
+        <span className="dash-meteo-temp">{Math.round(meteo.temperature_2m)}°C</span>
+        <span className="dash-meteo-label">{label} · Paris</span>
+        <span className="dash-meteo-detail">
+          Ressenti {Math.round(meteo.apparent_temperature)}°C · Humidité {meteo.relative_humidity_2m}%
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ── Niveaux ───────────────────────────────────────────────────────────────────
+const LEVEL_META = {
+  debutant:      { label: 'Débutant',      color: '#6b7280' },
+  intermediaire: { label: 'Intermédiaire', color: '#0ea5e9' },
+  avance:        { label: 'Avancé',        color: '#f59e0b' },
+  expert:        { label: 'Expert',        color: '#ef4444' },
+}
+const LEVEL_THRESHOLDS = { debutant: 0, intermediaire: 3, avance: 5, expert: 7 }
+const LEVEL_NEXT       = { debutant: 'intermediaire', intermediaire: 'avance', avance: 'expert', expert: null }
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const { user, logout } = useAuth()
-  const [services, setServices] = useState([])
-  const [loadingServices, setLoadingServices] = useState(false)
+  const { user } = useAuth()
+  const [publicStats, setPublicStats] = useState({ score_sante: null, objets_actifs: 0, incidents_en_cours: 0, total_objets: 0, en_maintenance: 0 })
+  const [services, setServices]       = useState([])
+  const [annonces, setAnnonces]       = useState([])
+  const [triggeredAlerts, setTriggeredAlerts] = useState([])
+  const [pendingUsers, setPendingUsers]       = useState(0)
+  const [pendingDeletions, setPendingDeletions] = useState(0)
+
+  const isAvancePlus = user?.level === 'avance' || user?.level === 'expert'
+  const isExpert     = user?.level === 'expert'
 
   useEffect(() => {
-    fetchServices()
-  }, [])
+    document.title = 'Tableau de bord — CivicSense'
 
-  const fetchServices = async () => {
-    setLoadingServices(true)
-    try {
-      const response = await fetch('/api/services/services/?limit=6', {
-        credentials: 'include',
-      })
-      if (response.ok) {
-        const data = await response.json()
-        setServices(data.results || [])
-      }
-    } catch (err) {
-      console.error('Erreur lors du chargement des services:', err)
-    } finally {
-      setLoadingServices(false)
+    // KPIs unifiés : même source que la page publique → scores cohérents
+    api.get('/public/stats/')
+      .then(res => { if (res.data?.data) setPublicStats(p => ({ ...p, ...res.data.data })) })
+      .catch(() => {})
+
+    api.get('/services/').then(res => {
+      if (res.data.success) setServices((res.data.data ?? []).slice(0, 4))
+    }).catch(() => {})
+
+    api.get('/announcements/').then(res => {
+      const list = res.data?.data ?? []
+      setAnnonces(list.filter(a => a.visible).slice(0, 3))
+    }).catch(() => {})
+
+    if (isAvancePlus) {
+      api.get('/objects/alert-rules/').then(res => {
+        if (res.data.success) {
+          setTriggeredAlerts(res.data.data.filter(r => r.declenchee && r.active))
+        }
+      }).catch(() => {})
     }
-  }
+
+    if (isExpert) {
+      api.get('/admin/users/pending/')
+        .then(res => setPendingUsers(res.data.data?.length ?? 0))
+        .catch(() => {})
+      api.get('/deletion-requests/')
+        .then(res => setPendingDeletions(res.data.data?.length ?? 0))
+        .catch(() => {})
+    }
+  }, [user?.level, isAvancePlus, isExpert])
+
+  const levelMeta = LEVEL_META[user?.level] ?? LEVEL_META.debutant
+  const nextLevel = LEVEL_NEXT[user?.level]
+  const pct = nextLevel && user
+    ? Math.min(100, ((user.points - LEVEL_THRESHOLDS[user.level]) / (LEVEL_THRESHOLDS[nextLevel] - LEVEL_THRESHOLDS[user.level])) * 100)
+    : 100
+
+  const scoreColor = publicStats.score_sante === null ? '' : publicStats.score_sante >= 80 ? 'green' : publicStats.score_sante >= 60 ? 'orange' : 'red'
+  const fullName   = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.pseudo
 
   return (
-    <div className="dashboard-layout">
-      <header className="dashboard-header">
-        <span className="dashboard-brand">CivicSense</span>
-        <nav aria-label="Navigation principale">
-          <ul className="nav-links">
-            <li><a href="#">Accueil</a></li>
-            <li><Link to="/objects">Objets</Link></li>
-            <li><Link to="/services">Services</Link></li>
-            <li><Link to="/alerts">Alertes</Link></li>
-            {['avance', 'expert'].includes(user?.level) && <li><a href="#">Gestion</a></li>}
-            {user?.level === 'expert' && (
-              <>
-                <li><Link to="/admin/reports">Rapports</Link></li>
-                <li><Link to="/admin/settings">Paramètres</Link></li>
-              </>
-            )}
-          </ul>
-        </nav>
-        <button className="btn-logout" onClick={logout}>Déconnexion</button>
-      </header>
+    <div className="dash-page page-content">
 
-      <main className="dashboard-main">
-        <section aria-labelledby="welcome-title">
-          <h1 id="welcome-title">Bonjour, {user?.pseudo} 👋</h1>
-          <p className="level-badge">Niveau : <strong>{user?.level}</strong> — {user?.points} pts</p>
-        </section>
+      {/* ── Notifications admin ── */}
+      {isExpert && (pendingUsers > 0 || pendingDeletions > 0) && (
+        <div className="dash-notifs">
+          {pendingUsers > 0 && (
+            <Link to="/admin/pending" className="dash-notif dash-notif--info">
+              <span className="dash-notif-icon" aria-hidden="true">👤</span>
+              <span className="dash-notif-text">
+                <strong>{pendingUsers}</strong> inscription{pendingUsers > 1 ? 's' : ''} en attente de validation
+              </span>
+              <span className="dash-notif-arrow">→</span>
+            </Link>
+          )}
+          {pendingDeletions > 0 && (
+            <Link to="/admin/deletions" className="dash-notif dash-notif--warning">
+              <span className="dash-notif-icon" aria-hidden="true">🗑️</span>
+              <span className="dash-notif-text">
+                <strong>{pendingDeletions}</strong> demande{pendingDeletions > 1 ? 's' : ''} de suppression d'objet
+              </span>
+              <span className="dash-notif-arrow">→</span>
+            </Link>
+          )}
+        </div>
+      )}
 
-        {['avance', 'expert'].includes(user?.level) && (
-          <section aria-label="Alertes actives" style={{ marginTop: '24px' }}>
+      {/* ── Hero ── */}
+      <section className="dash-hero">
+        <div className="dash-hero-left">
+          <p className="dash-hero-hi">Bonjour,</p>
+          <h1 className="dash-hero-name">{fullName}</h1>
+          <div className="dash-hero-meta">
+            <span className="dash-level-pill" style={{ '--lc': levelMeta.color }}>
+              {levelMeta.label}
+            </span>
+            <span className="dash-pts">{user?.points?.toFixed(1)} pts</span>
+          </div>
+          {nextLevel && (
+            <div className="dash-progress-row">
+              <div className="dash-progress-track">
+                <div className="dash-progress-fill" style={{ width: `${pct}%`, background: levelMeta.color }} />
+              </div>
+              <span className="dash-progress-hint">
+                {LEVEL_THRESHOLDS[nextLevel] - (user?.points ?? 0) > 0
+                  ? `${(LEVEL_THRESHOLDS[nextLevel] - user.points).toFixed(1)} pts pour ${LEVEL_META[nextLevel].label}`
+                  : 'Niveau en cours de mise à jour'}
+              </span>
+            </div>
+          )}
+        </div>
+        <MeteoWidget />
+      </section>
+
+      {/* ── Barre KPI (identique à la page publique) ── */}
+      <div className="dash-kpi-bar" aria-label="Indicateurs en direct">
+        <div className={`dash-kpi dash-kpi--${scoreColor || 'neutral'}`}>
+          <span className="dash-kpi-value">
+            {publicStats.score_sante !== null ? publicStats.score_sante : '—'}
+            <span className="dash-kpi-unit">/100</span>
+          </span>
+          <span className="dash-kpi-label">Score santé</span>
+        </div>
+        <div className="dash-kpi">
+          <span className="dash-kpi-value">{publicStats.objets_actifs}</span>
+          <span className="dash-kpi-label">Objets actifs</span>
+        </div>
+        <div className={`dash-kpi${publicStats.incidents_en_cours > 0 ? ' dash-kpi--red' : ''}`}>
+          <span className="dash-kpi-value">{publicStats.incidents_en_cours}</span>
+          <span className="dash-kpi-label">Incidents en cours</span>
+        </div>
+        <div className="dash-kpi">
+          <span className="dash-kpi-value">{publicStats.total_objets}</span>
+          <span className="dash-kpi-label">Objets total</span>
+        </div>
+      </div>
+
+      <div className="dash-two-col">
+
+        {/* ── Alertes déclenchées (expert uniquement) ── */}
+        {isExpert && (
+          <section className="dash-section">
+            <div className="dash-section-header">
+              <h2 className="dash-section-title">Alertes déclenchées</h2>
+              <Link to="/alerts" className="dash-see-all">Voir tout →</Link>
+            </div>
             <AlertsDashboardWidget />
           </section>
         )}
 
-        <section aria-labelledby="services-title" style={{ marginTop: '32px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h2 id="services-title" style={{ margin: 0 }}>Services disponibles</h2>
-            <Link to="/services" style={{ fontSize: '13px', color: '#007bff', textDecoration: 'none' }}>Voir tous les services →</Link>
-          </div>
-          {loadingServices ? (
-            <p style={{ color: '#999' }}>Chargement des services...</p>
-          ) : services.length === 0 ? (
-            <p style={{ color: '#999' }}>Aucun service disponible pour le moment.</p>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
-              {services.map((service) => (
-                <ServiceCard key={service.id} service={service} />
+        {/* ── Annonces ── */}
+        {annonces.length > 0 && (
+          <section className="dash-section">
+            <div className="dash-section-header">
+              <h2 className="dash-section-title">Actualités résidence</h2>
+            </div>
+            <div className="dash-annonces">
+              {annonces.map(a => (
+                <div key={a.id} className="dash-annonce-card">
+                  <p className="dash-annonce-titre">{a.titre}</p>
+                  <p className="dash-annonce-contenu">{a.contenu}</p>
+                </div>
               ))}
             </div>
-          )}
-        </section>
-      </main>
+          </section>
+        )}
 
-      <footer className="dashboard-footer">
-        <p>© 2025 CivicSense — Projet ING1</p>
-      </footer>
+      </div>
+
+      {/* ── Services ── */}
+      {services.length > 0 && (
+        <section className="dash-section">
+          <div className="dash-section-header">
+            <h2 className="dash-section-title">Services disponibles</h2>
+            <Link to="/services" className="dash-see-all">Voir tous →</Link>
+          </div>
+          <div className="dash-services-grid">
+            {services.map(s => (
+              <Link key={s.id} to={`/services/${s.id}`} className="dash-service-card">
+                <span className="dash-service-cat">{s.categorie}</span>
+                <p className="dash-service-nom">{s.nom}</p>
+                <p className="dash-service-desc">
+                  {s.description && s.description.length > 80
+                    ? `${s.description.slice(0, 80)}…`
+                    : s.description}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
     </div>
   )
 }

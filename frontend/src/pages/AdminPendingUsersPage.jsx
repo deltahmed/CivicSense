@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react'
 import api from '../api'
 import './AdminPendingUsersPage.css'
 
+const TYPE_LABELS = {
+  resident:     'Résident',
+  referent:     'Référent',
+  gardien:      'Gardien',
+  gestionnaire: 'Gestionnaire',
+}
+
 export default function AdminPendingUsersPage() {
   const [pendingUsers, setPendingUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -12,9 +19,7 @@ export default function AdminPendingUsersPage() {
   const [rejectMotif, setRejectMotif] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
 
-  useEffect(() => {
-    loadPendingUsers()
-  }, [])
+  useEffect(() => { loadPendingUsers() }, [])
 
   const loadPendingUsers = async () => {
     setLoading(true)
@@ -23,7 +28,7 @@ export default function AdminPendingUsersPage() {
       const res = await api.get('/admin/users/pending/')
       setPendingUsers(res.data.data)
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors du chargement des utilisateurs')
+      setError(err.response?.data?.message || 'Erreur lors du chargement.')
     } finally {
       setLoading(false)
     }
@@ -34,11 +39,11 @@ export default function AdminPendingUsersPage() {
     setError('')
     try {
       await api.put(`/admin/users/${userId}/approve/`)
-      setSuccess('Utilisateur approuvé avec succès!')
-      setPendingUsers(pendingUsers.filter(u => u.id !== userId))
-      setTimeout(() => setSuccess(''), 3000)
+      setSuccess('Utilisateur approuvé — un email lui a été envoyé.')
+      setPendingUsers(prev => prev.filter(u => u.id !== userId))
+      setTimeout(() => setSuccess(''), 4000)
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de l\'approbation')
+      setError(err.response?.data?.message || 'Erreur lors de l\'approbation.')
     } finally {
       setActionLoading(false)
     }
@@ -46,25 +51,17 @@ export default function AdminPendingUsersPage() {
 
   const handleRejectSubmit = async (e) => {
     e.preventDefault()
-    if (!selectedUser || !rejectMotif.trim()) {
-      setError('Veuillez entrer un motif de refus')
-      return
-    }
-
+    if (!selectedUser || !rejectMotif.trim()) return
     setActionLoading(true)
     setError('')
     try {
-      await api.put(`/admin/users/${selectedUser.id}/reject/`, {
-        motif: rejectMotif,
-      })
-      setSuccess('Utilisateur refusé et compte supprimé!')
-      setPendingUsers(pendingUsers.filter(u => u.id !== selectedUser.id))
-      setShowRejectModal(false)
-      setSelectedUser(null)
-      setRejectMotif('')
-      setTimeout(() => setSuccess(''), 3000)
+      await api.put(`/admin/users/${selectedUser.id}/reject/`, { motif: rejectMotif })
+      setSuccess('Utilisateur refusé — son compte a été supprimé.')
+      setPendingUsers(prev => prev.filter(u => u.id !== selectedUser.id))
+      closeRejectModal()
+      setTimeout(() => setSuccess(''), 4000)
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors du refus')
+      setError(err.response?.data?.message || 'Erreur lors du refus.')
     } finally {
       setActionLoading(false)
     }
@@ -82,79 +79,78 @@ export default function AdminPendingUsersPage() {
     setRejectMotif('')
   }
 
-  return (
-    <div className="admin-pending-container">
-      <h1>Approbation des Utilisateurs</h1>
+  function fullName(user) {
+    if (user.first_name && user.last_name) return `${user.first_name} ${user.last_name}`
+    return user.pseudo
+  }
 
-      <div className="page-header">
-        <p className="pending-count">
-          {pendingUsers.length} utilisateur(s) en attente d'approbation
-        </p>
-        <button className="btn btn-secondary" onClick={loadPendingUsers} disabled={loading || actionLoading}>
-          {loading ? 'Chargement...' : 'Rafraîchir'}
+  return (
+    <div className="ap-page">
+      <div className="ap-header">
+        <div>
+          <h1 className="ap-title">Approbation des comptes</h1>
+          <p className="ap-subtitle">
+            {pendingUsers.length} compte{pendingUsers.length !== 1 ? 's' : ''} en attente
+          </p>
+        </div>
+        <button className="ap-btn ap-btn-ghost" onClick={loadPendingUsers} disabled={loading || actionLoading}>
+          Rafraîchir
         </button>
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
+      {error   && <div className="ap-alert ap-alert-error">{error}</div>}
+      {success && <div className="ap-alert ap-alert-success">{success}</div>}
 
       {loading ? (
-        <div className="loading-state">
-          <p>Chargement des utilisateurs...</p>
-        </div>
+        <div className="ap-state">Chargement…</div>
       ) : pendingUsers.length === 0 ? (
-        <div className="empty-state">
-          <p>Aucun utilisateur en attente d'approbation</p>
-          <p className="empty-text">Tous les utilisateurs ont été traités!</p>
+        <div className="ap-state ap-state-empty">
+          <p>Aucun compte en attente</p>
+          <small>Tous les utilisateurs ont été traités.</small>
         </div>
       ) : (
-        <div className="users-table-container">
-          <table className="users-table">
+        <div className="ap-table-wrap">
+          <table className="ap-table">
             <thead>
               <tr>
-                <th>Pseudo</th>
+                <th>Nom complet</th>
                 <th>Email</th>
-                <th>Type de Membre</th>
-                <th>Date d'Inscription</th>
+                <th>Type</th>
+                <th>Inscription</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {pendingUsers.map(user => (
                 <tr key={user.id}>
-                  <td>
-                    <strong>{user.pseudo}</strong>
+                  <td data-label="Nom">
+                    <div className="ap-name-cell">
+                      <span className="ap-name-full">{fullName(user)}</span>
+                      <span className="ap-name-pseudo">@{user.pseudo}</span>
+                    </div>
                   </td>
-                  <td>{user.email}</td>
-                  <td>
-                    <span className="badge badge-info">
-                      {user.type_membre === 'resident'
-                        ? 'Résident'
-                        : user.type_membre === 'referent'
-                          ? 'Référent'
-                          : 'Syndic'}
-                    </span>
+                  <td data-label="Email">{user.email}</td>
+                  <td data-label="Type">
+                    <span className="ap-badge">{TYPE_LABELS[user.type_membre] ?? user.type_membre}</span>
                   </td>
-                  <td>{new Date(user.date_joined).toLocaleDateString('fr-FR')}</td>
-                  <td>
-                    <div className="action-buttons">
+                  <td data-label="Inscription">
+                    {new Date(user.date_joined).toLocaleDateString('fr-FR')}
+                  </td>
+                  <td data-label="Actions">
+                    <div className="ap-actions">
                       <button
-                        className="btn btn-sm btn-success"
+                        className="ap-btn ap-btn-approve"
                         onClick={() => handleApprove(user.id)}
                         disabled={actionLoading}
-                        aria-label={`Approuver ${user.pseudo}`}
-                        title="Approuver cet utilisateur"
                       >
-                        ✓ Approuver
+                        Approuver
                       </button>
                       <button
-                        className="btn btn-sm btn-danger"
+                        className="ap-btn ap-btn-reject"
                         onClick={() => openRejectModal(user)}
                         disabled={actionLoading}
-                        aria-label={`Refuser ${user.pseudo}`}
-                        title="Refuser cet utilisateur"
                       >
-                        ✗ Refuser
+                        Refuser
                       </button>
                     </div>
                   </td>
@@ -165,51 +161,39 @@ export default function AdminPendingUsersPage() {
         </div>
       )}
 
-      {/* Modal Refus */}
       {showRejectModal && selectedUser && (
-        <div className="modal-overlay" onClick={() => !actionLoading && closeRejectModal()}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2>Refuser l'Inscription</h2>
-            <p className="modal-subtitle">
-              Utilisateur: <strong>{selectedUser.pseudo}</strong> ({selectedUser.email})
+        <div className="ap-modal-overlay" onClick={() => !actionLoading && closeRejectModal()}>
+          <div className="ap-modal" onClick={e => e.stopPropagation()}>
+            <h2 className="ap-modal-title">Refuser l'inscription</h2>
+            <p className="ap-modal-sub">
+              <strong>{fullName(selectedUser)}</strong> &mdash; {selectedUser.email}
             </p>
 
             <form onSubmit={handleRejectSubmit}>
-              <div className="form-group">
-                <label htmlFor="motif">Motif de Refus</label>
+              <div className="ap-field">
+                <label htmlFor="motif">Motif de refus</label>
                 <textarea
                   id="motif"
                   value={rejectMotif}
                   onChange={e => setRejectMotif(e.target.value)}
-                  placeholder="Exemple: Domaine email non autorisé, données invalides, etc."
+                  placeholder="Ex. : domaine email non autorisé, informations incomplètes…"
                   required
                   minLength="5"
                   maxLength="500"
                   rows="4"
-                  aria-label="Motif de refus"
-                ></textarea>
-                <p className="char-count">
-                  {rejectMotif.length}/500 caractères
-                </p>
+                />
+                <span className="ap-char-count">{rejectMotif.length} / 500</span>
               </div>
 
-              <div className="warning-box">
-                <p>
-                  <strong>⚠️ Attention:</strong> Le compte de l'utilisateur sera{' '}
-                  <strong>définitivement supprimé</strong>. Un email de refus avec le motif lui sera envoyé.
-                </p>
+              <div className="ap-warning">
+                Le compte sera <strong>définitivement supprimé</strong> et l'utilisateur recevra un email avec le motif.
               </div>
 
-              <div className="form-actions">
-                <button type="submit" className="btn btn-danger" disabled={actionLoading || !rejectMotif.trim()}>
-                  {actionLoading ? 'Refus en cours...' : 'Refuser et Supprimer'}
+              <div className="ap-modal-actions">
+                <button type="submit" className="ap-btn ap-btn-reject" disabled={actionLoading || !rejectMotif.trim()}>
+                  {actionLoading ? 'Refus en cours…' : 'Confirmer le refus'}
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={closeRejectModal}
-                  disabled={actionLoading}
-                >
+                <button type="button" className="ap-btn ap-btn-ghost" onClick={closeRejectModal} disabled={actionLoading}>
                   Annuler
                 </button>
               </div>

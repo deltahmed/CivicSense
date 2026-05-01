@@ -1,7 +1,7 @@
 LEVEL_THRESHOLDS = [
-    ('expert', 5.0),
-    ('avance', 3.0),
-    ('intermediaire', 1.0),
+    ('expert', 7.0),
+    ('avance', 5.0),
+    ('intermediaire', 3.0),
     ('debutant', 0.0),
 ]
 

@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
+import AppLayout from './components/AppLayout'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import ProfilePage from './pages/ProfilePage'
@@ -18,19 +19,21 @@ import PublicUsersPage from './pages/PublicUsersPage'
 import PublicUserDetailPage from './pages/PublicUserDetailPage'
 import ServicesPage from './pages/ServicesPage'
 import ServiceDetailPage from './pages/ServiceDetailPage'
+import ObjectAddPage from './pages/ObjectAddPage'
+import AdminDeletionsPage from './pages/AdminDeletionsPage'
 
 const LEVEL_ORDER = ['debutant', 'intermediaire', 'avance', 'expert']
 
-function ProtectedRoute({ children, minLevel = null }) {
+function ProtectedLayout({ children, minLevel = null }) {
   const { user, loading } = useAuth()
-  if (loading) return null
+  if (loading) return <div className="page-loading">Chargement…</div>
   if (!user) return <Navigate to="/login" replace />
   if (minLevel) {
     const userIdx = LEVEL_ORDER.indexOf(user.level)
     const minIdx = LEVEL_ORDER.indexOf(minLevel)
     if (userIdx < minIdx) return <Navigate to="/dashboard" replace />
   }
-  return children
+  return <AppLayout>{children}</AppLayout>
 }
 
 export default function App() {
@@ -42,82 +45,31 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      {/* Tous les utilisateurs connectés */}
-      <Route
-        path="/dashboard"
-        element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/profile"
-        element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}
-      />
-      <Route
-        path="/users"
-        element={<ProtectedRoute><PublicUsersPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/users/:id"
-        element={<ProtectedRoute><PublicUserDetailPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/services"
-        element={<ProtectedRoute><ServicesPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/services/:id"
-        element={<ProtectedRoute><ServiceDetailPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/objects"
-        element={<ProtectedRoute><ObjectListPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/objects/:id"
-        element={<ProtectedRoute><ObjectDetailPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/alerts"
-        element={<ProtectedRoute><AlertsPage /></ProtectedRoute>}
-      />
-      <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+      {/* Authentifié — tous niveaux */}
+      <Route path="/dashboard" element={<ProtectedLayout><DashboardPage /></ProtectedLayout>} />
+      <Route path="/profile"   element={<ProtectedLayout><ProfilePage /></ProtectedLayout>} />
+      <Route path="/users"     element={<ProtectedLayout><PublicUsersPage /></ProtectedLayout>} />
+      <Route path="/users/:id" element={<ProtectedLayout><PublicUserDetailPage /></ProtectedLayout>} />
+      <Route path="/services"     element={<ProtectedLayout><ServicesPage /></ProtectedLayout>} />
+      <Route path="/services/:id" element={<ProtectedLayout><ServiceDetailPage /></ProtectedLayout>} />
+      <Route path="/objects"      element={<ProtectedLayout><ObjectListPage /></ProtectedLayout>} />
+      <Route path="/objects/new"  element={<ProtectedLayout minLevel="avance"><ObjectAddPage /></ProtectedLayout>} />
+      <Route path="/objects/:id"  element={<ProtectedLayout><ObjectDetailPage /></ProtectedLayout>} />
+      <Route path="/alerts" element={<ProtectedLayout minLevel="expert"><AlertsPage /></ProtectedLayout>} />
+      <Route path="/search" element={<ProtectedLayout><SearchPage /></ProtectedLayout>} />
 
-      {/* Avancé et supérieur */}
-      <Route
-        path="/gestion"
-        element={<ProtectedRoute minLevel="avance"><ObjectListPage /></ProtectedRoute>}
-      />
 
       {/* Expert uniquement */}
-      <Route
-        path="/admin"
-        element={<ProtectedRoute minLevel="expert"><Navigate to="/admin/users" replace /></ProtectedRoute>}
-      />
-      <Route
-        path="/admin/users"
-        element={<ProtectedRoute minLevel="expert"><AdminUsersPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/admin/pending"
-        element={<ProtectedRoute minLevel="expert"><AdminPendingUsersPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/admin/maintenance"
-        element={<ProtectedRoute minLevel="expert"><AdminMaintenancePage /></ProtectedRoute>}
-      />
-      <Route
-        path="/admin/reports"
-        element={<ProtectedRoute minLevel="expert"><AdminReportsPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/admin/settings"
-        element={<ProtectedRoute minLevel="expert"><AdminSettingsPage /></ProtectedRoute>}
-      />
+      <Route path="/admin" element={<ProtectedLayout minLevel="expert"><Navigate to="/admin/users" replace /></ProtectedLayout>} />
+      <Route path="/admin/users"       element={<ProtectedLayout minLevel="expert"><AdminUsersPage /></ProtectedLayout>} />
+      <Route path="/admin/pending"     element={<ProtectedLayout minLevel="expert"><AdminPendingUsersPage /></ProtectedLayout>} />
+      <Route path="/admin/maintenance" element={<ProtectedLayout minLevel="expert"><AdminMaintenancePage /></ProtectedLayout>} />
+      <Route path="/admin/reports"     element={<ProtectedLayout minLevel="expert"><AdminReportsPage /></ProtectedLayout>} />
+      <Route path="/admin/settings"    element={<ProtectedLayout minLevel="expert"><AdminSettingsPage /></ProtectedLayout>} />
+      <Route path="/admin/deletions"   element={<ProtectedLayout minLevel="expert"><AdminDeletionsPage /></ProtectedLayout>} />
 
       {/* Catch-all */}
-      <Route
-        path="/*"
-        element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}
-      />
+      <Route path="/*" element={<ProtectedLayout><DashboardPage /></ProtectedLayout>} />
     </Routes>
   )
 }

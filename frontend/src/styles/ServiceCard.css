@@ -1,24 +1,23 @@
 .service-card-link {
   text-decoration: none;
-  color: inherit;
+  color: var(--color-text);
 }
 
 .service-card {
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: .75rem;
   height: 100%;
-  transition: all 0.2s ease-out;
-  border: 2px solid transparent;
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
 }
 
 .service-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border-color: #007bff;
+  box-shadow: var(--shadow);
+  border-color: var(--color-primary);
   transform: translateY(-2px);
 }
 
@@ -26,35 +25,37 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 8px;
+  gap: .5rem;
 }
 
 .service-name {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--color-text);
   line-height: 1.3;
   flex: 1;
+  letter-spacing: -.01em;
 }
 
 .service-category-badge {
   display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
-  color: white;
-  font-size: 11px;
-  font-weight: 600;
+  padding: .2rem .55rem;
+  border-radius: var(--radius-full);
+  font-size: .68rem;
+  font-weight: 700;
   text-transform: capitalize;
   white-space: nowrap;
   flex-shrink: 0;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
 .service-description {
   margin: 0;
-  font-size: 13px;
-  color: #666;
-  line-height: 1.4;
+  font-size: .82rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -65,22 +66,23 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #eee;
+  margin-top: auto;
+  padding-top: .75rem;
+  border-top: 1px solid var(--color-border);
 }
 
 .service-level-badge {
   display: inline-block;
-  padding: 4px 8px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #555;
+  padding: .2rem .55rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
 }
 
 .service-action-count {
-  font-size: 12px;
-  color: #999;
+  font-size: .75rem;
+  color: var(--color-text-muted);
 }

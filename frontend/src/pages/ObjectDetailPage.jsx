@@ -71,8 +71,9 @@ function StatusBadge({ status }) {
 
 export default function ObjectDetailPage() {
   const { id } = useParams()
-  const { user, logout } = useAuth()
-  const canEdit = ['avance', 'expert'].includes(user?.level)
+  const { user } = useAuth()
+  const canEdit           = ['avance', 'expert'].includes(user?.level)
+  const canRequestDeletion = user?.level === 'avance'
 
   const [object, setObject] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -90,6 +91,8 @@ export default function ObjectDetailPage() {
   const [deleteStatus, setDeleteStatus] = useState('idle')
   const [deleteError, setDeleteError] = useState(null)
 
+  const [objAlerts, setObjAlerts] = useState([])
+
   useEffect(() => {
     api.get(`/objects/${id}/`)
       .then(res => {
@@ -105,7 +108,13 @@ export default function ObjectDetailPage() {
         setFetchError('Objet introuvable ou erreur réseau.')
         setLoading(false)
       })
-  }, [id])
+
+    if (canEdit) {
+      api.get('/objects/alert-rules/', { params: { objet_id: id } })
+        .then(res => { if (res.data.success) setObjAlerts(res.data.data) })
+        .catch(() => {})
+    }
+  }, [id, canEdit])
 
   const handleZoneChange = async (e) => {
     const newZone = e.target.value
@@ -203,18 +212,6 @@ export default function ObjectDetailPage() {
 
   return (
     <div className="od-layout">
-      <header className="od-header">
-        <span className="od-brand">CivicSense</span>
-        <nav aria-label="Navigation principale">
-          <ul className="nav-links">
-            <li><Link to="/">Accueil</Link></li>
-            <li><Link to="/objects">Objets</Link></li>
-            <li><Link to="/alerts">Alertes</Link></li>
-          </ul>
-        </nav>
-        <button className="btn-logout" onClick={logout}>Déconnexion</button>
-      </header>
-
       <main className="od-main">
         <nav aria-label="Fil d'Ariane" className="od-breadcrumb">
           <Link to="/objects">Objets</Link>
@@ -350,13 +347,45 @@ export default function ObjectDetailPage() {
           )}
         </section>
 
-        {/* Demande de suppression */}
-        {canEdit && (
+        {/* Demande de suppression — avancé uniquement */}
+        {canRequestDeletion && (
           <div className="od-delete-zone">
             <button className="btn-delete-request" onClick={openDeleteModal} type="button">
               Demander la suppression
             </button>
           </div>
+        )}
+
+        {/* Alertes associées — visible avancé/expert */}
+        {canEdit && (
+          <section className="od-section" aria-labelledby="alerts-title">
+            <h2 id="alerts-title">Alertes configurées</h2>
+            {objAlerts.length === 0 ? (
+              <p className="od-no-config">Aucune alerte configurée pour cet objet.</p>
+            ) : (
+              <ul className="od-alert-list">
+                {objAlerts.map(a => (
+                  <li key={a.id} className={`od-alert-item od-alert-item--${a.priorite}${a.declenchee ? ' od-alert-item--on' : ''}`}>
+                    <div className="od-alert-row">
+                      {a.declenchee && <span className="od-alert-fire" aria-label="Déclenchée">⚠</span>}
+                      <span className="od-alert-nom">{a.nom}</span>
+                      <span className={`od-alert-badge od-alert-badge--${a.priorite}`}>
+                        {a.priorite === 'critique' ? 'Critique' : a.priorite === 'moyen' ? 'Moyen' : 'Faible'}
+                      </span>
+                      {a.declenchee && <span className="od-alert-triggered">Déclenchée</span>}
+                      {!a.active && <span className="od-alert-inactive">Inactive</span>}
+                    </div>
+                    {a.seuil != null && (
+                      <p className="od-alert-detail">
+                        Condition : valeur {a.operateur === 'gt' ? '>' : a.operateur === 'lt' ? '<' : a.operateur === 'gte' ? '≥' : '≤'} {a.seuil}
+                        {a.valeur_comparee != null && <> — Actuel : <strong>{a.valeur_comparee}</strong></>}
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
         )}
 
         {/* Historique récent */}
@@ -386,10 +415,6 @@ export default function ObjectDetailPage() {
           )}
         </section>
       </main>
-
-      <footer className="od-footer">
-        <p>© 2025 CivicSense — Projet ING1</p>
-      </footer>
 
       {showDeleteModal && (
         <div className="od-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">

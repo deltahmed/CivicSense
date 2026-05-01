@@ -270,6 +270,32 @@
   white-space: nowrap;
 }
 
+/* ── Alertes associées ─────────────────────────────────────────────────── */
+.od-alert-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .5rem; }
+.od-alert-item {
+  padding: .75rem 1rem;
+  border-radius: 8px;
+  background: var(--color-surface, #fff);
+  border-left: 4px solid #d1d5db;
+}
+.od-alert-item--faible   { border-color: #6b7280; }
+.od-alert-item--moyen    { border-color: #f59e0b; }
+.od-alert-item--critique { border-color: #ef4444; }
+.od-alert-item--on       { background: #fff7ed; }
+.od-alert-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.od-alert-fire { color: #ef4444; font-size: 1rem; }
+.od-alert-nom  { font-weight: 600; font-size: .9rem; flex: 1; }
+.od-alert-badge {
+  font-size: .72rem; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+  text-transform: uppercase; letter-spacing: .03em;
+}
+.od-alert-badge--faible   { background: #f3f4f6; color: #6b7280; }
+.od-alert-badge--moyen    { background: #fef3c7; color: #92400e; }
+.od-alert-badge--critique { background: #fee2e2; color: #b91c1c; }
+.od-alert-triggered { font-size: .75rem; color: #ef4444; font-weight: 700; }
+.od-alert-inactive  { font-size: .75rem; color: #9ca3af; }
+.od-alert-detail    { margin: .3rem 0 0; font-size: .8rem; color: var(--color-text-muted, #6b7280); }
+
 .od-status--saving {
   color: #1565c0;
   background: #e3f2fd;

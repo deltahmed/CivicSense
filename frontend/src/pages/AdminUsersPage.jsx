@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import {
   getAllUsers,
   updateUser,
@@ -7,6 +8,7 @@ import {
   setUserPoints,
   getUserHistory,
 } from '../api/admin'
+import api from '../api'
 import './AdminUsersPage.css'
 
 const LEVELS = ['debutant', 'intermediaire', 'avance', 'expert']
@@ -43,6 +45,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [pendingCount, setPendingCount] = useState(0)
   const [sortField, setSortField] = useState('date_joined')
   const [sortDir, setSortDir] = useState('desc')
   const [page, setPage] = useState(1)
@@ -72,6 +75,12 @@ export default function AdminUsersPage() {
   }, [])
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
+
+  useEffect(() => {
+    api.get('/admin/users/pending/')
+      .then(res => setPendingCount(res.data.data?.length ?? 0))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     function onKeyDown(e) {
@@ -240,6 +249,13 @@ export default function AdminUsersPage() {
         </p>
       </header>
 
+      {pendingCount > 0 && (
+        <Link to="/admin/pending" className="admin-users__pending-banner">
+          <span className="admin-users__pending-dot" aria-hidden="true" />
+          {pendingCount} compte{pendingCount !== 1 ? 's' : ''} en attente de validation &rarr;
+        </Link>
+      )}
+
       {actionError && (
         <p className="admin-users__action-error" role="alert" aria-live="polite">{actionError}</p>
       )}
@@ -290,14 +306,19 @@ export default function AdminUsersPage() {
             ) : (
               pageUsers.map(user => (
                 <tr key={user.id} className={!user.is_active ? 'row--suspended' : ''}>
-                  <td data-label="Pseudo">{user.pseudo}</td>
+                  <td data-label="Nom">
+                    <div className="user-name-cell">
+                      <span className="user-name-full">
+                        {user.first_name && user.last_name
+                          ? `${user.first_name} · ${user.last_name}`
+                          : user.pseudo}
+                      </span>
+                      <span className="user-name-pseudo">@{user.pseudo}</span>
+                    </div>
+                  </td>
                   <td data-label="Email">{user.email}</td>
                   <td data-label="Type">{TYPE_LABELS[user.type_membre] ?? user.type_membre}</td>
-                  <td data-label="Niveau">
-                    <span className={`level-badge level-badge--${user.level}`}>
-                      {LEVEL_LABELS[user.level] ?? user.level}
-                    </span>
-                  </td>
+                  <td data-label="Niveau">{LEVEL_LABELS[user.level] ?? user.level}</td>
                   <td data-label="Points">{user.points.toFixed(2)}</td>
                   <td data-label="Inscrit le">
                     {new Date(user.date_joined).toLocaleDateString('fr-FR')}

@@ -1,5 +1,5 @@
 from django.db.models import Q
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,41 +12,28 @@ LEVEL_ORDER = ['debutant', 'intermediaire', 'avance', 'expert']
 
 
 class ServiceListView(APIView):
-    permission_classes = [IsAuthenticated, IsVerified]
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated(), IsVerified()]
 
     def get(self, request):
-        # Récupérer les filtres
-        categorie = request.query_params.get('categorie', '').strip()
-        niveau_requis = request.query_params.get('niveau_requis', '').strip()
-        search = request.query_params.get('search', '').strip()
-        
-        # Déterminer l'index du niveau de l'utilisateur
-        user_level_idx = LEVEL_ORDER.index(request.user.level)
-        
-        # Commencer avec les services accessibles pour le niveau de l'utilisateur
+        categorie   = request.query_params.get('categorie', '').strip()
+        search      = request.query_params.get('search', '').strip()
+
         queryset = Service.objects.all()
-        services_accessible = [
-            s for s in queryset
-            if LEVEL_ORDER.index(s.niveau_requis) <= user_level_idx
-        ]
-        
-        # Appliquer les filtres
         if categorie:
-            services_accessible = [s for s in services_accessible if s.categorie == categorie]
-        
-        if niveau_requis:
-            services_accessible = [s for s in services_accessible if s.niveau_requis == niveau_requis]
-        
+            queryset = queryset.filter(categorie=categorie)
         if search:
-            services_accessible = [
-                s for s in services_accessible
-                if search.lower() in s.nom.lower() or search.lower() in s.description.lower()
-            ]
-        
+            queryset = queryset.filter(
+                Q(nom__icontains=search) | Q(description__icontains=search)
+            )
+
         return Response({
             'success': True,
-            'count': len(services_accessible),
-            'data': ServiceSerializer(services_accessible, many=True).data
+            'count': queryset.count(),
+            'data': ServiceSerializer(queryset, many=True).data
         })
 
 

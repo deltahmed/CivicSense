@@ -78,21 +78,14 @@ export default function PublicUserDetailPage() {
 
   return (
     <div className="public-user-detail-page">
-      <header className="detail-header">
-        <div className="header-top">
+      <main className="detail-main">
+        <div className="detail-back">
           <Link to="/users" className="btn-back-link">← Répertoire des membres</Link>
         </div>
-      </header>
-
-      <main className="detail-main">
         <div className="profile-card">
           <div className="profile-header">
             <div className="profile-photo">
-              {profile.photo ? (
-                <img src={profile.photo} alt={profile.pseudo} />
-              ) : (
-                <div className="profile-avatar">{profile.pseudo.charAt(0).toUpperCase()}</div>
-              )}
+              <div className="profile-avatar">{profile.pseudo.charAt(0).toUpperCase()}</div>
             </div>
 
             <div className="profile-title">
@@ -181,9 +174,6 @@ export default function PublicUserDetailPage() {
         </div>
       </main>
 
-      <footer className="detail-footer">
-        <p>© 2026 CivicSense</p>
-      </footer>
     </div>
   )
 }

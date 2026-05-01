@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import api from '../api/index'
 import './ObjectListPage.css'
 
+const CAN_ADD = ['avance', 'expert']
+
 const STATUT_LABELS = {
   actif: 'Actif',
   inactif: 'Inactif',
@@ -31,7 +33,7 @@ function fmtDate(iso) {
 }
 
 export default function ObjectListPage() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const [allItems, setAllItems] = useState([])
   const [objects, setObjects] = useState([])
   const [loading, setLoading] = useState(true)
@@ -88,26 +90,15 @@ export default function ObjectListPage() {
 
   return (
     <div className="ol-layout">
-      <header className="ol-header">
-        <span className="ol-brand">CivicSense</span>
-        <nav aria-label="Navigation principale">
-          <ul className="nav-links">
-            <li><Link to="/">Accueil</Link></li>
-            <li><Link to="/objects" aria-current="page">Objets</Link></li>
-            <li><Link to="/alerts">Alertes</Link></li>
-            {['avance', 'expert'].includes(user?.level) && (
-              <li><Link to="/admin/reports">Rapports</Link></li>
-            )}
-            {user?.level === 'expert' && (
-              <li><Link to="/admin/settings">Paramètres</Link></li>
-            )}
-          </ul>
-        </nav>
-        <button className="btn-logout" onClick={logout}>Déconnexion</button>
-      </header>
-
       <main className="ol-main">
-        <h1>Objets connectés</h1>
+        <div className="ol-page-header">
+          <h1>Objets connectés</h1>
+          {CAN_ADD.includes(user?.level) && (
+            <Link to="/objects/new" className="ol-btn-add">
+              + Ajouter un objet
+            </Link>
+          )}
+        </div>
 
         <section className="ol-filters" aria-label="Filtres">
           <div className="ol-filter-field ol-filter-field--wide">
@@ -205,10 +196,6 @@ export default function ObjectListPage() {
           </p>
         )}
       </main>
-
-      <footer className="ol-footer">
-        <p>© 2025 CivicSense — Projet ING1</p>
-      </footer>
     </div>
   )
 }

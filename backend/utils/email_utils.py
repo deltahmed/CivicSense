@@ -82,35 +82,33 @@ def send_email_safe(
 
 
 def send_verification_email(user_email, verification_token, verification_url=None):
-    """Envoie un email de vérification.
-
-    Accepts an optional `verification_url` full link (preferred). If not
-    provided, falls back to a simple path using the token.
-    """
-    subject = "Vérifiez votre adresse email - CivicSense"
-
-    if verification_url:
-        link = verification_url
-    else:
-        link = f"/api/users/verify/{verification_token}/"
+    """Informe l'utilisateur que sa demande est en cours d'examen par un administrateur."""
+    subject = "Demande d'inscription reçue - CivicSense"
 
     text_content = f"""
 Bienvenue sur CivicSense!
 
-Veuillez cliquer sur le lien ci-dessous pour vérifier votre adresse email:
-{link}
+Votre demande d'inscription a bien été reçue.
+
+Un administrateur va examiner votre compte dans les meilleurs délais.
+Vous recevrez un email de confirmation dès que votre compte sera approuvé.
 
 Si vous n'avez pas créé ce compte, ignorez cet email.
     """
 
-    html_content = f"""
+    html_content = """
 <html>
-    <body>
-        <h2>Bienvenue sur CivicSense!</h2>
-        <p>Veuillez cliquer sur le lien ci-dessous pour vérifier votre adresse email:</p>
-        <p><a href="{link}">Vérifier mon email</a></p>
-        <p>Si vous n'avez pas créé ce compte, ignorez cet email.</p>
-    </body>
+  <body style="font-family: sans-serif; color: #1e293b; max-width: 480px; margin: 0 auto; padding: 2rem;">
+    <h2 style="color: #4f46e5;">Demande d'inscription reçue</h2>
+    <p>Bienvenue sur <strong>CivicSense</strong>&nbsp;!</p>
+    <p>Votre demande d'inscription a bien été reçue.</p>
+    <p>Un administrateur va examiner votre compte dans les meilleurs délais.<br/>
+       Vous recevrez un email de confirmation dès que votre compte sera approuvé.</p>
+    <hr style="border:none; border-top:1px solid #e2e8f0; margin: 1.5rem 0;"/>
+    <p style="font-size: 0.8rem; color: #64748b;">
+      Si vous n'avez pas créé ce compte, ignorez cet email.
+    </p>
+  </body>
 </html>
     """
 

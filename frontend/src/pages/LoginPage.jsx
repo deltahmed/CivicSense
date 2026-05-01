@@ -35,7 +35,13 @@ export default function LoginPage() {
       const redirects = { debutant: '/dashboard', intermediaire: '/dashboard', avance: '/gestion', expert: '/admin' }
       navigate(redirects[level] ?? '/dashboard', { replace: true })
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Erreur de connexion.')
+      const status = err.response?.status
+      const msg = err.response?.data?.message ?? ''
+      if (status === 403 || msg.toLowerCase().includes('vérifié') || msg.toLowerCase().includes('verifie')) {
+        setError('Votre compte est en attente de validation par un administrateur.')
+      } else {
+        setError(msg || 'Identifiants incorrects.')
+      }
     } finally {
       setLoading(false)
     }

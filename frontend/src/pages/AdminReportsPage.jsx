@@ -3,6 +3,17 @@ import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
+import api from '../api';
+
+const PRIO_COLORS = { critique: '#dc3545', moyen: '#fd7e14', faible: '#6c757d' }
+const TYPE_LABELS_ALERT = {
+  surconsommation_energie: 'Surconsommation énergie',
+  batterie_faible:         'Batterie faible',
+  maintenance_requise:     'Maintenance requise',
+  valeur_capteur:          'Valeur capteur',
+  autre:                   'Autre',
+}
+const OP_LABELS = { gt: '>', lt: '<', gte: '≥', lte: '≤' }
 
 const PERIODS = [
   { value: '7d', label: '7 jours' },
@@ -17,31 +28,38 @@ export default function AdminReportsPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [triggeredAlerts, setTriggeredAlerts] = useState([]);
+  const [alertsLoading, setAlertsLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/objects/alert-rules/triggered/')
+      .then(res => { if (res.data.success) setTriggeredAlerts(res.data.data) })
+      .catch(() => {})
+      .finally(() => setAlertsLoading(false))
+  }, []);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetch(`/api/admin/stats/?period=${period}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('access')}` },
-    })
-      .then(r => r.json())
-      .then(d => { if (d.success) setStats(d); else setError('Erreur serveur.'); })
+    api.get(`/admin/stats/?period=${period}`)
+      .then(res => { if (res.data.success) setStats(res.data); else setError('Erreur serveur.'); })
       .catch(() => setError('Impossible de contacter le serveur.'))
       .finally(() => setLoading(false));
   }, [period]);
 
   const handleExport = (format) => {
-    fetch(`/api/admin/stats/export/?fmt=${format}&period=${period}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('access')}` },
-    })
-      .then(r => r.blob())
-      .then(blob => {
+    api.get(`/admin/stats/export/?fmt=${format}&period=${period}`, { responseType: 'blob' })
+      .then(res => {
+        const url = URL.createObjectURL(res.data);
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `civicsense_stats.${format}`;
+        a.href = url;
+        a.download = `civicsense_stats_${period}.${format}`;
+        document.body.appendChild(a);
         a.click();
-        URL.revokeObjectURL(a.href);
-      });
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      })
+      .catch(() => alert('Export indisponible'));
   };
 
   if (loading) return <p style={{ padding: '20px' }}>Chargement…</p>;
@@ -170,6 +188,54 @@ export default function AdminReportsPage() {
             }
           </tbody>
         </table>
+      </section>
+
+      {/* Alertes déclenchées */}
+      <section style={{ marginBottom: '40px' }}>
+        <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          Alertes déclenchées
+          {triggeredAlerts.length > 0 && (
+            <span style={{ background: '#dc3545', color: '#fff', borderRadius: '999px', padding: '2px 10px', fontSize: '13px', fontWeight: 900 }}>
+              {triggeredAlerts.length}
+            </span>
+          )}
+        </h2>
+        {alertsLoading ? (
+          <p style={{ color: '#888' }}>Chargement…</p>
+        ) : triggeredAlerts.length === 0 ? (
+          <p style={{ color: '#28a745', fontWeight: 600 }}>Aucune alerte déclenchée actuellement.</p>
+        ) : (
+          <table border="1" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+            <thead style={{ background: '#dc3545', color: 'white' }}>
+              <tr>
+                {['Priorité', 'Nom', 'Type', 'Objet concerné', 'Zone', 'Valeur actuelle', 'Seuil'].map(h => (
+                  <th key={h} style={{ padding: '8px', textAlign: 'left' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {triggeredAlerts.map((a, i) => (
+                <tr key={a.id} style={{ background: i % 2 === 0 ? '#fff8f8' : '#fff0f0' }}>
+                  <td style={{ padding: '8px' }}>
+                    <span style={{ background: PRIO_COLORS[a.priorite] ?? '#666', color: '#fff', borderRadius: '999px', padding: '2px 8px', fontSize: '12px', fontWeight: 700 }}>
+                      {a.priorite}
+                    </span>
+                  </td>
+                  <td style={{ padding: '8px', fontWeight: 600 }}>{a.nom}</td>
+                  <td style={{ padding: '8px' }}>{TYPE_LABELS_ALERT[a.type_alerte] ?? a.type_alerte}</td>
+                  <td style={{ padding: '8px' }}>{a.objet_nom ?? '—'}</td>
+                  <td style={{ padding: '8px' }}>{a.objet_zone ?? '—'}</td>
+                  <td style={{ padding: '8px', fontWeight: 700, color: '#dc3545' }}>
+                    {a.valeur_comparee != null ? `${a.valeur_comparee}${a.type_alerte === 'batterie_faible' ? ' %' : a.type_alerte === 'surconsommation_energie' ? ' kWh' : a.valeur_cle === 'temperature' ? ' °C' : a.valeur_cle === 'co2_ppm' ? ' ppm' : ''}` : '—'}
+                  </td>
+                  <td style={{ padding: '8px' }}>
+                    {a.seuil != null ? `${OP_LABELS[a.operateur] ?? a.operateur} ${a.seuil}${a.valeur_cle === 'temperature' ? ' °C' : a.type_alerte === 'batterie_faible' ? ' %' : a.type_alerte === 'surconsommation_energie' ? ' kWh' : ''}` : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
 
       {/* Top 5 services */}

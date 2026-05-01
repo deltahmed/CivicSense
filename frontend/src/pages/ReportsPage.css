@@ -1,0 +1,191 @@
+.reports-heading { margin-bottom: 1.5rem; }
+.reports-heading h1 {
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  font-weight: 900;
+  letter-spacing: -.04em;
+  margin-bottom: .25rem;
+}
+.reports-subtitle { color: var(--color-text-muted); font-size: .9rem; }
+
+.reports-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.reports-filters {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.rfilter-group {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.rfilter-group label {
+  font-size: .68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--color-text-muted);
+}
+
+.rfilter-select, .rfilter-input {
+  padding: .55rem .75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-size: .875rem;
+  font-family: inherit;
+  transition: border-color var(--transition);
+}
+
+.rfilter-select:focus, .rfilter-input:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgb(99 102 241 / .12);
+}
+
+.reports-exports { display: flex; gap: .5rem; }
+
+.btn-export {
+  padding: .55rem 1rem;
+  border: none;
+  border-radius: var(--radius);
+  font-size: .8rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+.btn-export:hover { opacity: .85; }
+.btn-export-csv { background: var(--color-success); color: #fff; }
+.btn-export-pdf { background: var(--color-error);   color: #fff; }
+
+.reports-stat-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--color-primary-light);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.rsb-label { font-size: .8rem; font-weight: 700; color: var(--color-primary); text-transform: uppercase; letter-spacing: .05em; }
+.rsb-value { font-size: 1.5rem; font-weight: 900; color: var(--color-primary); letter-spacing: -.03em; }
+
+.reports-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.reports-chart-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.reports-chart-card h3 {
+  font-size: .85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+}
+
+.reports-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.reports-section h2 {
+  font-size: .85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--color-text-muted);
+  margin-bottom: 1.25rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reports-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--color-text-muted);
+}
+.reports-state-sm { color: var(--color-text-muted); font-size: .875rem; margin-top: .75rem; }
+
+.reports-top3 {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .625rem;
+  padding: 0;
+}
+
+.reports-top3 li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .75rem 1rem;
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.top3-name { font-weight: 700; color: var(--color-text); }
+.top3-meta { font-size: .8rem; color: var(--color-text-muted); }
+
+.reports-table-wrap {
+  overflow-x: auto;
+}
+
+.reports-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .875rem;
+}
+
+.reports-table th {
+  padding: .625rem .875rem;
+  text-align: left;
+  font-size: .68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.reports-table td {
+  padding: .625rem .875rem;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reports-table tbody tr:last-child td { border-bottom: none; }
+.reports-table tbody tr:hover { background: var(--color-surface-2); }
+.rt-name { font-weight: 600; }

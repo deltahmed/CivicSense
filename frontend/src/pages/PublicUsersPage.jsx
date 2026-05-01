@@ -72,14 +72,11 @@ export default function PublicUsersPage() {
 
   return (
     <div className="public-users-page">
-      <header className="public-users-header">
-        <div className="header-content">
+      <main className="public-users-main">
+        <div className="public-users-heading">
           <h1>Répertoire des membres</h1>
           <p className="subtitle">Consultez les profils publics de nos membres</p>
         </div>
-      </header>
-
-      <main className="public-users-main">
         {/* Filtres */}
         <section className="filters-section" aria-label="Filtres de recherche">
           <div className="filters-container">
@@ -146,9 +143,6 @@ export default function PublicUsersPage() {
         )}
       </main>
 
-      <footer className="public-users-footer">
-        <p>© 2026 CivicSense</p>
-      </footer>
     </div>
   )
 }
