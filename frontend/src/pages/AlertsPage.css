@@ -195,7 +195,7 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow-x: auto;
   box-shadow: var(--shadow-xs);
 }
 .al-table {
@@ -380,7 +380,52 @@
 .al-obj-link:hover { text-decoration: underline; }
 
 /* ─── Responsive ─────────────────────────────────────────────────────────── */
+
+/* Very small screens: réduire le padding des onglets */
+@media (max-width: 380px) {
+  .al-tab {
+    padding: .5rem .625rem;
+    font-size: .8rem;
+  }
+}
+
 @media (max-width: 540px) {
+  /* Modal form grid */
   .al-modal-grid { grid-template-columns: 1fr; }
   .al-field--full { grid-column: 1; }
+
+  /* Modal padding réduit */
+  .al-modal { padding: 1.25rem 1rem; }
+  .al-modal-actions { flex-direction: column-reverse; }
+  .al-modal-actions .al-btn { width: 100%; justify-content: center; }
+
+  /* Table : conversion en cartes sur mobile */
+  .al-table thead { display: none; }
+  .al-table td {
+    display: block;
+    border-bottom: none;
+    padding: .35rem 1rem;
+  }
+  .al-table td::before {
+    content: attr(data-label) ': ';
+    font-size: .65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    letter-spacing: .04em;
+  }
+  .al-table tr {
+    display: block;
+    border-bottom: 1px solid var(--color-border);
+    padding: .5rem 0;
+  }
+  .al-table tr:last-child { border-bottom: none; }
+
+  /* Tabs header wrap */
+  .al-tab-header { flex-direction: column; align-items: flex-start; }
+}
+
+@media (min-width: 768px) {
+  .al-rule-card { padding: 1.25rem; }
+  .al-tab { padding: .6rem 1.5rem; }
 }

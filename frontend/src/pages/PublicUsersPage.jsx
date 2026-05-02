@@ -4,8 +4,17 @@ import { useAuth } from '../context/AuthContext'
 import UserCard from '../components/UserCard'
 import './PublicUsersPage.css'
 
-const LEVEL_CHOICES = ['debutant', 'avance', 'expert']
-const TYPE_MEMBRE_CHOICES = ['resident', 'gestionnaire', 'expert_energie']
+const LEVEL_CHOICES = [
+  { value: 'debutant',      label: 'Débutant' },
+  { value: 'intermediaire', label: 'Intermédiaire' },
+  { value: 'avance',        label: 'Avancé' },
+  { value: 'expert',        label: 'Expert' },
+]
+const TYPE_MEMBRE_CHOICES = [
+  { value: 'resident', label: 'Résident' },
+  { value: 'referent', label: 'Référent' },
+  { value: 'syndic',   label: 'Syndic' },
+]
 
 export default function PublicUsersPage() {
   const { user } = useAuth()
@@ -89,8 +98,8 @@ export default function PublicUsersPage() {
                 className="filter-select"
               >
                 <option value="">Tous</option>
-                {TYPE_MEMBRE_CHOICES.map(type => (
-                  <option key={type} value={type}>{type}</option>
+                {TYPE_MEMBRE_CHOICES.map(({ value, label }) => (
+                  <option key={value} value={value}>{label}</option>
                 ))}
               </select>
             </div>
@@ -104,8 +113,8 @@ export default function PublicUsersPage() {
                 className="filter-select"
               >
                 <option value="">Tous</option>
-                {LEVEL_CHOICES.map(level => (
-                  <option key={level} value={level}>{level}</option>
+                {LEVEL_CHOICES.map(({ value, label }) => (
+                  <option key={value} value={value}>{label}</option>
                 ))}
               </select>
             </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/index'
 import './ObjectDetailPage.css'
@@ -118,7 +118,8 @@ function StatusBadge({ status }) {
 export default function ObjectDetailPage() {
   const { id } = useParams()
   const { user } = useAuth()
-  const canEdit           = user?.level === 'expert'
+  const navigate = useNavigate()
+  const canEdit            = user?.level === 'expert'
   const canRequestDeletion = user?.level === 'avance'
 
   const [object, setObject] = useState(null)
@@ -139,6 +140,10 @@ export default function ObjectDetailPage() {
   const [deleteError, setDeleteError] = useState(null)
 
   const [objAlerts, setObjAlerts] = useState([])
+
+  const [objDeletionRequest, setObjDeletionRequest] = useState(null)
+  const [showDirectDeleteModal, setShowDirectDeleteModal] = useState(false)
+  const [directDelStatus, setDirectDelStatus] = useState('idle')
 
   useEffect(() => {
     api.get(`/objects/${id}/`)
@@ -161,7 +166,18 @@ export default function ObjectDetailPage() {
         .then(res => { if (res.data.success) setObjAlerts(res.data.data) })
         .catch(() => {})
     }
-  }, [id, canEdit])
+
+    if (canRequestDeletion) {
+      api.get('/deletion-requests/')
+        .then(res => {
+          if (res.data.success) {
+            const dr = res.data.data.find(r => r.objet === Number(id))
+            setObjDeletionRequest(dr ?? null)
+          }
+        })
+        .catch(() => {})
+    }
+  }, [id, canEdit, canRequestDeletion])
 
   const handleInfoChange = (key, value) => {
     setEditableInfo(prev => ({ ...prev, [key]: value }))
@@ -234,6 +250,16 @@ export default function ObjectDetailPage() {
       const msg = err.response?.data?.message || 'Une erreur est survenue.'
       setDeleteError(msg)
       setDeleteStatus('error')
+    }
+  }
+
+  const handleDirectDelete = async () => {
+    setDirectDelStatus('deleting')
+    try {
+      await api.delete(`/admin/objects/${id}/`)
+      navigate('/objects')
+    } catch {
+      setDirectDelStatus('error')
     }
   }
 
@@ -456,12 +482,36 @@ export default function ObjectDetailPage() {
           )}
         </section>
 
-        {/* Demande de suppression — avancé uniquement */}
-        {canRequestDeletion && (
+        {/* Zone actions suppression */}
+        {(canRequestDeletion || canEdit) && (
           <div className="od-delete-zone">
-            <button className="btn-delete-request" onClick={openDeleteModal} type="button">
-              Demander la suppression
-            </button>
+            {canEdit && (
+              <button
+                className="btn-direct-delete"
+                onClick={() => { setShowDirectDeleteModal(true); setDirectDelStatus('idle') }}
+                type="button"
+              >
+                Supprimer l'objet
+              </button>
+            )}
+            {canRequestDeletion && (
+              objDeletionRequest?.statut === 'en_attente' ? (
+                <p className="od-request-pending">
+                  Demande de suppression en attente de traitement
+                </p>
+              ) : objDeletionRequest?.statut === 'refusee' ? (
+                <div className="od-request-refused">
+                  <p className="od-request-refused-msg">Votre demande de suppression a été refusée.</p>
+                  <button className="btn-delete-request" onClick={openDeleteModal} type="button">
+                    Soumettre une nouvelle demande
+                  </button>
+                </div>
+              ) : (
+                <button className="btn-delete-request" onClick={openDeleteModal} type="button">
+                  Demander la suppression
+                </button>
+              )
+            )}
           </div>
         )}
 
@@ -524,6 +574,39 @@ export default function ObjectDetailPage() {
           )}
         </section>
       </main>
+
+      {showDirectDeleteModal && (
+        <div className="od-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="deldirect-title">
+          <div className="od-modal">
+            <h2 id="deldirect-title" className="od-modal-title">Supprimer l'objet</h2>
+            <p className="od-modal-desc">
+              Êtes-vous sûr de vouloir supprimer <strong>{object.nom}</strong> ?
+              Cette action est irréversible et supprimera également tout l'historique associé.
+            </p>
+            {directDelStatus === 'error' && (
+              <p className="od-modal-error" role="alert">Erreur lors de la suppression.</p>
+            )}
+            <div className="od-modal-actions">
+              <button
+                className="btn-modal-cancel"
+                onClick={() => setShowDirectDeleteModal(false)}
+                disabled={directDelStatus === 'deleting'}
+                type="button"
+              >
+                Annuler
+              </button>
+              <button
+                className="btn-modal-submit"
+                onClick={handleDirectDelete}
+                disabled={directDelStatus === 'deleting'}
+                type="button"
+              >
+                {directDelStatus === 'deleting' ? 'Suppression…' : 'Confirmer la suppression'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showDeleteModal && (
         <div className="od-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">

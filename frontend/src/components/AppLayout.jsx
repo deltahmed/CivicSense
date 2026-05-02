@@ -5,6 +5,19 @@ import api from '../api'
 import { getAuthenticatedNavLinks } from '../utils/access'
 import './AppLayout.css'
 
+const NAV_ICONS = {
+  '/dashboard':      '🏠',
+  '/objects':        '📦',
+  '/services':       '⚡',
+  '/users':          '👥',
+  '/search':         '🔍',
+  '/gestion':        '⚙️',
+  '/alerts':         '🔔',
+  '/admin/users':    '🛡️',
+  '/admin/pending':  '📋',
+  '/admin/deletions':'🗑️',
+}
+
 function getNavLinks(user) {
   const links = getAuthenticatedNavLinks(user)
   if (user?.level === 'expert') {
@@ -52,18 +65,14 @@ export default function AppLayout({ children }) {
             <span className="logo-text">CivicSense</span>
           </Link>
 
-          <nav
-            className={`header-nav${menuOpen ? ' nav-open' : ''}`}
-            aria-label="Navigation principale"
-            id="main-nav"
-          >
+          {/* Nav desktop — liens horizontaux, cachée sur mobile */}
+          <nav className="header-nav" aria-label="Navigation principale" id="main-nav">
             <ul role="list">
               {navLinks.map(link => (
                 <li key={link.to}>
                   <NavLink
                     to={link.to}
                     className={({ isActive }) => `nav-link${isActive ? ' nav-link-active' : ''}`}
-                    onClick={() => setMenuOpen(false)}
                   >
                     {link.label}
                     {link.badge === 'pending'   && pendingCount   > 0 && (
@@ -124,7 +133,7 @@ export default function AppLayout({ children }) {
               className={`hamburger${menuOpen ? ' is-open' : ''}`}
               onClick={() => setMenuOpen(v => !v)}
               aria-expanded={menuOpen}
-              aria-controls="main-nav"
+              aria-controls="mobile-nav"
               aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
             >
               <span aria-hidden="true" />
@@ -134,6 +143,64 @@ export default function AppLayout({ children }) {
           </div>
         </div>
       </header>
+
+      {/* Drawer mobile — EN DEHORS du header pour éviter les conflits de stacking context */}
+      {menuOpen && (
+        <div
+          className="mobile-drawer"
+          id="mobile-nav"
+          aria-label="Menu mobile"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="mobile-drawer-user">
+            <span className="mobile-drawer-avatar" aria-hidden="true">
+              {user?.pseudo?.charAt(0).toUpperCase()}
+            </span>
+            <div className="mobile-drawer-info">
+              <span className="mobile-drawer-name">{user?.pseudo}</span>
+              <span className={`level-chip level-${user?.level}`}>{user?.level}</span>
+              <span className="mobile-drawer-pts">{user?.points ?? 0} pts</span>
+            </div>
+          </div>
+
+          <nav aria-label="Navigation mobile">
+            <ul role="list" className="mobile-drawer-list">
+              {navLinks.map(link => (
+                <li key={link.to}>
+                  <NavLink
+                    to={link.to}
+                    className={({ isActive }) => `mobile-drawer-link${isActive ? ' mobile-drawer-link--active' : ''}`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <span className="mobile-drawer-icon" aria-hidden="true">{NAV_ICONS[link.to] ?? '•'}</span>
+                    {link.label}
+                    {link.badge === 'pending'   && pendingCount   > 0 && (
+                      <span className="nav-badge">{pendingCount}</span>
+                    )}
+                    {link.badge === 'deletions' && deletionsCount > 0 && (
+                      <span className="nav-badge nav-badge--orange">{deletionsCount}</span>
+                    )}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="mobile-drawer-footer">
+            <Link
+              to="/profile"
+              className="mobile-drawer-action"
+              onClick={() => setMenuOpen(false)}
+            >
+              <span aria-hidden="true">👤</span> Mon profil
+            </Link>
+            <button className="mobile-drawer-action mobile-drawer-logout" onClick={logout}>
+              <span aria-hidden="true">🚪</span> Déconnexion
+            </button>
+          </div>
+        </div>
+      )}
 
       <main className="app-main" id="main-content" tabIndex={-1}>
         {children}

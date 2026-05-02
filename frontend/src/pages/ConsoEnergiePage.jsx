@@ -91,7 +91,7 @@ export default function ConsoEnergiePage() {
       {data?.alerte_active && (
         <div className="conso-alerte" role="alert">
           <span aria-hidden="true">⚠️</span>
-          Surconsommation détectée — total {Math.round(data.total_kwh)} kWh dépasse le seuil de {seuilAlerte} kWh
+          Surconsommation détectée — le seuil autorisé de {seuilAlerte} kWh est dépassé. Vérifiez les équipements actifs.
         </div>
       )}
 

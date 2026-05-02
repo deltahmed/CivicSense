@@ -151,7 +151,7 @@ export default function ProfilePage() {
           {/* Qui vous êtes */}
           <section className="pp-card">
             <h2 className="pp-card-title">Rôle dans la résidence</h2>
-            <p className="pp-card-hint">Qui vous êtes — indépendant de votre niveau d'accès.</p>
+
             <div className="pp-row-list">
               <div className="pp-row">
                 <span className="pp-row-label">Type</span>
@@ -196,7 +196,7 @@ export default function ProfilePage() {
           {/* Niveau d'accès */}
           <section className="pp-card pp-card--accent">
             <h2 className="pp-card-title">Niveau d'accès plateforme</h2>
-            <p className="pp-card-hint">Ce que vous pouvez faire — progresse automatiquement avec vos points.</p>
+
             <LevelProgress user={user} />
             <div className="pp-stats">
               <div className="pp-stat">

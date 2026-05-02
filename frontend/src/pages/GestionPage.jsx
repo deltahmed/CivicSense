@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import api from '../api'
 import './GestionPage.css'
 
@@ -29,12 +30,25 @@ function fmtValeur(alert) {
   return `${alert.valeur_comparee}${unite}`
 }
 
+function fmtDate(iso) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
 export default function GestionPage() {
+  const { user } = useAuth()
+  const isExpert = user?.level === 'expert'
+
   const [triggeredRules, setTriggeredRules]         = useState([])
   const [inefficientObjects, setInefficientObjects] = useState([])
   const [allObjects, setAllObjects]                 = useState([])
   const [alertedObjectIds, setAlertedObjectIds]     = useState(new Set())
   const [loading, setLoading]                       = useState(true)
+
+  const [deletionRequests, setDeletionRequests]     = useState([])
+  const [delLoading, setDelLoading]                 = useState(false)
+  const [approving, setApproving]                   = useState(null)
+  const [refuseModal, setRefuseModal]               = useState(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -58,10 +72,55 @@ export default function GestionPage() {
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
+  const loadDeletionRequests = useCallback(() => {
+    if (!isExpert) return
+    setDelLoading(true)
+    api.get('/admin/deletion-requests/', { params: { statut: 'en_attente' } })
+      .then(res => {
+        const data = Array.isArray(res.data) ? res.data : (res.data.results ?? [])
+        setDeletionRequests(data)
+      })
+      .catch(() => {})
+      .finally(() => setDelLoading(false))
+  }, [isExpert])
+
   useEffect(() => {
     document.title = 'Gestion — CivicSense'
     load()
-  }, [load])
+    loadDeletionRequests()
+  }, [load, loadDeletionRequests])
+
+  const handleApprove = async (pk) => {
+    setApproving(pk)
+    try {
+      await api.put(`/admin/deletion-requests/${pk}/approve/`)
+      setDeletionRequests(prev => prev.filter(dr => dr.id !== pk))
+    } catch {
+      // silently ignore — user can retry
+    } finally {
+      setApproving(null)
+    }
+  }
+
+  const openRefuseModal = (dr) => {
+    setRefuseModal({ id: dr.id, objet_nom: dr.objet_nom, motif: '', submitting: false, error: null })
+  }
+
+  const handleReject = async () => {
+    if (!refuseModal.motif.trim()) {
+      setRefuseModal(prev => ({ ...prev, error: 'Le motif est obligatoire.' }))
+      return
+    }
+    setRefuseModal(prev => ({ ...prev, submitting: true, error: null }))
+    try {
+      await api.put(`/admin/deletion-requests/${refuseModal.id}/reject/`, { motif: refuseModal.motif.trim() })
+      setDeletionRequests(prev => prev.filter(dr => dr.id !== refuseModal.id))
+      setRefuseModal(null)
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Erreur lors du refus.'
+      setRefuseModal(prev => ({ ...prev, submitting: false, error: msg }))
+    }
+  }
 
   const objectsWithAlerts = allObjects.filter(o => alertedObjectIds.has(o.id))
 
@@ -198,24 +257,24 @@ export default function GestionPage() {
                   <tbody>
                     {inefficientObjects.map(obj => (
                       <tr key={obj.id} className={alertedObjectIds.has(obj.id) ? 'gp-tr-alerted' : ''}>
-                        <td className="gp-td-name">
+                        <td className="gp-td-name" data-label="Objet">
                           <Link to={`/objects/${obj.id}`} className="gp-obj-link">
                             {alertedObjectIds.has(obj.id) && <span className="gp-warn-icon-sm" aria-hidden="true">⚠ </span>}
                             {obj.nom}
                           </Link>
                         </td>
-                        <td>{obj.zone}</td>
-                        <td>
+                        <td data-label="Zone">{obj.zone}</td>
+                        <td data-label="Efficacité">
                           <span className={`gp-eff-badge gp-eff--${obj.efficacite.replace(/ /g, '-').replace('à', 'a')}`}>
                             {obj.efficacite === 'à surveiller' ? 'À surveiller' : obj.efficacite === 'inefficace' ? 'Inefficace' : obj.efficacite}
                           </span>
                         </td>
-                        <td>
+                        <td data-label="Maintenance">
                           {obj.maintenance_conseillee
                             ? <span className="gp-maint gp-maint--req">Requise</span>
                             : <span className="gp-maint gp-maint--ok">OK</span>}
                         </td>
-                        <td className="gp-score">{obj.score.toFixed(2)}</td>
+                        <td className="gp-score" data-label="Score">{obj.score.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -223,7 +282,127 @@ export default function GestionPage() {
               </div>
             )}
           </section>
+
+          {/* ── Demandes de suppression (expert uniquement) ── */}
+          {isExpert && (
+            <section className="gp-section">
+              <div className="gp-section-header">
+                <h2 className="gp-section-title">
+                  Demandes de suppression
+                  {deletionRequests.length > 0 && (
+                    <span className="gp-count-badge">{deletionRequests.length}</span>
+                  )}
+                </h2>
+              </div>
+
+              {delLoading && <p className="gp-state">Chargement…</p>}
+
+              {!delLoading && deletionRequests.length === 0 && (
+                <p className="gp-ok-msg">Aucune demande de suppression en attente.</p>
+              )}
+
+              {!delLoading && deletionRequests.length > 0 && (
+                <div className="gp-del-list">
+                  {deletionRequests.map(dr => (
+                    <div key={dr.id} className="gp-del-item">
+                      <div>
+                        <div className="gp-del-nom">
+                          <Link to={`/objects/${dr.objet}`} className="gp-obj-link">{dr.objet_nom}</Link>
+                        </div>
+                        <div className="gp-del-meta">
+                          Par {dr.demandeur_pseudo} — {fmtDate(dr.created_at)}
+                        </div>
+                      </div>
+                      <div className="gp-del-motif" title={dr.motif}>{dr.motif}</div>
+                      <div className="gp-del-actions">
+                        <button
+                          className="gp-btn-approve"
+                          onClick={() => handleApprove(dr.id)}
+                          disabled={approving === dr.id}
+                          type="button"
+                        >
+                          {approving === dr.id ? '…' : 'Approuver'}
+                        </button>
+                        <button
+                          className="gp-btn-del"
+                          onClick={() => openRefuseModal(dr)}
+                          disabled={approving === dr.id}
+                          type="button"
+                        >
+                          Refuser
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="gp-del-hint">
+                Approuver supprime définitivement l'objet et notifie l'utilisateur. Refuser lui envoie un email avec le motif.
+              </p>
+            </section>
+          )}
         </>
+      )}
+
+      {/* ── Modal refus ── */}
+      {refuseModal && (
+        <div
+          className="gp-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="gp-modal-title"
+        >
+          <div className="gp-modal">
+            <div className="gp-modal-header">
+              <h2 id="gp-modal-title" className="gp-modal-title">Refuser la demande</h2>
+              <button
+                className="gp-modal-close"
+                onClick={() => setRefuseModal(null)}
+                disabled={refuseModal.submitting}
+                type="button"
+                aria-label="Fermer"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="gp-modal-obj">Objet : <strong>{refuseModal.objet_nom}</strong></p>
+            <div className="gp-modal-field">
+              <label htmlFor="refuse-motif" className="gp-modal-label">
+                Motif du refus <span aria-hidden="true">*</span>
+              </label>
+              <textarea
+                id="refuse-motif"
+                className="gp-modal-textarea"
+                rows={4}
+                placeholder="Expliquez pourquoi la demande est refusée…"
+                value={refuseModal.motif}
+                onChange={e => setRefuseModal(prev => ({ ...prev, motif: e.target.value }))}
+                disabled={refuseModal.submitting}
+              />
+            </div>
+            {refuseModal.error && (
+              <p className="gp-err-msg" role="alert">{refuseModal.error}</p>
+            )}
+            <div className="gp-modal-actions">
+              <button
+                className="gp-btn-cancel"
+                onClick={() => setRefuseModal(null)}
+                disabled={refuseModal.submitting}
+                type="button"
+              >
+                Annuler
+              </button>
+              <button
+                className="gp-btn-submit"
+                onClick={handleReject}
+                disabled={refuseModal.submitting}
+                type="button"
+              >
+                {refuseModal.submitting ? 'Envoi…' : 'Confirmer le refus'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

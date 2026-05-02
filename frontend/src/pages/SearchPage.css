@@ -129,7 +129,7 @@
 /* ─── Result grid ───────────────────────────────────────── */
 .results-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 1rem;
 }
 
@@ -220,4 +220,18 @@
   font-size: .78rem;
   color: var(--color-text-muted);
   text-align: center;
+}
+
+/* ─── Responsive ────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .search-form { flex-direction: column; }
+  .search-button { width: 100%; }
+  .filters-row { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 1024px) {
+  .search-filters { padding: 1.5rem; }
+  .results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
 }
