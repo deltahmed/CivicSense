@@ -521,19 +521,20 @@
 .od-modal-textarea {
   width: 100%;
   padding: 10px;
-  border: 1px solid #c8d0da;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 0.95rem;
   resize: vertical;
   box-sizing: border-box;
   font-family: inherit;
+  background: #fff;
   color: #1a1a1a;
 }
 
 .od-modal-textarea:focus {
-  outline: 2px solid #1a3a5c;
+  outline: 2px solid var(--color-primary);
   outline-offset: 1px;
-  border-color: #1a3a5c;
+  border-color: var(--color-primary);
 }
 
 .od-modal-error {
