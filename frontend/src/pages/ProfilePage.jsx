@@ -4,7 +4,7 @@ import api from '../api'
 import './ProfilePage.css'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
-const LEVEL_THRESHOLDS = { debutant: 0, intermediaire: 3, avance: 5, expert: 7 }
+const LEVEL_THRESHOLDS = { debutant: 0, intermediaire: 50, avance: 150, expert: 400 }
 const LEVEL_NEXT       = { debutant: 'intermediaire', intermediaire: 'avance', avance: 'expert', expert: null }
 
 const LEVEL_META = {
@@ -29,16 +29,22 @@ function fmtDate(iso) {
 
 // ── Barre de progression niveau ───────────────────────────────────────────────
 function LevelProgress({ user }) {
-  const meta  = LEVEL_META[user.level] ?? LEVEL_META.debutant
-  const next  = LEVEL_NEXT[user.level]
+  const meta     = LEVEL_META[user.level] ?? LEVEL_META.debutant
+  const next     = LEVEL_NEXT[user.level]
   const nextMeta = next ? LEVEL_META[next] : null
 
   let pct = 100
   if (next) {
-    const cur  = LEVEL_THRESHOLDS[user.level]
-    const nxt  = LEVEL_THRESHOLDS[next]
+    const cur = LEVEL_THRESHOLDS[user.level]
+    const nxt = LEVEL_THRESHOLDS[next]
     pct = Math.min(100, Math.max(0, ((user.points - cur) / (nxt - cur)) * 100))
   }
+
+  const [displayPct, setDisplayPct] = useState(0)
+  useEffect(() => {
+    const t = setTimeout(() => setDisplayPct(pct), 80)
+    return () => clearTimeout(t)
+  }, [pct])
 
   return (
     <div className="pp-level-block">
@@ -53,7 +59,7 @@ function LevelProgress({ user }) {
       </div>
       <div className="pp-progress-wrap">
         <div className="pp-progress-track">
-          <div className="pp-progress-fill" style={{ width: `${pct}%`, '--lc': meta.color }} />
+          <div className="pp-progress-fill" style={{ width: `${displayPct}%`, '--lc': meta.color }} />
         </div>
         <span className="pp-progress-hint">
           {next
@@ -61,6 +67,39 @@ function LevelProgress({ user }) {
             : 'Niveau maximum atteint'}
         </span>
       </div>
+    </div>
+  )
+}
+
+// ── Accordéon "Comment gagner des points ?" ───────────────────────────────────
+const POINT_ACTIONS = [
+  { action: 'Se connecter',               pts: '+0.25 pt' },
+  { action: 'Consulter un objet connecté', pts: '+0.50 pt' },
+  { action: 'Consulter un service',        pts: '+0.50 pt' },
+]
+
+function HowToEarnPoints() {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="pp-earn-wrap">
+      <button
+        className="pp-earn-toggle"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+      >
+        <span>Comment gagner des points ?</span>
+        <span className="pp-earn-chevron" aria-hidden="true" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>▾</span>
+      </button>
+      {open && (
+        <ul className="pp-earn-list">
+          {POINT_ACTIONS.map(({ action, pts }) => (
+            <li key={action} className="pp-earn-item">
+              <span>{action}</span>
+              <span className="pp-earn-pts">{pts}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
@@ -225,6 +264,8 @@ export default function ProfilePage() {
                 </div>
               ))}
             </div>
+
+            <HowToEarnPoints />
           </section>
 
         </div>
