@@ -205,6 +205,47 @@ export default function AdminUsersPage() {
     setModalError(null)
   }
 
+  // ── Exports ──────────────────────────────────────────────────────────────────
+  function handleExportUsersCSV() {
+    const header = ['Pseudo', 'Email', 'Type', 'Niveau', 'Points', 'Statut', 'Date inscription']
+    const rows = users.map(u => [
+      u.pseudo,
+      u.email,
+      TYPE_LABELS[u.type_membre] ?? u.type_membre,
+      LEVEL_LABELS[u.level] ?? u.level,
+      u.points,
+      u.is_active ? 'Actif' : 'Suspendu',
+      u.date_joined ? new Date(u.date_joined).toLocaleDateString('fr-FR') : '-',
+    ])
+    const csv = [header, ...rows]
+      .map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'civicsense_utilisateurs.csv'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  function handleExportPDF() {
+    api.get('/admin/stats/export/?fmt=pdf&period=30d', { responseType: 'blob' })
+      .then(res => {
+        const url = URL.createObjectURL(res.data)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'civicsense_rapport.pdf'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      })
+      .catch(() => alert('Export PDF indisponible'))
+  }
+
   if (loading) {
     return (
       <main className="admin-users">
@@ -224,10 +265,29 @@ export default function AdminUsersPage() {
   return (
     <main className="admin-users">
       <header className="admin-users__header">
-        <h1>Gestion des utilisateurs</h1>
-        <p className="admin-users__count">
-          {users.length} utilisateur{users.length !== 1 ? 's' : ''}
-        </p>
+        <div>
+          <h1>Gestion des utilisateurs</h1>
+          <p className="admin-users__count">
+            {users.length} utilisateur{users.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+        <div className="admin-users__export-actions">
+          <button
+            className="btn btn--success"
+            onClick={handleExportUsersCSV}
+            disabled={users.length === 0}
+            title="Télécharger la liste des utilisateurs avec leurs points"
+          >
+            Exporter en CSV
+          </button>
+          <button
+            className="btn btn--primary"
+            onClick={handleExportPDF}
+            title="Télécharger le rapport de consommation énergétique (PDF)"
+          >
+            Exporter en PDF
+          </button>
+        </div>
       </header>
 
       {pendingCount > 0 && (

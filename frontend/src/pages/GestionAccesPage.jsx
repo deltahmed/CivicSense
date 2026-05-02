@@ -89,6 +89,30 @@ export default function GestionAccesPage() {
     }
   }
 
+  function handleExportHistoriqueCSV() {
+    const header = ['Horodatage', 'Point d\'accès', 'Zone', 'Direction', 'Utilisateur', 'Statut']
+    const rows = historique.map(log => [
+      new Date(log.timestamp).toLocaleString('fr-FR'),
+      log.objet_nom,
+      log.objet_zone,
+      log.direction === 'entree' ? 'Entrée' : 'Sortie',
+      log.utilisateur_pseudo || '—',
+      log.acces_autorise ? 'Autorisé' : 'Refusé',
+    ])
+    const csv = [header, ...rows]
+      .map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `historique_acces_${period}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   const actifs = portes.filter(p => p.statut === 'actif').length
   const inactifs = portes.filter(p => p.statut === 'inactif').length
   const maintenance = portes.filter(p => p.statut === 'maintenance').length
@@ -214,7 +238,16 @@ export default function GestionAccesPage() {
 
       {/* Historique */}
       <section className="acces-section">
-        <h2>Historique des entrées / sorties</h2>
+        <div className="acces-section-header">
+          <h2>Historique des entrées / sorties</h2>
+          <button
+            className="acces-btn acces-btn--secondary"
+            onClick={handleExportHistoriqueCSV}
+            disabled={historique.length === 0}
+          >
+            Exporter en CSV
+          </button>
+        </div>
 
         <div className="acces-histo-filters">
           <div className="acces-filter-field">
