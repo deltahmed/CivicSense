@@ -12,10 +12,16 @@ function fmtDate(iso) {
   })
 }
 
-const ZONES = [
+const ZONE_OPTIONS = [
   'Salon', 'Cuisine', 'Chambre', 'Salle de bain', 'Bureau',
   'Entrée', 'Couloir', 'Garage', 'Jardin', 'Cave', 'Extérieur', 'Autre',
-]
+].map(z => ({ value: z, label: z }))
+
+const MARQUE_OPTIONS = [
+  'Philips Hue', 'Samsung SmartThings', 'Google Nest', 'Amazon Echo',
+  'Xiaomi', 'Legrand', 'Somfy', 'Schneider Electric',
+  'Siemens', 'Bosch', 'Honeywell', 'ABB', 'Autre',
+].map(m => ({ value: m, label: m }))
 
 const TYPE_LABELS = {
   thermostat: 'Thermostat',
@@ -49,8 +55,8 @@ const SIGNAL_OPTIONS = [
 const INFO_FIELDS = [
   { key: 'nom', label: 'Nom', type: 'text', required: true },
   { key: 'description', label: 'Description', type: 'textarea' },
-  { key: 'marque', label: 'Marque', type: 'text' },
-  { key: 'zone', label: 'Zone / Pièce', type: 'text', required: true },
+  { key: 'marque', label: 'Marque', type: 'select', options: MARQUE_OPTIONS },
+  { key: 'zone', label: 'Zone / Pièce', type: 'select', options: ZONE_OPTIONS, required: true },
   { key: 'statut', label: 'Statut', type: 'select', options: STATUT_OPTIONS },
   { key: 'connectivite', label: 'Connectivité', type: 'select', options: CONNECTIVITE_OPTIONS },
   { key: 'signal_force', label: 'Signal', type: 'select', options: SIGNAL_OPTIONS },
