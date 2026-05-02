@@ -61,7 +61,7 @@ export default function App() {
         <Route path="/users"     element={<ProtectedLayout><PublicUsersPage /></ProtectedLayout>} />
         <Route path="/users/:id" element={<ProtectedLayout><PublicUserDetailPage /></ProtectedLayout>} />
         <Route path="/services"          element={<ProtectedLayout><ServicesPage /></ProtectedLayout>} />
-        <Route path="/services/acces"    element={<ProtectedLayout minLevel="avance"><GestionAccesPage /></ProtectedLayout>} />
+        <Route path="/services/acces"    element={<ProtectedLayout><GestionAccesPage /></ProtectedLayout>} />
         <Route path="/services/energie"  element={<ProtectedLayout><ConsoEnergiePage /></ProtectedLayout>} />
         <Route path="/services/eau"      element={<ProtectedLayout><ConsoEauPage /></ProtectedLayout>} />
         <Route path="/services/dechets"  element={<ProtectedLayout><GestionDechetsPage /></ProtectedLayout>} />

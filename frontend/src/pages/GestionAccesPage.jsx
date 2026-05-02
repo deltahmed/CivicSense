@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api'
 import '../styles/GestionAccesPage.css'
@@ -26,6 +26,7 @@ function formatTimestamp(ts) {
 
 export default function GestionAccesPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [portes, setPortes] = useState([])
   const [historique, setHistorique] = useState([])
   const [loadingPortes, setLoadingPortes] = useState(true)
@@ -36,6 +37,7 @@ export default function GestionAccesPage() {
   const [filterObjet, setFilterObjet] = useState('')
 
   const isAvance = user?.level === 'avance' || user?.level === 'expert'
+  const [showBlockedModal, setShowBlockedModal] = useState(!isAvance)
 
   const loadPortes = useCallback(async () => {
     setLoadingPortes(true)
@@ -97,6 +99,26 @@ export default function GestionAccesPage() {
   return (
     <main className="acces-page page-content">
       <title>Gestion d'accès — CivicSense</title>
+
+      {/* Modal d'accès restreint pour débutant / intermédiaire */}
+      {!isAvance && showBlockedModal && (
+        <div className="acces-blocked-backdrop" role="dialog" aria-modal="true" aria-labelledby="blocked-title">
+          <div className="acces-blocked-modal">
+            <div className="acces-blocked-icon" aria-hidden="true">🔒</div>
+            <h2 id="blocked-title" className="acces-blocked-title">Accès restreint</h2>
+            <p className="acces-blocked-desc">
+              Vous n'avez pas accès à cette page.<br />
+              Cette fonctionnalité est réservée aux membres de niveau <strong>Avancé</strong> ou <strong>Expert</strong>.
+            </p>
+            <button
+              className="acces-blocked-btn"
+              onClick={() => { setShowBlockedModal(false); navigate('/services') }}
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
 
       <nav className="acces-breadcrumb" aria-label="Fil d'Ariane">
         <Link to="/services">Services</Link>

@@ -402,11 +402,14 @@
   font-style: italic;
 }
 
-/* ── Bouton demande suppression ── */
+/* ── Zone actions suppression ── */
 
 .od-delete-zone {
   margin-bottom: 20px;
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
 }
 
 .btn-delete-request {
@@ -424,6 +427,53 @@
 .btn-delete-request:hover {
   background: #c62828;
   color: #fff;
+}
+
+.btn-direct-delete {
+  background: #c62828;
+  border: none;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-direct-delete:hover {
+  background: #a81c1c;
+}
+
+/* ── Statut demande de suppression (avancé) ── */
+
+.od-request-pending {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #d97706;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  padding: 7px 14px;
+  margin: 0;
+}
+
+.od-request-refused {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.od-request-refused-msg {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #c62828;
+  background: #ffebee;
+  border: 1px solid #ef9a9a;
+  border-radius: 6px;
+  padding: 7px 14px;
+  margin: 0;
 }
 
 /* ── Modal suppression ── */
@@ -643,6 +693,23 @@
   font-size: 0.8rem;
   color: #999;
   border-top: 1px solid #e0e0e0;
+}
+
+/* ── Mobile ── */
+
+@media (max-width: 480px) {
+  .od-main { padding: 16px 12px; }
+  .od-title-row h1 { font-size: 1.35rem; }
+  .od-section { padding: 16px; }
+  .od-info-grid { grid-template-columns: 1fr; }
+  .od-param-row dt { min-width: unset; width: 100%; }
+  .od-param-row { flex-direction: column; gap: 2px; }
+  .od-save-row { flex-direction: column; align-items: flex-start; }
+  .btn-save { width: 100%; }
+  .od-modal { padding: 20px 16px; }
+  .od-modal-actions { flex-direction: column-reverse; }
+  .btn-modal-submit,
+  .btn-modal-cancel { width: 100%; }
 }
 
 /* ── Tablettes 768px ── */

@@ -249,7 +249,6 @@ export default function PublicStatsPage() {
                 <li><span className="ps-info-icon">🏢</span><span>3 bâtiments — 84 logements</span></li>
                 <li><span className="ps-info-icon">🧑‍🤝‍🧑</span><span>Géré par le Syndic SyndCoop Île-de-France</span></li>
                 <li><span className="ps-info-icon">📞</span><span>Loge : 01 43 55 77 22 (Lun–Ven, 8 h – 17 h)</span></li>
-                <li><span className="ps-info-icon">🌐</span><span>Portail en ligne : CivicSense</span></li>
               </ul>
               <div className="ps-info-score">
                 <div className="ps-info-score-bar">
@@ -321,7 +320,7 @@ export default function PublicStatsPage() {
       </main>
 
       <footer className="ps-footer">
-        <p>© 2026 CivicSense — Portail résidentiel — Projet ING1</p>
+        <p>© 2026 CivicSense — Portail résidentiel</p>
       </footer>
     </div>
   )

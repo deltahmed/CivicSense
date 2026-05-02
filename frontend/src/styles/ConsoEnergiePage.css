@@ -8,8 +8,8 @@
   color: var(--color-muted, #6b7280);
   margin-bottom: 1.25rem;
 }
-.conso-breadcrumb a { color: #b45309; text-decoration: none; }
-.conso-breadcrumb a:hover { color: #92400e; text-decoration: underline; }
+.conso-breadcrumb a { color: var(--color-primary); text-decoration: none; }
+.conso-breadcrumb a:hover { color: var(--color-primary-hover); text-decoration: underline; }
 
 /* Header */
 .conso-header {

@@ -259,6 +259,25 @@
   .dash-two-col { grid-template-columns: 1fr 1fr; align-items: start; }
 }
 
+/* ─── Mobile overrides ──────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .dash-hero {
+    padding: 1.25rem;
+    gap: .875rem;
+    flex-direction: column;
+  }
+  .dash-meteo { align-self: stretch; justify-content: center; }
+  .dash-kpi-bar { gap: .5rem; }
+  .dash-kpi { flex: 1 1 calc(50% - .25rem); min-width: 0; }
+  .dash-kpi-value { font-size: 1.65rem; }
+  .dash-progress-row { max-width: 100%; }
+}
+
+@media (min-width: 1024px) {
+  .dash-hero { padding: 2rem 2.5rem; }
+  .dash-kpi-bar { flex-wrap: nowrap; }
+}
+
 /* ─── Annonces ──────────────────────────────────────────────────────────────── */
 .dash-annonces {
   display: flex;
