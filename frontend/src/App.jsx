@@ -11,7 +11,8 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'))
 const AdminPendingUsersPage = lazy(() => import('./pages/AdminPendingUsersPage'))
 const AdminMaintenancePage = lazy(() => import('./pages/AdminMaintenancePage'))
-const PublicStatsPage = lazy(() => import('./pages/PublicStatsPage'))
+const PublicStatsPage    = lazy(() => import('./pages/PublicStatsPage'))
+const PublicServicesPage = lazy(() => import('./pages/PublicServicesPage'))
 const AlertsPage = lazy(() => import('./pages/AlertsPage'))
 const AdminReportsPage = lazy(() => import('./pages/AdminReportsPage'))
 const AdminSettingsPage = lazy(() => import('./pages/AdminSettingsPage'))
@@ -51,7 +52,8 @@ export default function App() {
       <Routes>
         {/* Public */}
         <Route path="/" element={<PublicStatsPage />} />
-        <Route path="/public/stats" element={<PublicStatsPage />} />
+        <Route path="/public/stats"    element={<PublicStatsPage />} />
+        <Route path="/public/services" element={<PublicServicesPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 

@@ -5,7 +5,7 @@ import api from '../api'
 import { getAuthenticatedNavLinks } from '../utils/access'
 import './PublicStatsPage.css'
 
-// ── Météo : Open-Meteo, sans clé API ─────────────────────────────────────────
+// ── Météo : Open-Meteo ────────────────────────────────────────────────────────
 const METEO_URL =
   'https://api.open-meteo.com/v1/forecast' +
   '?latitude=48.8566&longitude=2.3522' +
@@ -13,25 +13,67 @@ const METEO_URL =
   '&timezone=Europe%2FParis'
 
 function wmoLabel(code) {
-  if (code === 0)   return { label: 'Ciel dégagé',  icon: '☀️' }
-  if (code <= 2)    return { label: 'Peu nuageux',   icon: '🌤️' }
-  if (code <= 3)    return { label: 'Nuageux',        icon: '☁️' }
-  if (code <= 48)   return { label: 'Brouillard',    icon: '🌫️' }
-  if (code <= 55)   return { label: 'Bruine',         icon: '🌦️' }
-  if (code <= 65)   return { label: 'Pluie',          icon: '🌧️' }
-  if (code <= 75)   return { label: 'Neige',          icon: '🌨️' }
-  if (code <= 82)   return { label: 'Averses',        icon: '🌦️' }
-  if (code <= 99)   return { label: 'Orage',          icon: '⛈️' }
+  if (code === 0)  return { label: 'Ciel dégagé', icon: '☀️' }
+  if (code <= 2)   return { label: 'Peu nuageux',  icon: '🌤️' }
+  if (code <= 3)   return { label: 'Nuageux',       icon: '☁️' }
+  if (code <= 48)  return { label: 'Brouillard',   icon: '🌫️' }
+  if (code <= 55)  return { label: 'Bruine',        icon: '🌦️' }
+  if (code <= 65)  return { label: 'Pluie',         icon: '🌧️' }
+  if (code <= 75)  return { label: 'Neige',         icon: '🌨️' }
+  if (code <= 82)  return { label: 'Averses',       icon: '🌦️' }
+  if (code <= 99)  return { label: 'Orage',         icon: '⛈️' }
   return { label: 'Inconnu', icon: '🌡️' }
 }
 
+// ── Qualité de l'air : Open-Meteo Air Quality ─────────────────────────────────
+const AIR_URL =
+  'https://air-quality-api.open-meteo.com/v1/air-quality' +
+  '?latitude=48.8566&longitude=2.3522' +
+  '&current=european_aqi,pm2_5,pm10' +
+  '&timezone=Europe%2FParis'
 
-// ── Liens nav selon niveau ────────────────────────────────────────────────────
-function getNavLinks(user) {
-  return user ? getAuthenticatedNavLinks(user) : []
+function aqiInfo(aqi) {
+  if (aqi <= 20) return { label: 'Bon',        cls: 'success' }
+  if (aqi <= 40) return { label: 'Acceptable', cls: 'success' }
+  if (aqi <= 60) return { label: 'Modéré',     cls: 'warning' }
+  if (aqi <= 80) return { label: 'Médiocre',   cls: 'error'   }
+  return           { label: 'Mauvais',         cls: 'error'   }
 }
 
-// ── Météo card ────────────────────────────────────────────────────────────────   
+// ── Données statiques ─────────────────────────────────────────────────────────
+const ESPACES_COMMUNS = [
+  { nom: 'Salle de réunion',  icon: '🏛️', statut: 'Disponible',       cls: 'success' },
+  { nom: 'Buanderie bât. A',  icon: '🧺', statut: 'Occupée',           cls: 'error'   },
+  { nom: 'Buanderie bât. B',  icon: '🧺', statut: 'Disponible',        cls: 'success' },
+  { nom: 'Parking visiteurs', icon: '🅿️', statut: '3 places libres',   cls: 'success' },
+  { nom: 'Consigne à vélos',  icon: '🚲', statut: '2/10 vélos dispo',  cls: 'warning' },
+]
+
+const AGENDA_EVENTS = [
+  { titre: 'Entretien chaudière bât. A & B',         date: '2026-05-08', icon: '🔧', cls: 'travaux' },
+  { titre: 'Assemblée générale des copropriétaires', date: '2026-05-15', icon: '📋', cls: 'reunion' },
+  { titre: 'Permanence syndic',                      date: '2026-05-20', icon: '🏢', cls: 'reunion' },
+  { titre: 'Journée tri sélectif & éco-gestes',     date: '2026-05-22', icon: '♻️', cls: 'service' },
+]
+
+const COLLECTE_SCHEDULE = [
+  { type: 'Ordures ménagères', icon: '🗑️', dayOfWeek: [1, 4] },
+  { type: 'Tri sélectif',      icon: '♻️', dayOfWeek: [2]    },
+  { type: 'Verre',             icon: '🍶', dayOfWeek: null    },
+  { type: 'Encombrants',       icon: '📦', dayOfWeek: null    },
+]
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function fmtDateAnnonce(iso) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+function sortByNewest(items) {
+  return [...items].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+}
+
+// ── Composants carte ──────────────────────────────────────────────────────────
 function MeteoCard() {
   const [meteo, setMeteo] = useState(null)
   const [err, setErr]     = useState(false)
@@ -40,7 +82,7 @@ function MeteoCard() {
     fetch(METEO_URL).then(r => r.json()).then(d => setMeteo(d.current)).catch(() => setErr(true))
   }, [])
 
-  if (err) return <div className="ps-card ps-meteo-card ps-meteo-err"><p>Météo indisponible</p></div>
+  if (err)    return <div className="ps-card ps-meteo-card ps-meteo-err"><p>Météo indisponible</p></div>
   if (!meteo) return <div className="ps-card ps-meteo-card ps-meteo-loading"><span>Chargement météo…</span></div>
 
   const { label, icon } = wmoLabel(meteo.weathercode)
@@ -73,42 +115,75 @@ function MeteoCard() {
   )
 }
 
+function AirQualityCard() {
+  const [air, setAir] = useState(null)
+  const [err, setErr] = useState(false)
+
+  useEffect(() => {
+    fetch(AIR_URL).then(r => r.json()).then(d => setAir(d.current)).catch(() => setErr(true))
+  }, [])
+
+  if (err) return (
+    <div className="ps-card ps-air-card ps-air-unavail">
+      <p className="ps-section-label">Qualité de l'air</p>
+      <p className="ps-air-unavail-msg">Données indisponibles</p>
+    </div>
+  )
+  if (!air) return (
+    <div className="ps-card ps-air-card ps-air-loading">
+      <p className="ps-section-label">Qualité de l'air</p>
+      <span>Chargement…</span>
+    </div>
+  )
+
+  const { label, cls } = aqiInfo(air.european_aqi)
+  return (
+    <div className="ps-card ps-air-card">
+      <div className="ps-air-header">
+        <p className="ps-section-label">Qualité de l'air — Paris</p>
+        <span className={`ps-air-badge ps-air-badge-${cls}`}>{label}</span>
+      </div>
+      <p className={`ps-air-index ps-air-index-${cls}`}>{air.european_aqi}</p>
+      <p className="ps-air-index-label">Indice européen (IQA)</p>
+      <div className="ps-air-details">
+        <div className="ps-air-detail">
+          <span className="ps-air-detail-label">PM2.5</span>
+          <span>{air.pm2_5 != null ? air.pm2_5.toFixed(1) : '—'} μg/m³</span>
+        </div>
+        <div className="ps-air-detail">
+          <span className="ps-air-detail-label">PM10</span>
+          <span>{air.pm10 != null ? air.pm10.toFixed(1) : '—'} μg/m³</span>
+        </div>
+      </div>
+      <p className="ps-air-source">Source : Open-Meteo</p>
+    </div>
+  )
+}
+
+
 // ── Page principale ───────────────────────────────────────────────────────────
-const EMPTY_STATS = { nom_residence:'Résidence Les Lilas', score_sante:0, objets_actifs:0, incidents_en_cours:0, total_objets:0 }
+const EMPTY_STATS = { nom_residence: 'Résidence Les Lilas', score_sante: 0, objets_actifs: 0, incidents_en_cours: 0, total_objets: 0 }
 const SERVICE_CATALOG = [
-  { id: 'acces', nom: 'Gestion d\'accès', description: 'Contrôle des serrures et digicodes', categorie: 'Accès' },
-  { id: 'energie', nom: 'Consommation d\'énergie', description: 'Suivi et optimisation électrique', categorie: 'Énergie' },
-  { id: 'eau', nom: 'Consommation d\'eau', description: 'Monitoring et détection de fuites', categorie: 'Eau' },
-  { id: 'dechets', nom: 'Gestion des déchets', description: 'Collectes et suivi des conteneurs', categorie: 'Déchets' },
+  { id: 'acces',   nom: 'Gestion d\'accès',       description: 'Contrôle des serrures et digicodes',  categorie: 'Accès'   },
+  { id: 'energie', nom: 'Consommation d\'énergie', description: 'Suivi et optimisation électrique',    categorie: 'Énergie' },
+  { id: 'eau',     nom: 'Consommation d\'eau',     description: 'Monitoring et détection de fuites',   categorie: 'Eau'     },
+  { id: 'dechets', nom: 'Gestion des déchets',     description: 'Collectes et suivi des conteneurs',   categorie: 'Déchets' },
 ]
-const SERVICE_ROUTES = {
-  acces: '/services/acces',
-  energie: '/services/energie',
-  eau: '/services/eau',
-  dechets: '/services/dechets',
-}
-
-function sortByNewest(items) {
-  return [...items].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
-}
-
-function fmtDateAnnonce(iso) {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' })
-}
+const SERVICE_ROUTES = { acces: '/services/acces', energie: '/services/energie', eau: '/services/eau', dechets: '/services/dechets' }
 
 export default function PublicStatsPage() {
   const { user, logout } = useAuth()
-  const [stats, setStats]             = useState(EMPTY_STATS)
-  const [statsLoaded, setStatsLoaded] = useState(false)
-  const [annonces, setAnnonces]       = useState([])
-  const [services, setServices]       = useState([])
-  const [menuOpen, setMenuOpen]       = useState(false)
-  const [mouse, setMouse]             = useState({ rx:0, ry:0 })
-  const navLinks = getNavLinks(user)
-  const visibleServices = SERVICE_CATALOG.map(service => {
-    const apiService = services.find(item => item.id === service.id)
-    return apiService ? { ...service, ...apiService } : service
+  const [stats, setStats]               = useState(EMPTY_STATS)
+  const [statsLoaded, setStatsLoaded]   = useState(false)
+  const [annonces, setAnnonces]         = useState([])
+  const [services, setServices]         = useState([])
+  const [menuOpen, setMenuOpen]         = useState(false)
+  const [mouse, setMouse]               = useState({ rx: 0, ry: 0 })
+
+  const navLinks = user ? getAuthenticatedNavLinks(user) : []
+  const visibleServices = SERVICE_CATALOG.map(s => {
+    const api_ = services.find(i => i.id === s.id)
+    return api_ ? { ...s, ...api_ } : s
   })
 
   useEffect(() => { document.title = 'CivicSense — Résidence Les Lilas' }, [])
@@ -126,19 +201,20 @@ export default function PublicStatsPage() {
     api.get('/services/')
       .then(r => setServices(r.data?.data ?? []))
       .catch(() => {})
+
   }, [])
 
   function handleMouseMove(e) {
     const rect = e.currentTarget.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
     const y = ((e.clientY - rect.top)  / rect.height) * 100
-    setMouse({ rx: ((x-50)/50)*1.1, ry: ((y-50)/50)*-1.1 })
+    setMouse({ rx: ((x - 50) / 50) * 1.1, ry: ((y - 50) / 50) * -1.1 })
   }
 
   const scoreColor = stats.score_sante >= 80 ? 'success' : stats.score_sante >= 50 ? 'warning' : 'error'
 
   return (
-    <div className="ps-page" onMouseMove={handleMouseMove} onMouseLeave={() => setMouse({ rx:0, ry:0 })}>
+    <div className="ps-page" onMouseMove={handleMouseMove} onMouseLeave={() => setMouse({ rx: 0, ry: 0 })}>
       <div className="ps-orb ps-orb-a" aria-hidden="true" />
       <div className="ps-orb ps-orb-b" aria-hidden="true" />
 
@@ -152,7 +228,6 @@ export default function PublicStatsPage() {
 
           {user ? (
             <>
-              {/* Nav connecté — desktop */}
               <nav className={`ps-navbar-nav${menuOpen ? ' ps-nav-open' : ''}`} aria-label="Navigation">
                 <ul role="list">
                   {navLinks.map(l => (
@@ -168,7 +243,6 @@ export default function PublicStatsPage() {
                   ))}
                 </ul>
               </nav>
-
               <div className="ps-navbar-end">
                 <span className="ps-navbar-pseudo" title={`Niveau : ${user.level}`}>
                   <span className="ps-navbar-avatar">{user.pseudo?.charAt(0).toUpperCase()}</span>
@@ -186,10 +260,16 @@ export default function PublicStatsPage() {
               </div>
             </>
           ) : (
-            <div className="ps-navbar-visitor">
-              <Link className="ps-navbar-link" to="/login">Se connecter</Link>
-              <Link className="ps-btn-primary ps-btn-sm" to="/register">S'inscrire</Link>
-            </div>
+            <>
+              <nav className="ps-navbar-public-links" aria-label="Navigation publique">
+                <Link className="ps-nav-link" to="/">Accueil</Link>
+                <Link className="ps-nav-link" to="/public/services">Services &amp; informations</Link>
+              </nav>
+              <div className="ps-navbar-visitor">
+                <Link className="ps-navbar-link" to="/login">Se connecter</Link>
+                <Link className="ps-btn-primary ps-btn-sm" to="/register">S'inscrire</Link>
+              </div>
+            </>
           )}
         </div>
       </header>
@@ -198,7 +278,7 @@ export default function PublicStatsPage() {
       <section className="ps-hero">
         <div
           className="ps-hero-inner"
-          style={{ transform:`perspective(1000px) rotateX(${mouse.ry}deg) rotateY(${mouse.rx}deg)`, transition:'transform .4s ease' }}
+          style={{ transform: `perspective(1000px) rotateX(${mouse.ry}deg) rotateY(${mouse.rx}deg)`, transition: 'transform .4s ease' }}
         >
           <div className="ps-hero-copy">
             <h1 className="ps-hero-title">
@@ -237,7 +317,7 @@ export default function PublicStatsPage() {
       {/* ── CONTENU ───────────────────────────────────────────────────────── */}
       <main className="ps-main">
 
-        {/* Infos résidence + météo */}
+        {/* Infos résidence + météo + qualité de l'air */}
         <section className="ps-section" aria-labelledby="infos-title">
           <h2 id="infos-title" className="ps-section-title">Informations générales</h2>
           <div className="ps-info-grid">
@@ -252,21 +332,29 @@ export default function PublicStatsPage() {
               </ul>
               <div className="ps-info-score">
                 <div className="ps-info-score-bar">
-                  <div className={`ps-info-score-fill ps-score-${scoreColor}`} style={{ width:`${stats.score_sante}%` }} aria-label={`Score santé : ${stats.score_sante}/100`} />
+                  <div
+                    className={`ps-info-score-fill ps-score-${scoreColor}`}
+                    style={{ width: `${stats.score_sante}%` }}
+                    aria-label={`Score santé : ${stats.score_sante}/100`}
+                  />
                 </div>
                 <span className="ps-info-score-label">Score santé : {stats.score_sante}/100</span>
               </div>
             </div>
             <MeteoCard />
+            <AirQualityCard />
           </div>
         </section>
 
-        {/* ── NOS SERVICES ──────────────────────────────────────────────── */}
+
+        {/* Nos services */}
         <section className="ps-section" aria-labelledby="services-title">
           <h2 id="services-title" className="ps-section-title">Nos services</h2>
-          <p className="ps-services-intro">
-            CivicSense centralise les 4 services que nous proposons.
-          </p>
+          {!user && (
+            <p className="ps-services-intro">
+              <Link to="/login" className="ps-services-login-link">Connectez-vous</Link> pour accéder aux services.
+            </p>
+          )}
           <div className="ps-services-grid">
             {visibleServices.map(svc => {
               const card = (
@@ -276,7 +364,6 @@ export default function PublicStatsPage() {
                   {svc.categorie && <span className="ps-service-chip">{svc.categorie}</span>}
                 </>
               )
-
               return user ? (
                 <Link key={svc.id} to={SERVICE_ROUTES[svc.id] || '/services'} className="ps-service-card ps-service-card--link">
                   {card}
@@ -290,7 +377,7 @@ export default function PublicStatsPage() {
           </div>
         </section>
 
-        {/* Actualités & événements */}
+        {/* Actualités */}
         {annonces.length > 0 && (
           <section className="ps-section" aria-labelledby="actu-title">
             <h2 id="actu-title" className="ps-section-title">Actualités de la résidence</h2>
@@ -301,9 +388,7 @@ export default function PublicStatsPage() {
                     <span className="ps-actu-badge ps-actu-badge-muted">
                       <span aria-hidden="true">📢</span> Annonce
                     </span>
-                    <time className="ps-actu-date" dateTime={a.created_at}>
-                      {fmtDateAnnonce(a.created_at)}
-                    </time>
+                    <time className="ps-actu-date" dateTime={a.created_at}>{fmtDateAnnonce(a.created_at)}</time>
                   </div>
                   <h3 className="ps-actu-titre">{a.titre}</h3>
                   <p className="ps-actu-resume">{a.contenu}</p>
@@ -311,11 +396,6 @@ export default function PublicStatsPage() {
               ))}
             </div>
           </section>
-        )}
-
-        {/* CTA bas de page (visiteurs seulement) */}
-        {!user && (
-          null
         )}
       </main>
 
