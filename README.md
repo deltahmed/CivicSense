@@ -1,6 +1,6 @@
 # CivicSense
 
-Plateforme web IoT pour la gestion d'une résidence intelligente — projet académique ING1.
+Plateforme web IoT pour la gestion d'une résidence intelligente — projet académique 2025/2026 ING1.
 
 ## Stack
 
