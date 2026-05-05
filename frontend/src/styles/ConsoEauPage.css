@@ -1,58 +1,52 @@
-/* ── Surcharge couleur pour ConsoEauPage ─────────────────────────────────── */
-.conso-page--eau .conso-period-btn--eau-active {
-  background: #06b6d4;
-  border-color: #06b6d4;
-  color: #fff;
-  font-weight: 600;
+/* ── Color Override pour ConsoEauPage (Bleu/Cyan theme) ───── */
+
+.conso-page--eau .conso-header {
+  background: var(--color-surface);
+  border-left-color: var(--color-theme-water);
 }
 
-.conso-page--eau .conso-header--eau,
-.conso-page--eau .conso-chart-section,
-.conso-page--eau .conso-kpi,
-.conso-page--eau .conso-objet-card,
-.conso-page--eau .conso-fuite-card {
-  box-shadow: var(--shadow-xs);
+.conso-page--eau .conso-period-btn--active {
+  background: var(--color-theme-water);
+  border-color: var(--color-theme-water);
+  color: #fff;
+  font-weight: 700;
 }
 
 .conso-page--eau .conso-kpi {
-  background: linear-gradient(180deg, #e0f2fe 0%, #b3e5fc 100%);
-  color: #0f172a;
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  border-left-color: var(--color-theme-water);
 }
 
-.conso-page--eau .conso-header--eau {
-  background: linear-gradient(135deg, #67e8f9, #06b6d4);
-  color: #0f172a;
+.conso-page--eau .conso-chart-section {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  border-left-color: var(--color-theme-water);
 }
 
-.conso-page--eau .conso-chart-section,
-.conso-page--eau .conso-objet-card,
+.conso-page--eau .conso-objet-card {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  border-left-color: var(--color-theme-water);
+}
+
 .conso-page--eau .conso-fuite-card {
-  background: linear-gradient(180deg, #e0f2fe 0%, #b3e5fc 100%);
-  color: #0f172a;
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  border-left-color: var(--color-theme-water);
 }
 
 .conso-page--eau .conso-link-btn {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: #fff;
-  border-color: #1d4ed8;
+  background: var(--color-theme-water);
+  border-color: var(--color-theme-water);
 }
 
 .conso-page--eau .conso-link-btn:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: color-mix(in srgb, var(--color-theme-water) 85%, transparent);
+  box-shadow: 0 2px 8px rgb(6 182 212 / .25);
 }
 
-.conso-page--eau .conso-kpi-value,
-.conso-page--eau .conso-objet-value,
-.conso-page--eau .conso-tooltip strong {
-  color: #0f172a;
-}
-
-.conso-page--eau .conso-kpi-unit,
-.conso-page--eau .conso-objet-unit,
-.conso-page--eau .conso-kpi-label {
-  color: #334155;
-}
-
-.conso-page--eau .conso-fuites-grid .conso-fuite-card--alerte {
-  background: linear-gradient(180deg, #fef2f2 0%, #fee2e2 100%);
+.conso-page--eau .conso-fuite-card--alerte {
+  border-color: var(--color-error);
+  background: var(--color-error-bg);
 }
