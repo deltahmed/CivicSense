@@ -280,7 +280,7 @@
 }
 
 /* ─── Desktop (large screens) ───────────────────────────────────────────── */
-@media (min-width: 1024px) {
+@media (min-width: 1164px) {
   .header-inner { gap: 1.5rem; padding: 0 1.5rem; }
   .header-nav   { display: block; }
   .hamburger    { display: none; }
@@ -289,7 +289,7 @@
 }
 
 /* ─── Tablet (medium screens) : keep header compact, use hamburger menu */
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1163px) {
   .header-inner { gap: 1rem; padding: 0 1rem; }
   .header-nav   { display: none; }
   .hamburger    { display: flex; }
