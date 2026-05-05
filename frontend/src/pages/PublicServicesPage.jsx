@@ -1,137 +1,86 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Link, NavLink } from 'react-router-dom'
+import api from '../api'
 import { useAuth } from '../context/AuthContext'
 import { getAuthenticatedNavLinks } from '../utils/access'
+import { SERVICE_CATEGORIES } from './ServicesPage'
 import './PublicStatsPage.css'
 import './PublicServicesPage.css'
 
-// ── Données statiques ─────────────────────────────────────────────────────────
-const ESPACES_COMMUNS = [
-  { nom: 'Salle de réunion',  statut: 'Disponible',       cls: 'success' },
-  { nom: 'Buanderie bât. A',  statut: 'Occupée',           cls: 'error'   },
-  { nom: 'Buanderie bât. B',  statut: 'Disponible',        cls: 'success' },
-  { nom: 'Parking visiteurs', statut: '3 places libres',   cls: 'success' },
-  { nom: 'Consigne à vélos',  statut: '2/10 vélos dispo',  cls: 'warning' },
+const AUDIENCE_FILTERS = [
+  { key: 'all', label: 'Tout le monde' },
+  { key: 'residents', label: 'Résidents' },
+  { key: 'syndic', label: 'Syndic' },
 ]
 
-const AGENDA_EVENTS = [
-  { titre: 'Entretien chaudière bât. A & B',         date: '2026-05-08', cls: 'travaux' },
-  { titre: 'Assemblée générale des copropriétaires', date: '2026-05-15', cls: 'reunion' },
-  { titre: 'Permanence syndic',                      date: '2026-05-20', cls: 'reunion' },
-  { titre: 'Journée tri sélectif & éco-gestes',     date: '2026-05-22', cls: 'service' },
-]
-
-const COLLECTE_SCHEDULE = [
-  { type: 'Ordures ménagères', dayOfWeek: [1, 4] },
-  { type: 'Tri sélectif',      dayOfWeek: [2]    },
-  { type: 'Verre',             dayOfWeek: null    },
-  { type: 'Encombrants',       dayOfWeek: null    },
-]
-
-const FILTER_OPTIONS = [
-  { key: 'all',      label: 'Tout'            },
-  { key: 'espace',   label: 'Espaces communs' },
-  { key: 'agenda',   label: 'Agenda'          },
-  { key: 'collecte', label: 'Collectes'       },
-]
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function fmtAgendaDate(iso) {
-  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+const PUBLIC_CONCERNE_LABELS = {
+  tout_le_monde: 'Tout le monde',
+  residents: 'Résidents',
+  visiteurs: 'Visiteurs',
+  syndic: 'Syndic',
 }
 
-function getNextOccurrence(dayOfWeek) {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const diff = (dayOfWeek - today.getDay() + 7) % 7 || 7
-  const next = new Date(today)
-  next.setDate(today.getDate() + diff)
-  return next.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
-}
-
-function buildItems() {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const espaceItems = ESPACES_COMMUNS.map((e, i) => ({
-    id:        `espace-${i}`,
-    type:      'espace',
-    typeLabel: 'Espaces communs',
-    titre:     e.nom,
-    detail:    null,
-    badgeText: e.statut,
-    badgeCls:  e.cls,
-  }))
-
-  const agendaItems = AGENDA_EVENTS
-    .filter(e => new Date(e.date) >= today)
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
-    .map((e, i) => ({
-      id:        `agenda-${i}`,
-      type:      'agenda',
-      typeLabel: 'Agenda',
-      titre:     e.titre,
-      detail:    fmtAgendaDate(e.date),
-      badgeText: null,
-      badgeCls:  null,
-    }))
-
-  const collecteItems = COLLECTE_SCHEDULE.map((c, i) => ({
-    id:        `collecte-${i}`,
-    type:      'collecte',
-    typeLabel: 'Collectes',
-    titre:     c.type,
-    detail:    c.dayOfWeek
-      ? c.dayOfWeek.map(d => getNextOccurrence(d)).join(' & ')
-      : 'Sur demande à la loge',
-    badgeText: null,
-    badgeCls:  null,
-  }))
-
-  return [...espaceItems, ...agendaItems, ...collecteItems]
-}
-
-const ALL_ITEMS = buildItems()
+const AUDIENCE_LABELS = AUDIENCE_FILTERS.reduce((acc, audience) => {
+  acc[audience.key] = audience.label
+  return acc
+}, {})
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function PublicServicesPage() {
   const { user, logout } = useAuth()
-  const [menuOpen, setMenuOpen]           = useState(false)
-  const [query, setQuery]                 = useState('')
-  const [activeFilter, setActiveFilter]   = useState('all')
-  const [hasSearched, setHasSearched]     = useState(false)
+  const [menuOpen, setMenuOpen]         = useState(false)
+  const [query, setQuery]               = useState('')
+  const [activeCategory, setActiveCategory] = useState('all')
+  const [activeAudience, setActiveAudience]   = useState('all')
+  const [hasSearched, setHasSearched]   = useState(false)
+  const [services, setServices]         = useState([])
 
   const navLinks = user ? getAuthenticatedNavLinks(user) : []
 
-  useEffect(() => { document.title = 'CivicSense — Services & informations' }, [])
+  const categoryOptions = useMemo(() => {
+    const counts = services.reduce((acc, item) => {
+      if (item.categorie) acc[item.categorie] = (acc[item.categorie] ?? 0) + 1
+      return acc
+    }, {})
+    return SERVICE_CATEGORIES.filter(cat => (counts[cat.key] ?? 0) > 0)
+  }, [services])
 
-  function runSearch() {
+  const levelOptions = useMemo(() => {
+    const counts = services.reduce((acc, item) => {
+      if (item.public_concerne) acc[item.public_concerne] = (acc[item.public_concerne] ?? 0) + 1
+      return acc
+    }, {})
+    return AUDIENCE_FILTERS.filter(audience => audience.key === 'all' || (counts[audience.key] ?? 0) > 0)
+  }, [services])
+
+  useEffect(() => {
+    document.title = 'CivicSense — Services & informations'
+    api.get('/services/')
+      .then(r => setServices(r.data?.data ?? []))
+      .catch(() => {})
+  }, [])
+
+  // ── Filtrage ──────────────────────────────────────────────────────────────────
+  const filtered = useMemo(() => {
+    const searchTerm = query.trim().toLowerCase()
+    return services.filter(item => {
+      if (activeCategory !== 'all' && item.categorie !== activeCategory) return false
+      if (activeAudience !== 'all' && item.public_concerne !== activeAudience) return false
+      if (!searchTerm) return true
+      return (
+        item.nom.toLowerCase().includes(searchTerm)
+        || item.description?.toLowerCase().includes(searchTerm)
+        || item.categorie.toLowerCase().includes(searchTerm)
+        || item.public_concerne.toLowerCase().includes(searchTerm)
+      )
+    })
+  }, [services, activeCategory, activeAudience, query])
+
+  function runSearch() { setHasSearched(true) }
+  function handleKeyDown(e) { if (e.key === 'Enter') runSearch() }
+  function handleFilterChange() {
     setHasSearched(true)
   }
-
-  function handleKeyDown(e) {
-    if (e.key === 'Enter') runSearch()
-  }
-
-  function handleFilterChange(key) {
-    setActiveFilter(key)
-    if (hasSearched) return
-    setHasSearched(true)
-  }
-
-  const filtered = ALL_ITEMS.filter(item => {
-    if (activeFilter !== 'all' && item.type !== activeFilter) return false
-    if (!query.trim()) return true
-    const q = query.toLowerCase()
-    return item.titre.toLowerCase().includes(q) || item.detail?.toLowerCase().includes(q)
-  })
-
-  const counts = FILTER_OPTIONS.reduce((acc, f) => {
-    acc[f.key] = f.key === 'all'
-      ? ALL_ITEMS.length
-      : ALL_ITEMS.filter(i => i.type === f.key).length
-    return acc
-  }, {})
 
   return (
     <div className="ps-page">
@@ -201,12 +150,12 @@ export default function PublicServicesPage() {
           <Link to="/" className="psv-back-link">← Accueil</Link>
           <h1 className="psv-page-title">Services &amp; informations</h1>
 
-          {/* Barre de recherche + bouton */}
+          {/* Barre de recherche */}
           <div className="psv-search-row" role="search">
             <input
               type="search"
               className="psv-search-input"
-              placeholder="Espaces communs, agenda, collectes…"
+              placeholder="Espaces communs, agenda, collectes, services…"
               value={query}
               onChange={e => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -226,19 +175,34 @@ export default function PublicServicesPage() {
             </button>
           </div>
 
-          {/* Filtres */}
-          <div className="ps-filter-bar" role="group" aria-label="Filtres par catégorie">
-            {FILTER_OPTIONS.map(f => (
-              <button
-                key={f.key}
-                className={`ps-filter-chip${activeFilter === f.key ? ' ps-filter-chip--active' : ''}`}
-                onClick={() => handleFilterChange(f.key)}
-                aria-pressed={activeFilter === f.key}
+          {/* Filtres dynamiques */}
+          <div className="psv-filter-row" role="group" aria-label="Filtres des services">
+            <label className="psv-filter-control">
+              <span>Catégorie</span>
+              <select
+                value={activeCategory}
+                onChange={e => { setActiveCategory(e.target.value); handleFilterChange() }}
+                className="psv-filter-select"
               >
-                {f.label}
-                <span className="ps-filter-count">{counts[f.key]}</span>
-              </button>
-            ))}
+                <option value="all">Toutes les catégories</option>
+                {categoryOptions.map(cat => (
+                  <option key={cat.key} value={cat.key}>{cat.label}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="psv-filter-control">
+              <span>Public concerné</span>
+              <select
+                value={activeAudience}
+                onChange={e => { setActiveAudience(e.target.value); handleFilterChange() }}
+                className="psv-filter-select"
+              >
+                {levelOptions.map(audience => (
+                  <option key={audience.key} value={audience.key}>{audience.label}</option>
+                ))}
+              </select>
+            </label>
           </div>
         </div>
 
@@ -252,13 +216,12 @@ export default function PublicServicesPage() {
         ) : (
           <ul className="ps-results-grid" role="list">
             {filtered.map(item => (
-              <li key={item.id} className={`ps-result-card ps-result-${item.type}`}>
-                <span className="ps-result-type">{item.typeLabel}</span>
-                <p className="ps-result-titre">{item.titre}</p>
-                {item.detail && <p className="ps-result-detail">{item.detail}</p>}
-                {item.badgeText && (
-                  <span className={`ps-result-badge ps-result-badge-${item.badgeCls}`}>{item.badgeText}</span>
-                )}
+              <li key={item.id} className="ps-result-card ps-result-service">
+                <span className="ps-result-type">Service</span>
+                <p className="ps-result-titre">{item.nom}</p>
+                {item.description && <p className="ps-result-detail">{item.description}</p>}
+                <span className="ps-result-badge ps-result-badge-muted">{item.categorie}</span>
+                <span className="ps-result-badge ps-result-badge-primary">{PUBLIC_CONCERNE_LABELS[item.public_concerne] ?? item.public_concerne}</span>
               </li>
             ))}
           </ul>

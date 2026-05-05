@@ -15,3 +15,8 @@ export const fixIntegrity = () => api.post('/admin/integrity-fix/')
 
 export const getSettings = () => api.get('/admin/settings/')
 export const updateSettings = (data, config = {}) => api.put('/admin/settings/', data, config)
+
+export const getAdminServices = (params = {}) => api.get('/admin/services/', { params })
+export const createAdminService = (data) => api.post('/admin/services/', data)
+export const updateAdminService = (id, data) => api.put(`/admin/services/${id}/`, data)
+export const deleteAdminService = (id) => api.delete(`/admin/services/${id}/`)

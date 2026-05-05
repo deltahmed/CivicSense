@@ -6,16 +6,17 @@ import { getAuthenticatedNavLinks } from '../utils/access'
 import './AppLayout.css'
 
 const NAV_ICONS = {
-  '/dashboard':      '🏠',
-  '/objects':        '📦',
-  '/services':       '⚡',
-  '/users':          '👥',
-  '/search':         '🔍',
-  '/gestion':        '⚙️',
-  '/alerts':         '🔔',
-  '/admin/users':    '🛡️',
-  '/admin/pending':  '📋',
-  '/admin/deletions':'🗑️',
+  '/dashboard':        '🏠',
+  '/objects':          '📦',
+  '/services':         '⚡',
+  '/users':            '👥',
+  '/search':           '🔍',
+  '/gestion':          '⚙️',
+  '/alerts':           '🔔',
+  '/admin/users':      '🛡️',
+  '/admin/pending':    '📋',
+  '/admin/deletions':  '🗑️',
+  '/admin/services':   '🗂️',
 }
 
 function getNavLinks(user) {
