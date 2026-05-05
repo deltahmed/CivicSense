@@ -279,13 +279,23 @@
   }
 }
 
-/* ─── Desktop ───────────────────────────────────────────── */
-@media (min-width: 768px) {
+/* ─── Desktop (large screens) ───────────────────────────────────────────── */
+@media (min-width: 1024px) {
   .header-inner { gap: 1.5rem; padding: 0 1.5rem; }
   .header-nav   { display: block; }
   .hamburger    { display: none; }
   .user-pseudo  { display: block; }
   .level-chip   { display: inline-block; }
+}
+
+/* ─── Tablet (medium screens) : keep header compact, use hamburger menu */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .header-inner { gap: 1rem; padding: 0 1rem; }
+  .header-nav   { display: none; }
+  .hamburger    { display: flex; }
+  .user-pseudo  { display: none; }
+  .level-chip   { display: none; }
+  .header-nav ul { flex-wrap: nowrap; }
 }
 
 /* ─── Drawer mobile (rendu EN DEHORS du header) ──────────── */
