@@ -34,6 +34,19 @@
   --color-warning:    #d97706;
   --color-warning-bg: #fffbeb;
 
+  /* ─── Thematic colors (energy, water, waste) ── */
+  --color-theme-energy:       #f59e0b;
+  --color-theme-energy-light: #fef3c7;
+  --color-theme-energy-dark:  #92400e;
+
+  --color-theme-water:        #06b6d4;
+  --color-theme-water-light:  #ecfeff;
+  --color-theme-water-dark:   #0c4a6e;
+
+  --color-theme-waste:        #16a34a;
+  --color-theme-waste-light:  #dcfce7;
+  --color-theme-waste-dark:   #166534;
+
   --radius-sm:   0.25rem;
   --radius:      0.5rem;
   --radius-md:   0.75rem;
@@ -47,10 +60,11 @@
   --shadow-lg: 0 20px 25px rgb(0 0 0 / .10), 0 10px 10px rgb(0 0 0 / .04);
 
   --transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --header-height: 3.5rem;
 }
 
-/* ─── Design tokens ─ dark ─────────────────────────────── */
+/* ─── Dark mode colors ─────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :root {
     --color-bg:        #0f172a;
@@ -189,6 +203,76 @@ img { max-width: 100%; height: auto; display: block; }
   font-size: .875rem;
 }
 
+/* ─── Unified page container ────────────────────────────── */
+.page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+  animation: page-fade-in var(--transition-smooth);
+}
+@media (min-width: 768px)  { .page-wrapper { padding: 2rem 1.5rem; } }
+@media (min-width: 1024px) { .page-wrapper { padding: 2.5rem 2rem; } }
+
+/* ─── Smooth page transitions ────────────────────────────── */
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ─── Interactive elements animations ────────────────────── */
+button, [role="button"], a {
+  transition: background-color var(--transition), 
+              color var(--transition),
+              border-color var(--transition),
+              box-shadow var(--transition),
+              transform var(--transition);
+}
+
+button:active:not(:disabled),
+[role="button"]:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+input:not([type="hidden"]),
+textarea,
+select {
+  transition: border-color var(--transition), 
+              box-shadow var(--transition),
+              background-color var(--transition);
+}
+
+/* ─── Cards and surfaces animations ──────────────────────── */
+.card, [role="region"], section {
+  transition: box-shadow var(--transition-smooth),
+              border-color var(--transition-smooth),
+              transform var(--transition-smooth);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+/* ─── Focus visible enhancements ────────────────────────── */
+::selection {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: .01ms !important;
@@ -196,10 +280,10 @@ img { max-width: 100%; height: auto; display: block; }
   }
 }
 
-/* ─── Tablet specific fixes (768px — 1023px) ───────────────────────────────── */
+/* ─── Tablet specific fixes (768px — 1023px) ────────────────── */
 @media (min-width: 768px) and (max-width: 1023px) {
   /* Tweak page padding and max-width for medium screens */
-  .page-content {
+  .page-content, .page-wrapper {
     padding: 1.75rem 1.25rem;
     max-width: 1000px;
   }
@@ -225,4 +309,40 @@ img { max-width: 100%; height: auto; display: block; }
 
   /* Ensure images don't cause horizontal scroll */
   img { max-width: 100%; height: auto; }
+}
+
+/* ─── Desktop medium (1024px — 1204px) ─────────────────────── */
+@media (min-width: 1024px) and (max-width: 1204px) {
+  /* Smooth scaling for mid-size screens */
+  .page-wrapper, .page-content {
+    padding: 2rem 1.75rem;
+    max-width: 1100px;
+  }
+
+  /* Reduce grid columns to fit better */
+  [class*="grid"] {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  /* Ensure flex items wrap gracefully */
+  [class*="flex"] { flex-wrap: wrap; }
+
+  /* Slightly smaller typography */
+  h1 { font-size: clamp(1.4rem, 2.5vw, 1.8rem); }
+  h2 { font-size: clamp(1.1rem, 2vw, 1.4rem); }
+
+  /* Reduce spacing in dense layouts */
+  [class*="gap"] { gap: 1rem 0.75rem; }
+}
+
+/* ─── Large desktop (1205px+) ──────────────────────────────── */
+@media (min-width: 1205px) {
+  .page-wrapper, .page-content {
+    padding: 2.5rem 2rem;
+    max-width: 1200px;
+  }
+
+  [class*="grid"] {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
