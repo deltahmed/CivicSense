@@ -195,3 +195,34 @@ img { max-width: 100%; height: auto; display: block; }
     transition-duration: .01ms !important;
   }
 }
+
+/* ─── Tablet specific fixes (768px — 1023px) ───────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Tweak page padding and max-width for medium screens */
+  .page-content {
+    padding: 1.75rem 1.25rem;
+    max-width: 1000px;
+  }
+
+  /* Header: reduce gaps and avoid overflowing nav */
+  .header-inner { gap: 1rem; padding: 0 1rem; }
+  .header-nav ul { gap: .35rem; }
+  .nav-link { padding: .35rem .5rem; font-size: .78rem; }
+
+  /* On tablets hide the long user pseudo to preserve space */
+  .user-pseudo { display: none; }
+
+  /* Allow header nav to wrap instead of overflowing */
+  .header-nav ul { flex-wrap: wrap; }
+
+  /* Tables: avoid forcing stacked mobile styles on tablet */
+  .admin-users__table td { white-space: normal; }
+
+  /* Cards and lists should break lines gracefully */
+  .mobile-drawer-link, .mobile-drawer-action, .mobile-drawer-list li {
+    min-height: auto;
+  }
+
+  /* Ensure images don't cause horizontal scroll */
+  img { max-width: 100%; height: auto; }
+}
