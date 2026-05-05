@@ -22,7 +22,8 @@ class ServiceListView(APIView):
         categorie   = request.query_params.get('categorie', '').strip()
         search      = request.query_params.get('search', '').strip()
 
-        queryset = Service.objects.all()
+        # Public API only returns services explicitly marked visible
+        queryset = Service.objects.filter(visible=True)
         if categorie:
             queryset = queryset.filter(categorie=categorie)
         if search:

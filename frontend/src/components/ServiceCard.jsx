@@ -9,15 +9,15 @@ export default function ServiceCard({ service }) {
     information: '#FFA07A',
   };
 
-  const levelBadges = {
-    debutant: 'Débutant',
-    intermediaire: 'Intermédiaire',
-    avance: 'Avancé',
-    expert: 'Expert',
+  const audienceBadges = {
+    tout_le_monde: 'Tout le monde',
+    residents: 'Résidents',
+    visiteurs: 'Visiteurs',
+    syndic: 'Syndic / gestion',
   };
 
   const categoryColor = categoryColors[service.categorie] || '#999';
-  const levelLabel = levelBadges[service.niveau_requis] || service.niveau_requis;
+  const audienceLabel = audienceBadges[service.public_concerne] || service.public_concerne || 'Tout le monde';
 
   return (
     <Link to={`/services/${service.id}`} className="service-card-link">
@@ -35,7 +35,7 @@ export default function ServiceCard({ service }) {
         <p className="service-description">{service.description}</p>
 
         <div className="service-footer">
-          <span className="service-level-badge">{levelLabel}</span>
+          <span className="service-level-badge">{audienceLabel}</span>
           <span className="service-action-count">
             👁 {service.action_count || 0}
           </span>

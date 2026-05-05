@@ -7,8 +7,15 @@ class ServiceSerializer(serializers.ModelSerializer):
     """Serializer basique pour les services"""
     class Meta:
         model = Service
-        fields = ['id', 'nom', 'description', 'categorie', 'niveau_requis']
+        fields = ['id', 'nom', 'description', 'categorie', 'niveau_requis', 'public_concerne', 'visible']
         read_only_fields = fields
+
+
+class ServiceAdminSerializer(serializers.ModelSerializer):
+    """Serializer writable pour la gestion admin des services"""
+    class Meta:
+        model = Service
+        fields = ['id', 'nom', 'description', 'categorie', 'niveau_requis', 'public_concerne', 'visible']
 
 
 class ServiceDetailSerializer(serializers.ModelSerializer):
@@ -17,7 +24,7 @@ class ServiceDetailSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Service
-        fields = ['id', 'nom', 'description', 'categorie', 'niveau_requis', 'objets_lies']
+        fields = ['id', 'nom', 'description', 'categorie', 'niveau_requis', 'public_concerne', 'objets_lies']
         read_only_fields = fields
 
 

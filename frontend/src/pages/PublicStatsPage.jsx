@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api'
 import { getAuthenticatedNavLinks } from '../utils/access'
+import { OTHER_RESIDENCE_SERVICES } from './ServicesPage'
 import './PublicStatsPage.css'
 
 // ── Météo : Open-Meteo ────────────────────────────────────────────────────────
@@ -169,6 +170,7 @@ const SERVICE_CATALOG = [
   { id: 'eau',     nom: 'Consommation d\'eau',     description: 'Monitoring et détection de fuites',   categorie: 'Eau'     },
   { id: 'dechets', nom: 'Gestion des déchets',     description: 'Collectes et suivi des conteneurs',   categorie: 'Déchets' },
 ]
+
 const SERVICE_ROUTES = { acces: '/services/acces', energie: '/services/energie', eau: '/services/eau', dechets: '/services/dechets' }
 
 export default function PublicStatsPage() {

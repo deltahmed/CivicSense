@@ -95,6 +95,111 @@
 }
 .psv-search-btn:active { transform: translateY(0); }
 
+/* ─── Filtres services ─────────────────────────────────────────────────── */
+.psv-filter-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .75rem;
+}
+@media (min-width: 720px) {
+  .psv-filter-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.psv-filter-control {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.psv-filter-select {
+  width: 100%;
+  padding: .75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.psv-filter-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/* ─── Résultats services ───────────────────────────────────────────────── */
+.ps-results-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 600px) { .ps-results-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 980px) { .ps-results-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+.ps-result-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.ps-result-service {
+  border-left: 3px solid var(--color-primary);
+}
+
+.ps-result-type {
+  font-size: .68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--color-primary);
+}
+
+.ps-result-titre {
+  font-size: .95rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.ps-result-detail {
+  font-size: .8rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.ps-result-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: .2rem .55rem;
+  border-radius: var(--radius-full);
+  font-size: .62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.ps-result-badge-muted {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.ps-result-badge-primary {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
 /* ─── État initial (avant recherche) ─────────────────────────────────────── */
 .psv-idle {
   font-size: .875rem;
@@ -110,3 +215,4 @@
 .ps-search-empty {
   padding: 3rem 1rem;
 }
+

@@ -30,6 +30,7 @@ const ConsoEauPage = lazy(() => import('./pages/ConsoEauPage'))
 const GestionDechetsPage = lazy(() => import('./pages/GestionDechetsPage'))
 const ObjectAddPage = lazy(() => import('./pages/ObjectAddPage'))
 const AdminDeletionsPage = lazy(() => import('./pages/AdminDeletionsPage'))
+const AdminServicesPage  = lazy(() => import('./pages/AdminServicesPage'))
 
 function ProtectedLayout({ children, minLevel = null }) {
   const { user, loading } = useAuth()
@@ -84,6 +85,7 @@ export default function App() {
         <Route path="/admin/reports"     element={<ProtectedLayout minLevel="avance"><AdminReportsPage /></ProtectedLayout>} />
         <Route path="/admin/settings"    element={<ProtectedLayout minLevel="avance"><AdminSettingsPage /></ProtectedLayout>} />
         <Route path="/admin/deletions"   element={<ProtectedLayout minLevel="avance"><AdminDeletionsPage /></ProtectedLayout>} />
+        <Route path="/admin/services"    element={<ProtectedLayout minLevel="avance"><AdminServicesPage /></ProtectedLayout>} />
 
         {/* Catch-all */}
         <Route path="/*" element={<LevelLandingRedirect />} />

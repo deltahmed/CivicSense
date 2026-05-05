@@ -1,6 +1,16 @@
 from django.db import models
 from django.core.cache import cache
 
+SERVICE_CATEGORIES = [
+    ('Sécurité & Accès', 'Sécurité & Accès'),
+    ('Énergie & Environnement', 'Énergie & Environnement'),
+    ('Eau & Sanitaire', 'Eau & Sanitaire'),
+    ('Collecte & Déchets', 'Collecte & Déchets'),
+    ('Numérique & Domotique', 'Numérique & Domotique'),
+    ('Espaces & Vie commune', 'Espaces & Vie commune'),
+    ('Autre', 'Autre'),
+]
+
 NIVEAU_CHOICES = [
     ('debutant', 'Débutant'),
     ('intermediaire', 'Intermédiaire'),
@@ -8,12 +18,21 @@ NIVEAU_CHOICES = [
     ('expert', 'Expert'),
 ]
 
+PUBLIC_CONCERNE_CHOICES = [
+    ('tout_le_monde', 'Tout le monde'),
+    ('residents', 'Résidents'),
+    ('visiteurs', 'Visiteurs'),
+    ('syndic', 'Syndic / gestion'),
+]
+
 
 class Service(models.Model):
     nom = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    categorie = models.CharField(max_length=100)
+    categorie = models.CharField(max_length=100, choices=SERVICE_CATEGORIES)
     niveau_requis = models.CharField(max_length=20, choices=NIVEAU_CHOICES, default='debutant')
+    public_concerne = models.CharField(max_length=20, choices=PUBLIC_CONCERNE_CHOICES, default='tout_le_monde')
+    visible = models.BooleanField(default=True, help_text='Visible publiquement sur la page Services & informations')
     objets_lies = models.ManyToManyField('objects.ConnectedObject', blank=True, related_name='services')
 
     class Meta:
