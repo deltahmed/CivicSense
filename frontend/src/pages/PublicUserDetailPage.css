@@ -9,9 +9,7 @@
   max-width: 800px;
   margin: 0 auto;
   width: 100%;
-  padding: 1.5rem 1rem 3rem;
 }
-@media (min-width: 768px) { .detail-main { padding: 2rem 1.5rem 4rem; } }
 
 /* Back link */
 .detail-back { margin-bottom: 1.25rem; }
