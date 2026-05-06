@@ -2,19 +2,19 @@
   🔲 SmartResi 🔳
 </h1>
 
+</p>
+<p align="center"> 
+  <a href="https://github.com/deltahmed/SmartResi">
+    <img src="https://img.shields.io/github/contributors/deltahmed/SmartResi.svg?style=for-the-badge" alt="deltahmed" /> </a>
+  <a href="https://github.com/deltahmed/SmartResi">
+    <img alt="" src="https://img.shields.io/github/issues/deltahmed/SmartResi.svg?style=for-the-badge">
+    </a>
+  <a href="https://raw.githubusercontent.com/deltahmed/SmartResi/master/LICENSE">
+    <img src="https://img.shields.io/badge/License-BSD%202%20-blue?style=for-the-badge" alt="deltahmed" /> </a>
+</p>
+
 <p align="center">
-  <a href="<URL_DU_REPO>">
-    <img src="https://img.shields.io/badge/Setup-1%20script-05122A?style=for-the-badge" alt="Setup" />
-  </a>
-  <a href="<URL_DU_REPO>">
-    <img alt="Issues" src="https://img.shields.io/badge/Issues-Project%20local-05122A?style=for-the-badge">
-  </a>
-  <a href="<URL_DU_REPO>">
-    <img alt="Stars" src="https://img.shields.io/badge/Stack-Django%20%2B%20React-05122A?style=for-the-badge">
-  </a>
-  <a href="<URL_DU_REPO>">
-    <img alt="Forks" src="https://img.shields.io/badge/Frontend-Vite-05122A?style=for-the-badge">
-  </a>
+  <em>A 2D farm simulation game where you build and manage your own zoo!</em>
 </p>
 
 ## Table des matières
@@ -169,10 +169,14 @@ EMAIL_USE_TLS=True
 DEFAULT_FROM_EMAIL=noreply@smartresi.local
 ```
 
-## Contributeurs
+## Licence-fr
 
-Projet maintenu pour un usage local et pour faciliter le setup rapide.
+![Licence](https://img.shields.io/badge/License-BSD%202%20-blue?style=for-the-badge)
 
-## Licence
+Distribué sous licence BSD 2-Clause. Voir `LICENCE.txt` pour plus d'informations.
 
-Aucun fichier de licence n’est présent dans ce dépôt. Ajoute-en un si tu veux distribuer le projet publiquement.
+### Développement
+
+<a href="https://github.com/deltahmed/SmartResi/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=deltahmed/SmartResi" />
+</a>
