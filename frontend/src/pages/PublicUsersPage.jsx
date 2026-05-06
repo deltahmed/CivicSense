@@ -81,7 +81,7 @@ export default function PublicUsersPage() {
 
   return (
     <div className="public-users-page">
-      <main className="public-users-main">
+      <main className="public-users-main page-content">
         <div className="public-users-heading">
           <h1>Répertoire des membres</h1>
           <p className="subtitle">Consultez les profils publics de nos membres</p>
