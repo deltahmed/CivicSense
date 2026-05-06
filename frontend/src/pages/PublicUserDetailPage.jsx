@@ -71,14 +71,16 @@ export default function PublicUserDetailPage() {
   if (!profile) {
     return (
       <div className="public-user-detail-page">
-        <div className="empty-message">Profil non disponible</div>
+        <main className="detail-main page-content">
+          <div className="empty-message">Profil non disponible</div>
+        </main>
       </div>
     )
   }
 
   return (
     <div className="public-user-detail-page">
-      <main className="detail-main">
+      <main className="detail-main page-content">
         <div className="detail-back">
           <Link to="/users" className="btn-back-link">← Répertoire des membres</Link>
         </div>
