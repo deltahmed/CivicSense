@@ -2,9 +2,8 @@
 .asv-page {
   max-width: 960px;
   margin: 0 auto;
-  padding: 1.5rem 1rem;
+  padding: 0;
 }
-@media (min-width: 768px) { .asv-page { padding: 2rem 1.5rem; } }
 
 /* ─── Header ─────────────────────────────────────────────────────────────────── */
 .asv-header {
