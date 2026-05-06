@@ -1,5 +1,5 @@
 import os
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'civicsense.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'smartresi.settings')
 application = get_wsgi_application()

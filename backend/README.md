@@ -1,52 +1,21 @@
-# Backend Setup & Configuration
+# Backend
 
-## 📧 Email: Simple Switch
+La procédure de setup locale est maintenant centralisée dans le README racine et dans le script unique `setup.py`.
 
-**Mailtrap → LWS:** Édite `.env` et décommente la section LWS, commente Mailtrap.  
-Redémarre Django. C'est tout.
+## Installation rapide
 
----
+Depuis la racine du projet:
 
-## 🚀 Getting Started
+```bash
+python setup.py
+```
 
-1. **Python env:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ```
+## Utilitaire utile
 
-2. **Config:**
-   ```bash
-   cp .env.example .env
-   # Édite .env pour ta DB et email
-   ```
+Si tu veux relancer uniquement le seed après installation:
 
-3. **Migrations:**
-   ```bash
-   python manage.py migrate
-   ```
-   Le seed lance aussi les migrations automatiquement si besoin, et crée la base PostgreSQL si elle n'existe pas encore.
+```bash
+python manage.py seed_all
+```
 
-4. **Admin user:**
-   ```bash
-   python manage.py create_admin --email admin@example.com --password 'Password123'
-   ```
-
-5. **Données de test:**
-   ```bash
-   python manage.py seed --clear
-   ```
-   Utilise `--clear` pour repartir d'une base propre.
-
-   Pour tout générer d'un coup:
-   ```bash
-   python manage.py seed_all --clear
-   ```
-   Cette commande lance le seed principal puis le seed des services additionnels.
-
-6. **Run:**
-   ```bash
-   python manage.py runserver
-   ```
-python3 manage.py create_admin --email admin@deltahmed.fr --password 'VotreMotDePasse' --username adminarmed
+En local, les emails partent vers la console quand `DEBUG=True`.

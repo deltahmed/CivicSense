@@ -43,7 +43,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'civicsense.urls'
+ROOT_URLCONF = 'smartresi.urls'
 
 TEMPLATES = [
     {
@@ -61,7 +61,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'civicsense.wsgi.application'
+WSGI_APPLICATION = 'smartresi.wsgi.application'
 
 # Database
 DATABASES = {
