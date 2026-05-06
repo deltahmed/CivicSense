@@ -1,6 +1,6 @@
 BSD 2-Clause License
 
-Copyright (c) 2024, Ahmed A. (Δhmed, deltahmed), Zmanar, kaiiidow, Zied A., Amine E.
+Copyright (c) 2024, Ahmed A. (Δhmed, deltahmed), zmanar, kaiiidow, Zied A., Amine E.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
