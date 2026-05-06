@@ -85,7 +85,7 @@ export default function AdminPendingUsersPage() {
   }
 
   return (
-    <div className="ap-page">
+    <div className="ap-page page-content">
       <div className="ap-header">
         <div>
           <h1 className="ap-title">Approbation des comptes</h1>
@@ -102,11 +102,11 @@ export default function AdminPendingUsersPage() {
       {success && <div className="ap-alert ap-alert-success">{success}</div>}
 
       {loading ? (
-        <div className="ap-state">Chargement…</div>
+        <p className="ap-state">Chargement…</p>
       ) : pendingUsers.length === 0 ? (
-        <div className="ap-state ap-state-empty">
-          <p>Aucun compte en attente</p>
-          <small>Tous les utilisateurs ont été traités.</small>
+        <div className="ap-empty">
+          <span className="ap-empty-icon" aria-hidden="true">✅</span>
+          <p>Aucune demande en attente.</p>
         </div>
       ) : (
         <div className="ap-table-wrap">
