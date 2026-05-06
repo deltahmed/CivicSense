@@ -102,7 +102,14 @@ def main() -> int:
     write_env(db_user, db_password)
 
     log('Initialisation de la base et des donnees')
-    run([str(backend_python), 'manage.py', 'seed_all'], cwd=BACKEND)
+    try:
+        run([str(backend_python), 'manage.py', 'seed_all'], cwd=BACKEND)
+    except subprocess.CalledProcessError as exc:
+        raise SystemExit(
+            "Echec pendant l'initialisation PostgreSQL. "
+            f"Le role '{db_user}' est probablement absent ou sans droits. "
+            "Relance avec un utilisateur existant (souvent 'postgres') ayant le droit CREATE DATABASE."
+        ) from exc
 
     log('Installation des dependances frontend')
     run(['npm', 'install'], cwd=FRONTEND)

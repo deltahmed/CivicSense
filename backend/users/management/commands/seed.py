@@ -9,7 +9,6 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
-from django.db.utils import OperationalError
 
 User = get_user_model()
 
@@ -127,7 +126,7 @@ class Command(BaseCommand):
             conn = psycopg2.connect(dbname=db_name, connect_timeout=5, **connect_kwargs)
             conn.close()
             return
-        except OperationalError:
+        except psycopg2.OperationalError:
             pass
 
         maintenance_conn = None
@@ -141,7 +140,7 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.SUCCESS(f'  Base PostgreSQL "{db_name}" créée.'))
                 else:
                     self.stdout.write(f'  Base PostgreSQL "{db_name}" déjà présente.')
-        except OperationalError as exc:
+        except psycopg2.OperationalError as exc:
             raise CommandError(
                 f"Impossible de joindre ou créer la base PostgreSQL '{db_name}'. "
                 'Vérifie que le serveur PostgreSQL tourne et que l\'utilisateur a les droits nécessaires.'

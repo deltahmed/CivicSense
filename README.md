@@ -53,6 +53,49 @@ Le projet est pensé pour être lancé rapidement sur une machine locale avec un
 - PostgreSQL 15+
 
 Le compte PostgreSQL utilisé par le script doit pouvoir créer la base `smartresi`.
+Ce compte doit exister dans PostgreSQL (exemple le plus courant: `postgres`).
+
+### Configurer PostgreSQL localement
+
+Si aucun utilisateur PostgreSQL adapté n'existe, exécuter les commandes ci‑dessous pour créer un rôle et, si nécessaire, la base `smartresi`.
+
+- Linux (systemd / Ubuntu/Debian):
+
+```bash
+# démarrer le service (si nécessaire)
+sudo systemctl start postgresql
+
+# ouvrir psql en superuser système
+sudo -u postgres psql
+
+# créer un rôle avec droit de création de base (remplace le mot de passe)
+CREATE ROLE smartresi_user WITH LOGIN PASSWORD 'TonMotDePasseFort' CREATEDB;
+
+# (optionnel) créer la base et en donner la propriété
+CREATE DATABASE smartresi OWNER smartresi_user;
+
+# quitter
+\q
+```
+
+- Windows (PowerShell) — en supposant que `psql` est dans le PATH:
+
+```powershell
+# ouvrir psql en tant qu'administrateur PostgreSQL (utilise le compte postgres)
+psql -U postgres
+
+# dans psql, créer le rôle:
+CREATE ROLE smartresi_user WITH LOGIN PASSWORD 'TonMotDePasseFort' CREATEDB;
+CREATE DATABASE smartresi OWNER smartresi_user;
+\q
+```
+
+- Remarques de sécurité
+
+- Évite d'utiliser `SUPERUSER` pour une application locale — `CREATEDB` suffit.
+- Choisis un mot de passe fort et évite de le committer.
+
+
 
 ### Installation
 
@@ -65,9 +108,9 @@ Le compte PostgreSQL utilisé par le script doit pouvoir créer la base `smartre
    python setup.py
    ```
 
-   Le script fait tout: il crée le venv backend, installe les dépendances Python, génère `backend/.env`, lance `seed_all` pour créer la base et les données, puis installe les dépendances frontend.
+  Le script effectue toutes les opérations suivantes: création du venv backend, installation des dépendances Python, génération de `backend/.env`, exécution de `seed_all` pour créer la base et les données, puis installation des dépendances frontend.
 
-   Par défaut, le script demande l’utilisateur PostgreSQL et son mot de passe. Si tu veux éviter la saisie, exporte avant le lancement:
+  Par défaut, le script demande l’utilisateur PostgreSQL et son mot de passe. Pour éviter la saisie interactive, exporter les variables d'environnement avant le lancement:
    ```bash
    export POSTGRES_USER=postgres
    export POSTGRES_PASSWORD=mon_mot_de_passe
@@ -102,9 +145,9 @@ Le compte PostgreSQL utilisé par le script doit pouvoir créer la base `smartre
 
 ### Mailtrap
 
-Par défaut, les emails sont affichés dans la console quand `DEBUG=True`. Tu peux donc utiliser le projet localement sans service externe.
+Par défaut, les emails sont affichés dans la console quand `DEBUG=True`. Le projet peut être utilisé localement sans service externe.
 
-Si tu veux tester un vrai envoi d’email, ouvre `backend/.env` et remplace la section email par les valeurs Mailtrap de ton compte:
+Pour tester un envoi d’email réel, ouvrir `backend/.env` et remplacer la section email par les valeurs Mailtrap du compte:
 
 ```env
 EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
