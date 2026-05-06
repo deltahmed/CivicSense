@@ -109,10 +109,10 @@ export default function AdminSettingsPage() {
 
   const previewBanner = bannerPreview || bannerUrl
 
-  if (loading) return <main className="admin-settings"><p className="as-status">Chargement…</p></main>
+  if (loading) return <main className="admin-settings page-content"><p className="as-status">Chargement…</p></main>
 
   return (
-    <main className="admin-settings">
+    <main className="admin-settings page-content">
       <header className="admin-settings__header">
         <h1>Paramètres de la résidence</h1>
       </header>

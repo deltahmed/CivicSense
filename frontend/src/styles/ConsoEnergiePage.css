@@ -4,11 +4,9 @@
 .conso-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1.5rem 1rem;
+  padding: 0;
   animation: page-fade-in var(--transition-smooth);
 }
-@media (min-width: 768px)  { .conso-page { padding: 2rem 1.5rem; } }
-@media (min-width: 1024px) { .conso-page { padding: 2.5rem 2rem; } }
 
 /* ── Breadcrumb ── */
 .conso-breadcrumb {

@@ -302,10 +302,12 @@ export default function ObjectDetailPage() {
 
   if (fetchError) {
     return (
-      <main className="od-page">
-        <p className="od-state od-state--error" role="alert">{fetchError}</p>
-        <Link to="/objects" className="od-back">← Retour aux objets</Link>
-      </main>
+      <div className="od-layout">
+        <main className="od-main page-content">
+          <p className="od-state od-state--error" role="alert">{fetchError}</p>
+          <Link to="/objects" className="od-back">← Retour aux objets</Link>
+        </main>
+      </div>
     )
   }
 
@@ -313,7 +315,7 @@ export default function ObjectDetailPage() {
 
   return (
     <div className="od-layout">
-      <main className="od-main">
+      <main className="od-main page-content">
         <nav aria-label="Fil d'Ariane" className="od-breadcrumb">
           <Link to="/objects">Objets</Link>
           <span aria-hidden="true"> / </span>

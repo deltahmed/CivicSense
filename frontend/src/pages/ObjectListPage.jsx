@@ -90,7 +90,7 @@ export default function ObjectListPage() {
 
   return (
     <div className="ol-layout">
-      <main className="ol-main">
+      <main className="ol-main page-content">
         <div className="ol-page-header">
           <h1>Objets connectés</h1>
           {CAN_ADD.includes(user?.level) && (

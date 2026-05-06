@@ -2,9 +2,7 @@
 .pp-page {
   max-width: 900px;
   margin: 0 auto;
-  padding: 1.5rem 1rem;
 }
-@media (min-width: 768px) { .pp-page { padding: 2rem 1.5rem; } }
 
 /* ─── Header ─────────────────────────────────────────────────────────────── */
 .pp-header {

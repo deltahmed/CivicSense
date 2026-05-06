@@ -106,7 +106,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="search-container">
+    <div className="search-container page-content">
       <div className="search-header">
         <h1>🔍 Découvrez nos équipements connectés</h1>
         <p>Explorez les objets intelligents disponibles dans notre réseau</p>

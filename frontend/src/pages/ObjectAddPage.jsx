@@ -165,7 +165,7 @@ export default function ObjectAddPage() {
   // ── Succès ────────────────────────────────────────────────────────────────
   if (success) {
     return (
-      <div className="oa-page">
+      <div className="oa-page page-content">
         <div className="oa-success-card">
           <div className="oa-success-icon" aria-hidden="true">✅</div>
           <h1 className="oa-success-title">Objet enregistré</h1>
@@ -194,7 +194,7 @@ export default function ObjectAddPage() {
 
   // ── Formulaire ─────────────────────────────────────────────────────────────
   return (
-    <div className="oa-page">
+    <div className="oa-page page-content">
       {/* En-tête */}
       <div className="oa-header">
         <Link to="/objects" className="oa-back">← Retour aux objets</Link>
