@@ -176,7 +176,7 @@ class AdminStatsExportTest(APITestCase):
         r = self.client.get(self.URL)
         self.assertEqual(r.status_code, 200)
         self.assertIn('text/csv', r['Content-Type'])
-        self.assertIn(b'CivicSense', r.content)
+        self.assertIn(b'SmartResi', r.content)
 
     def test_csv_contient_sections(self):
         self.client.force_authenticate(self.expert)
@@ -247,7 +247,7 @@ class ExportReportViewTest(APITestCase):
     def test_csv_contenu(self):
         self.client.force_authenticate(self.user)
         r = self.client.get(self.URL + '?format=csv')
-        for fragment in (b'CivicSense', b'Tableau des objets', b'Incidents', b'Objets en alerte'):
+        for fragment in (b'SmartResi', b'Tableau des objets', b'Incidents', b'Objets en alerte'):
             self.assertIn(fragment, r.content)
 
     def test_csv_conso_totale(self):

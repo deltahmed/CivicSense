@@ -62,13 +62,13 @@ export default function GestionDechetsPage() {
   }, [])
 
   useEffect(() => {
-    document.title = 'Gestion des déchets — CivicSense'
+    document.title = 'Gestion des déchets — SmartResi'
     loadData()
   }, [loadData])
 
   return (
     <main className="dechets-page page-content">
-      <title>Gestion des déchets — CivicSense</title>
+      <title>Gestion des déchets — SmartResi</title>
 
       <nav className="dechets-breadcrumb" aria-label="Fil d'Ariane">
         <Link to="/services">Services</Link>

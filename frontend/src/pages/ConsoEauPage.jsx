@@ -52,7 +52,7 @@ export default function ConsoEauPage() {
   }, [period])
 
   useEffect(() => {
-    document.title = 'Consommation d\'eau — CivicSense'
+    document.title = 'Consommation d\'eau — SmartResi'
     loadData()
   }, [loadData])
 
@@ -62,7 +62,7 @@ export default function ConsoEauPage() {
 
   return (
     <main className="conso-page conso-page--eau page-content">
-      <title>Consommation d'eau — CivicSense</title>
+      <title>Consommation d'eau — SmartResi</title>
 
       <nav className="conso-breadcrumb" aria-label="Fil d'Ariane">
         <Link to="/services">Services</Link>

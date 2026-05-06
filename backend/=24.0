@@ -1,6 +1,6 @@
 Collecting faker
   Downloading faker-40.15.0-py3-none-any.whl.metadata (16 kB)
-Requirement already satisfied: tzdata in h:\cytechdata\documents\civicsense\backend\venv\lib\site-packages (from faker) (2026.2)
+Requirement already satisfied: tzdata in h:\cytechdata\documents\smartresi\backend\venv\lib\site-packages (from faker) (2026.2)
 Downloading faker-40.15.0-py3-none-any.whl (2.0 MB)
    ---------------------------------------- 2.0/2.0 MB 10.1 MB/s eta 0:00:00
 Installing collected packages: faker

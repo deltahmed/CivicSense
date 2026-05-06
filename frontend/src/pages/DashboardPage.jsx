@@ -91,7 +91,7 @@ export default function DashboardPage() {
   const isExpert     = user?.level === 'expert'
 
   useEffect(() => {
-    document.title = 'Tableau de bord — CivicSense'
+    document.title = 'Tableau de bord — SmartResi'
 
     // KPIs unifiés : même source que la page publique → scores cohérents
     api.get('/public/stats/')

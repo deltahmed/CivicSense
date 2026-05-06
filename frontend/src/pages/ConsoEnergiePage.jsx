@@ -60,7 +60,7 @@ export default function ConsoEnergiePage() {
   }, [period])
 
   useEffect(() => {
-    document.title = 'Consommation d\'énergie — CivicSense'
+    document.title = 'Consommation d\'énergie — SmartResi'
     loadData()
   }, [loadData])
 
@@ -71,7 +71,7 @@ export default function ConsoEnergiePage() {
 
   return (
     <main className="conso-page conso-page--energie page-content">
-      <title>Consommation d'énergie — CivicSense</title>
+      <title>Consommation d'énergie — SmartResi</title>
 
       <nav className="conso-breadcrumb" aria-label="Fil d'Ariane">
         <Link to="/services">Services</Link>

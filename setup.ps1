@@ -9,10 +9,10 @@ chcp 65001 | Out-Null
 
 Set-Location $PSScriptRoot
 
-$DB_NAME    = "civicsense"
-$DB_USER    = "civicsense_user"
-$DB_PASS    = "civicsense_dev"
-$ADMIN_EMAIL = "admin@civicsense.local"
+$DB_NAME    = "smartresi"
+$DB_USER    = "smartresi_user"
+$DB_PASS    = "smartresi_dev"
+$ADMIN_EMAIL = "admin@smartresi.local"
 $ADMIN_PASS  = "admin1234"
 
 # ── Couleurs helper ──────────────────────────────────────────────────────────
@@ -123,7 +123,7 @@ EMAIL_PORT=2525
 EMAIL_HOST_USER=
 EMAIL_HOST_PASSWORD=
 EMAIL_USE_TLS=True
-DEFAULT_FROM_EMAIL=noreply@civicsense.local
+DEFAULT_FROM_EMAIL=noreply@smartresi.local
 JWT_SIGNING_KEY=$jwtKey
 CORS_ORIGIN=http://localhost:5173
 "@

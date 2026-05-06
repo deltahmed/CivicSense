@@ -45,7 +45,7 @@ export default function ObjectListPage() {
   const [filterMarque, setFilterMarque] = useState('')
 
   useEffect(() => {
-    document.title = 'Objets connectés - CivicSense'
+    document.title = 'Objets connectés - SmartResi'
   }, [])
 
   useEffect(() => {

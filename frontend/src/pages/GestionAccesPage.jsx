@@ -67,7 +67,7 @@ export default function GestionAccesPage() {
   }, [period, filterDir, filterObjet])
 
   useEffect(() => {
-    document.title = 'Gestion d\'accès — CivicSense'
+    document.title = 'Gestion d\'accès — SmartResi'
     loadPortes()
   }, [loadPortes])
 
@@ -122,7 +122,7 @@ export default function GestionAccesPage() {
 
   return (
     <main className="acces-page page-content">
-      <title>Gestion d'accès — CivicSense</title>
+      <title>Gestion d'accès — SmartResi</title>
 
       {/* Modal d'accès restreint pour débutant / intermédiaire */}
       {!isAvance && showBlockedModal && (

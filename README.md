@@ -1,4 +1,4 @@
-# CivicSense
+# SmartResi
 
 Plateforme web IoT pour la gestion d'une résidence intelligente — projet académique 2025/2026 ING1.
 
@@ -14,7 +14,7 @@ Plateforme web IoT pour la gestion d'une résidence intelligente — projet acad
 ## Architecture du projet
 
 ```
-CivicSense/
+SmartResi/
 ├── backend/
 │   ├── users/          # Auth, profils, permissions, gamification
 │   ├── objects/        # Objets connectés, alertes, historique conso
@@ -22,7 +22,7 @@ CivicSense/
 │   ├── incidents/      # Signalement et suivi d'incidents
 │   ├── announcements/  # Annonces, demandes de suppression
 │   ├── reports/        # Rapports d'utilisation et export
-│   └── civicsense/     # Config Django (settings, urls, wsgi)
+│   └── smartresi/     # Config Django (settings, urls, wsgi)
 └── frontend/
     └── src/
         ├── pages/      # 27 pages React
@@ -230,14 +230,14 @@ powershell -ExecutionPolicy Bypass -File setup.ps1
 ```
 
 Le script fait tout : BDD, venv, dépendances, `.env`, migrations, compte admin.  
-Compte créé : `admin@civicsense.local` / `admin1234`
+Compte créé : `admin@smartresi.local` / `admin1234`
 
 ### 2. Configuration manuelle (si le script échoue)
 
 #### Créer la base de données PostgreSQL
 
 ```sql
-CREATE DATABASE civicsense;
+CREATE DATABASE smartresi;
 \q
 ```
 
@@ -277,7 +277,7 @@ python manage.py shell
 ```python
 from users.models import CustomUser
 u = CustomUser.objects.create_user(
-    email='admin@civicsense.local',
+    email='admin@smartresi.local',
     username='admin',
     pseudo='Admin',
     password='admin1234',

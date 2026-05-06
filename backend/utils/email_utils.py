@@ -63,7 +63,7 @@ def send_email_safe(
         'Precedence': 'bulk',
         'List-Help': f'<mailto:{settings.DEFAULT_FROM_EMAIL}>',
         'List-Unsubscribe': f'<mailto:{settings.DEFAULT_FROM_EMAIL}?subject=unsubscribe>',
-        'X-Mailer': 'CivicSense',
+        'X-Mailer': 'SmartResi',
         'X-MSMail-Priority': 'Normal',
         'Importance': 'Normal',
     }
@@ -83,10 +83,10 @@ def send_email_safe(
 
 def send_verification_email(user_email, verification_token, verification_url=None):
     """Informe l'utilisateur que sa demande est en cours d'examen par un administrateur."""
-    subject = "Demande d'inscription reçue - CivicSense"
+    subject = "Demande d'inscription reçue - SmartResi"
 
     text_content = f"""
-Bienvenue sur CivicSense!
+Bienvenue sur SmartResi!
 
 Votre demande d'inscription a bien été reçue.
 
@@ -100,7 +100,7 @@ Si vous n'avez pas créé ce compte, ignorez cet email.
 <html>
   <body style="font-family: sans-serif; color: #1e293b; max-width: 480px; margin: 0 auto; padding: 2rem;">
     <h2 style="color: #4f46e5;">Demande d'inscription reçue</h2>
-    <p>Bienvenue sur <strong>CivicSense</strong>&nbsp;!</p>
+    <p>Bienvenue sur <strong>SmartResi</strong>&nbsp;!</p>
     <p>Votre demande d'inscription a bien été reçue.</p>
     <p>Un administrateur va examiner votre compte dans les meilleurs délais.<br/>
        Vous recevrez un email de confirmation dès que votre compte sera approuvé.</p>
@@ -122,10 +122,10 @@ Si vous n'avez pas créé ce compte, ignorez cet email.
 
 def send_password_reset_email(user_email, reset_token):
     """Envoie un email de réinitialisation de mot de passe"""
-    subject = "Réinitialiser votre mot de passe - CivicSense"
+    subject = "Réinitialiser votre mot de passe - SmartResi"
     
     text_content = f"""
-Dernièrement, vous avez demandé à réinitialiser votre mot de passe CivicSense.
+Dernièrement, vous avez demandé à réinitialiser votre mot de passe SmartResi.
 
 Cliquez sur le lien ci-dessous:
 http://votresite.com/reset/{reset_token}
@@ -154,17 +154,17 @@ Si vous n'avez pas deman demandé cela, vous pouvez ignorer cet email.
 
 def send_approval_email(user_email, user_pseudo):
     """Envoie un email de confirmation d'approbation du compte"""
-    subject = "Votre compte CivicSense a été approuvé!"
+    subject = "Votre compte SmartResi a été approuvé!"
     
     text_content = f"""
 Bonjour {user_pseudo},
 
-Félicitations! Votre compte CivicSense a été approuvé par l'administrateur.
+Félicitations! Votre compte SmartResi a été approuvé par l'administrateur.
 
 Vous pouvez maintenant vous connecter et accéder à toutes les fonctionnalités de la plateforme.
 
 Cordialement,
-L'équipe CivicSense
+L'équipe SmartResi
     """
     
     html_content = f"""
@@ -172,11 +172,11 @@ L'équipe CivicSense
     <body>
         <h2>Compte approuvé!</h2>
         <p>Bonjour <strong>{user_pseudo}</strong>,</p>
-        <p>Félicitations! Votre compte CivicSense a été <strong>approuvé</strong> par l'administrateur.</p>
+        <p>Félicitations! Votre compte SmartResi a été <strong>approuvé</strong> par l'administrateur.</p>
         <p>Vous pouvez maintenant vous connecter et accéder à toutes les fonctionnalités de la plateforme.</p>
         <p style="color: #666; font-size: 12px; margin-top: 20px;">
             Cordialement,<br/>
-            L'équipe CivicSense
+            L'équipe SmartResi
         </p>
     </body>
 </html>
@@ -192,19 +192,19 @@ L'équipe CivicSense
 
 def send_rejection_email(user_email, user_pseudo, motif):
     """Envoie un email de refus d'inscription avec motif"""
-    subject = "Demande d'inscription CivicSense - Refusée"
+    subject = "Demande d'inscription SmartResi - Refusée"
     
     text_content = f"""
 Bonjour {user_pseudo},
 
-Votre demande d'inscription à CivicSense a été refusée.
+Votre demande d'inscription à SmartResi a été refusée.
 
 Motif: {motif}
 
 Si vous pensez que c'est une erreur, veuillez contacter l'administrateur.
 
 Cordialement,
-L'équipe CivicSense
+L'équipe SmartResi
     """
     
     html_content = f"""
@@ -219,7 +219,7 @@ L'équipe CivicSense
         </p>
         <p style="color: #666; font-size: 12px; margin-top: 20px;">
             Cordialement,<br/>
-            L'équipe CivicSense
+            L'équipe SmartResi
         </p>
     </body>
 </html>

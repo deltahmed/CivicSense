@@ -343,7 +343,7 @@ class AdminSettingsPutTest(APITestCase):
         s = GlobalSettings.load()
         if s.banniere:
             s.banniere.delete(save=False)
-        s.nom_residence = 'CivicSense'
+        s.nom_residence = 'SmartResi'
         s.couleur_theme = '#378ADD'
         s.approbation_manuelle = True
         s.domaines_email_autorises = []

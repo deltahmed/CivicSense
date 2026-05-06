@@ -29,7 +29,7 @@ export default function AdminDeletionsPage() {
   }, [])
 
   useEffect(() => {
-    document.title = 'Demandes de suppression — CivicSense'
+    document.title = 'Demandes de suppression — SmartResi'
     load()
   }, [load])
 

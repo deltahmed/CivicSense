@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 ('seuil_alerte_conso_kwh', models.FloatField(default=100.0, help_text='Seuil en kWh pour déclencher une alerte de consommation.')),
                 ('seuil_alerte_co2_ppm', models.IntegerField(default=1000, help_text="Seuil en PPM pour déclencher une alerte de qualité de l'air (CO2).")),
                 ('approbation_manuelle', models.BooleanField(default=True, help_text="Si coché, la suppression d'objet par un utilisateur standard requiert une approbation.")),
-                ('domaines_email_autorises', models.JSONField(blank=True, default=list, help_text="Laisse vide pour autoriser tous les domaines. Sinon, liste de domaines autorisés pour l'inscription, ex: ['@civicsense.com']")),
+                ('domaines_email_autorises', models.JSONField(blank=True, default=list, help_text="Laisse vide pour autoriser tous les domaines. Sinon, liste de domaines autorisés pour l'inscription, ex: ['@smartresi.com']")),
             ],
             options={
                 'verbose_name': 'paramètre global',

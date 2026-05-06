@@ -43,7 +43,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'civicsense.urls'
+ROOT_URLCONF = 'smartresi.urls'
 
 TEMPLATES = [
     {
@@ -61,19 +61,19 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'civicsense.wsgi.application'
+WSGI_APPLICATION = 'smartresi.wsgi.application'
 
 # Database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'civicsense'),
+        'NAME': os.getenv('DB_NAME', 'smartresi'),
         'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
         'TEST': {
-            'NAME': 'civicsense',
+            'NAME': 'smartresi',
         },
     }
 }
@@ -139,14 +139,14 @@ EMAIL_PORT = int(os.getenv('EMAIL_PORT', 2525))
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@civicsense.local')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@smartresi.local')
 EMAIL_TIMEOUT = 10
 EMAIL_SSL_CERTFILE = None
 EMAIL_SSL_KEYFILE = None
 
 # Anti-spam headers
 EMAIL_USE_LOCALTIME = False
-SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'server@civicsense.local')
+SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'server@smartresi.local')
 
 # Cache
 CACHES = {

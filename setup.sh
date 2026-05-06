@@ -4,9 +4,9 @@
 set -e
 cd "$(dirname "$0")"
 
-DB_NAME="civicsense"
-DB_USER="civicsense_user"
-DB_PASS="civicsense_dev"   # mot de passe local dev uniquement
+DB_NAME="smartresi"
+DB_USER="smartresi_user"
+DB_PASS="smartresi_dev"   # mot de passe local dev uniquement
 
 echo "==> Création de la base de données PostgreSQL..."
 sudo -u postgres psql <<SQL
@@ -81,13 +81,13 @@ echo "==> Création du superuser Django..."
 echo ""
 echo "  Choisis un mot de passe admin solide (min 12 caractères) :"
 python manage.py createsuperuser \
-  --email admin@civicsense.local \
+  --email admin@smartresi.local \
   --username admin
 
 # Mettre le niveau expert et is_verified sur ce superuser
 python manage.py shell -c "
 from users.models import CustomUser
-u = CustomUser.objects.get(email='admin@civicsense.local')
+u = CustomUser.objects.get(email='admin@smartresi.local')
 u.pseudo = 'Admin'
 u.is_verified = True
 u.level = 'expert'

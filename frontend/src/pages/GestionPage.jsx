@@ -85,7 +85,7 @@ export default function GestionPage() {
   }, [isExpert])
 
   useEffect(() => {
-    document.title = 'Gestion — CivicSense'
+    document.title = 'Gestion — SmartResi'
     load()
     loadDeletionRequests()
   }, [load, loadDeletionRequests])

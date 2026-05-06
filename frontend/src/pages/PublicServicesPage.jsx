@@ -54,7 +54,7 @@ export default function PublicServicesPage() {
   }, [services])
 
   useEffect(() => {
-    document.title = 'CivicSense — Services & informations'
+    document.title = 'SmartResi — Services & informations'
     api.get('/services/')
       .then(r => setServices(r.data?.data ?? []))
       .catch(() => {})
@@ -90,9 +90,9 @@ export default function PublicServicesPage() {
       {/* ── NAVBAR ────────────────────────────────────────────────────────── */}
       <header className="ps-navbar">
         <div className="ps-navbar-inner">
-          <Link to="/" className="ps-navbar-logo" aria-label="CivicSense — Accueil">
+          <Link to="/" className="ps-navbar-logo" aria-label="SmartResi — Accueil">
             <span className="ps-logo-mark" aria-hidden="true" />
-            <span className="ps-logo-text">CivicSense</span>
+            <span className="ps-logo-text">SmartResi</span>
           </Link>
 
           {user ? (
@@ -229,7 +229,7 @@ export default function PublicServicesPage() {
       </main>
 
       <footer className="ps-footer">
-        <p>© 2026 CivicSense — Portail résidentiel</p>
+        <p>© 2026 SmartResi — Portail résidentiel</p>
       </footer>
     </div>
   )

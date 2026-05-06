@@ -66,7 +66,7 @@ class DeletionRequestViewSet(viewsets.ReadOnlyModelViewSet):
 
         if dr.demandeur and dr.demandeur.email:
             send_mail(
-                subject="CivicSense - Demande de suppression approuvée",
+                subject="SmartResi - Demande de suppression approuvée",
                 message=f"Bonjour {dr.demandeur.pseudo},\n\nVotre demande de suppression a été approuvée. L'objet a été définitivement retiré du système.",
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[dr.demandeur.email],
@@ -86,7 +86,7 @@ class DeletionRequestViewSet(viewsets.ReadOnlyModelViewSet):
 
         if dr.demandeur and dr.demandeur.email:
             send_mail(
-                subject="CivicSense - Demande de suppression refusée",
+                subject="SmartResi - Demande de suppression refusée",
                 message=f"Bonjour {dr.demandeur.pseudo},\n\nVotre demande de suppression a été refusée pour le motif suivant :\n\n{motif_rejet}",
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[dr.demandeur.email],
