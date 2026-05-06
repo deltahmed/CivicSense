@@ -13,9 +13,6 @@
     <img src="https://img.shields.io/badge/License-BSD%202%20-blue?style=for-the-badge" alt="deltahmed" /> </a>
 </p>
 
-<p align="center">
-  <em>A 2D farm simulation game where you build and manage your own zoo!</em>
-</p>
 
 ## Table des matières
 
