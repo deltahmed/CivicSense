@@ -7,7 +7,6 @@
 
 .ol-main {
   flex: 1;
-  padding: 1.5rem 1rem;
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
@@ -197,7 +196,6 @@
 
 /* ─── Responsive ────────────────────────────────────────── */
 @media (min-width: 768px) {
-  .ol-main { padding: 2rem 1.5rem; }
   .ol-filters { flex-direction: row; flex-wrap: wrap; }
   .ol-filter-field { flex: 1; min-width: 150px; }
   .ol-filter-field--wide { flex: 2; }
@@ -205,6 +203,5 @@
   .ol-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (min-width: 1024px) {
-  .ol-main { padding: 2.5rem 2rem; }
   .ol-grid { grid-template-columns: repeat(3, 1fr); }
 }
