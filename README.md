@@ -139,9 +139,19 @@ CREATE DATABASE smartresi OWNER smartresi_user;
    ```
 
 3. **Ouvrir l’application**
-   + Frontend: http://localhost:5173
-   + API: http://localhost:8000/api/
-   + Admin: http://localhost:8000/admin/
+  + Frontend: http://localhost:5173
+  + API: http://localhost:8000/api/
+  + Admin: http://localhost:8000/admin/
+
+### Comptes de test
+
+Pour faciliter les essais locaux, le script `python setup.py` crée des comptes de démonstration. Voici les identifiants fournis après un seed réussi :
+
+- **Admin** : **admin@smartresi.fr** / **SmartResi2025!** (rôle : expert / accès admin)
+- **Demo**  : **demo@smartresi.fr**  / **SmartResi2025!** (rôle : avancé)
+- **Resident** : **resident@smartresi.fr** / **SmartResi2025!** (rôle : intermédiaire)
+
+Utilise ces comptes pour te connecter à l'interface admin (`/admin/`) ou à l'API.
 
 ### Mailtrap
 
