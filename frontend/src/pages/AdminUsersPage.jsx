@@ -224,7 +224,7 @@ export default function AdminUsersPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'civicsense_utilisateurs.csv'
+    a.download = 'smartresi_utilisateurs.csv'
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -237,7 +237,7 @@ export default function AdminUsersPage() {
         const url = URL.createObjectURL(res.data)
         const a = document.createElement('a')
         a.href = url
-        a.download = 'civicsense_rapport.pdf'
+        a.download = 'smartresi_rapport.pdf'
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)

@@ -115,7 +115,7 @@ export default function RegisterPage() {
         <div className="auth-orb auth-orb-a" aria-hidden="true" />
         <div className="auth-orb auth-orb-b" aria-hidden="true" />
         <section className="auth-card">
-          <h1>CivicSense</h1>
+          <h1>SmartResi</h1>
           <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
             <p style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '.5rem' }}>Demande envoyée !</p>
             <p style={{ color: 'var(--color-text-muted)', fontSize: '.9rem', lineHeight: 1.6 }}>
@@ -136,7 +136,7 @@ export default function RegisterPage() {
       <div className="auth-orb auth-orb-a" aria-hidden="true" />
       <div className="auth-orb auth-orb-b" aria-hidden="true" />
       <section className="auth-card" aria-labelledby="register-title">
-        <h1 id="register-title">CivicSense</h1>
+        <h1 id="register-title">SmartResi</h1>
         <p className="auth-subtitle">Créer un compte</p>
 
         <form onSubmit={handleSubmit} noValidate>

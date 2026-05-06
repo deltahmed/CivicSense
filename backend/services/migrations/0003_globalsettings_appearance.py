@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='globalsettings',
             name='nom_residence',
-            field=models.CharField(default='CivicSense', max_length=100),
+            field=models.CharField(default='SmartResi', max_length=100),
         ),
         migrations.AddField(
             model_name='globalsettings',

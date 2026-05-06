@@ -4,7 +4,7 @@ import './AdminSettingsPage.css'
 
 export default function AdminSettingsPage() {
   const [form, setForm] = useState({
-    nom_residence: 'CivicSense',
+    nom_residence: 'SmartResi',
     couleur_theme: '#378ADD',
     approbation_manuelle: true,
     domaines_email_autorises: [],
@@ -26,7 +26,7 @@ export default function AdminSettingsPage() {
         const res = await getSettings()
         const d = res.data
         setForm({
-          nom_residence: d.nom_residence ?? 'CivicSense',
+          nom_residence: d.nom_residence ?? 'SmartResi',
           couleur_theme: d.couleur_theme ?? '#378ADD',
           approbation_manuelle: d.approbation_manuelle ?? true,
           domaines_email_autorises: d.domaines_email_autorises ?? [],

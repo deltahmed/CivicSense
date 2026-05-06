@@ -46,7 +46,7 @@ export default function AdminServicesPage() {
   }, [])
 
   useEffect(() => {
-    document.title = 'Services — Administration — CivicSense'
+    document.title = 'Services — Administration — SmartResi'
     load()
   }, [load])
 

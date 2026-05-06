@@ -9,16 +9,15 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
-from django.db.utils import OperationalError
 
 User = get_user_model()
 
-SEED_PASSWORD = 'CivicSense2025!'
+SEED_PASSWORD = 'SmartResi2025!'
 
 # Comptes fixes avec des credentials clairs
 FIXED_USERS = [
     {
-        'email': 'admin@civicsense.fr',
+        'email': 'admin@smartresi.fr',
         'username': 'admin.dupont',
         'pseudo': 'AdminDupont',
         'first_name': 'Pierre',
@@ -34,7 +33,7 @@ FIXED_USERS = [
         'genre': 'homme',
     },
     {
-        'email': 'demo@civicsense.fr',
+        'email': 'demo@smartresi.fr',
         'username': 'demo.martin',
         'pseudo': 'SophieM',
         'first_name': 'Sophie',
@@ -50,7 +49,7 @@ FIXED_USERS = [
         'genre': 'femme',
     },
     {
-        'email': 'resident@civicsense.fr',
+        'email': 'resident@smartresi.fr',
         'username': 'lucas.bernard',
         'pseudo': 'LucasB',
         'first_name': 'Lucas',
@@ -69,12 +68,12 @@ FIXED_USERS = [
 
 # Résidents supplémentaires réalistes
 EXTRA_USERS = [
-    ('emma.leroy@civicsense.fr',   'EmmaL',    'Emma',    'Leroy',    'avance',        'resident', 880.0,  'femme'),
-    ('thomas.petit@civicsense.fr', 'ThomasP',  'Thomas',  'Petit',    'intermediaire', 'resident', 310.0,  'homme'),
-    ('camille.roux@civicsense.fr',  'CamilleR', 'Camille', 'Roux',     'debutant',      'resident',  55.0,  'femme'),
-    ('maxime.simon@civicsense.fr',  'MaxS',     'Maxime',  'Simon',    'debutant',      'resident',  12.0,  'homme'),
-    ('julie.moreau@civicsense.fr',  'JulieM',   'Julie',   'Moreau',   'intermediaire', 'referent', 420.0,  'femme'),
-    ('nadia.tahir@civicsense.fr',   'NadiaT',   'Nadia',   'Tahir',    'debutant',      'resident',   0.0,  'femme'),  # non vérifiée
+    ('emma.leroy@smartresi.fr',   'EmmaL',    'Emma',    'Leroy',    'avance',        'resident', 880.0,  'femme'),
+    ('thomas.petit@smartresi.fr', 'ThomasP',  'Thomas',  'Petit',    'intermediaire', 'resident', 310.0,  'homme'),
+    ('camille.roux@smartresi.fr',  'CamilleR', 'Camille', 'Roux',     'debutant',      'resident',  55.0,  'femme'),
+    ('maxime.simon@smartresi.fr',  'MaxS',     'Maxime',  'Simon',    'debutant',      'resident',  12.0,  'homme'),
+    ('julie.moreau@smartresi.fr',  'JulieM',   'Julie',   'Moreau',   'intermediaire', 'referent', 420.0,  'femme'),
+    ('nadia.tahir@smartresi.fr',   'NadiaT',   'Nadia',   'Tahir',    'debutant',      'resident',   0.0,  'femme'),  # non vérifiée
 ]
 
 
@@ -107,9 +106,9 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('\nBase de donnees seedee avec succes.'))
         self.stdout.write(self.style.WARNING('\n-- Comptes disponibles --'))
-        self.stdout.write(f'  Admin   : admin@civicsense.fr    / {SEED_PASSWORD}  (expert)')
-        self.stdout.write(f'  Demo    : demo@civicsense.fr     / {SEED_PASSWORD}  (avance)')
-        self.stdout.write(f'  Resident: resident@civicsense.fr / {SEED_PASSWORD}  (intermediaire)')
+        self.stdout.write(f'  Admin   : admin@smartresi.fr    / {SEED_PASSWORD}  (expert)')
+        self.stdout.write(f'  Demo    : demo@smartresi.fr     / {SEED_PASSWORD}  (avance)')
+        self.stdout.write(f'  Resident: resident@smartresi.fr / {SEED_PASSWORD}  (intermediaire)')
         self.stdout.write(self.style.WARNING('-------------------------\n'))
 
     def _ensure_database(self):
@@ -127,7 +126,7 @@ class Command(BaseCommand):
             conn = psycopg2.connect(dbname=db_name, connect_timeout=5, **connect_kwargs)
             conn.close()
             return
-        except OperationalError:
+        except psycopg2.OperationalError:
             pass
 
         maintenance_conn = None
@@ -141,7 +140,7 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.SUCCESS(f'  Base PostgreSQL "{db_name}" créée.'))
                 else:
                     self.stdout.write(f'  Base PostgreSQL "{db_name}" déjà présente.')
-        except OperationalError as exc:
+        except psycopg2.OperationalError as exc:
             raise CommandError(
                 f"Impossible de joindre ou créer la base PostgreSQL '{db_name}'. "
                 'Vérifie que le serveur PostgreSQL tourne et que l\'utilisateur a les droits nécessaires.'
@@ -229,7 +228,7 @@ class Command(BaseCommand):
 
         # Résidents supplémentaires
         for email, pseudo, first, last, level, type_m, points, genre in EXTRA_USERS:
-            is_verified = email != 'nadia.tahir@civicsense.fr'
+            is_verified = email != 'nadia.tahir@smartresi.fr'
             u, created = User.objects.get_or_create(
                 email=email,
                 defaults={
@@ -305,7 +304,7 @@ class Command(BaseCommand):
                 unique_id=uid,
                 defaults={
                     'nom':                  nom,
-                    'description':          f'Équipement {nom.lower()} installé dans la résidence CivicSense.',
+                    'description':          f'Équipement {nom.lower()} installé dans la résidence SmartResi.',
                     'marque':               marques.get(type_objet, 'Bosch'),
                     'type_objet':           type_objet,
                     'category':             categories.get(cat_key),
@@ -403,7 +402,7 @@ class Command(BaseCommand):
     def _seed_announcements(self, users):
         from announcements.models import Announcement
 
-        admin = next((u for u in users if u.email == 'admin@civicsense.fr'), users[0])
+        admin = next((u for u in users if u.email == 'admin@smartresi.fr'), users[0])
         ref   = next((u for u in users if u.type_membre == 'referent'), users[1])
 
         data = [
@@ -438,9 +437,9 @@ class Command(BaseCommand):
     def _seed_incidents(self, users, objects):
         from incidents.models import HistoriqueStatutIncident, Incident
 
-        admin = next((u for u in users if u.email == 'admin@civicsense.fr'), users[0])
-        demo  = next((u for u in users if u.email == 'demo@civicsense.fr'),  users[1])
-        res   = next((u for u in users if u.email == 'resident@civicsense.fr'), users[2])
+        admin = next((u for u in users if u.email == 'admin@smartresi.fr'), users[0])
+        demo  = next((u for u in users if u.email == 'demo@smartresi.fr'),  users[1])
+        res   = next((u for u in users if u.email == 'resident@smartresi.fr'), users[2])
 
         obj_camera  = next((o for o in objects if 'Caméra Salle' in o.nom), objects[0])
         obj_compt   = next((o for o in objects if 'Compteur Électrique Princ' in o.nom), objects[1])
@@ -472,7 +471,7 @@ class Command(BaseCommand):
     def _seed_alerts(self, users, objects):
         from objects.models import Alert
 
-        admin = next((u for u in users if u.email == 'admin@civicsense.fr'), users[0])
+        admin = next((u for u in users if u.email == 'admin@smartresi.fr'), users[0])
 
         by_nom = {o.nom: o for o in objects}
 
@@ -580,7 +579,7 @@ class Command(BaseCommand):
     def _seed_deletion_request(self, users, objects):
         from announcements.models import DeletionRequest
 
-        demo   = next((u for u in users if u.email == 'demo@civicsense.fr'),  users[1])
+        demo   = next((u for u in users if u.email == 'demo@smartresi.fr'),  users[1])
         borne2 = next((o for o in objects if 'Borne Recharge VE — P2' in o.nom), objects[-1])
 
         DeletionRequest.objects.get_or_create(

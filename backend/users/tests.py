@@ -825,16 +825,16 @@ class SeedCommandTest(TestCase):
     # ── Utilisateurs ─────────────────────────────────────────────────────────
 
     def test_admin_is_superuser(self):
-        self.assertTrue(CustomUser.objects.get(email='admin@civicsense.fr').is_superuser)
+        self.assertTrue(CustomUser.objects.get(email='admin@smartresi.fr').is_superuser)
 
     def test_admin_is_staff(self):
-        self.assertTrue(CustomUser.objects.get(email='admin@civicsense.fr').is_staff)
+        self.assertTrue(CustomUser.objects.get(email='admin@smartresi.fr').is_staff)
 
     def test_admin_is_verified(self):
-        self.assertTrue(CustomUser.objects.get(email='admin@civicsense.fr').is_verified)
+        self.assertTrue(CustomUser.objects.get(email='admin@smartresi.fr').is_verified)
 
     def test_admin_level_is_expert(self):
-        self.assertEqual(CustomUser.objects.get(email='admin@civicsense.fr').level, 'expert')
+        self.assertEqual(CustomUser.objects.get(email='admin@smartresi.fr').level, 'expert')
 
     def test_two_avance_users(self):
         self.assertEqual(CustomUser.objects.filter(level='avance').count(), 2)
@@ -950,7 +950,7 @@ class SeedCommandTest(TestCase):
 
     def test_second_seed_does_not_duplicate_admin(self):
         call_command('seed', verbosity=0)
-        self.assertEqual(CustomUser.objects.filter(email='admin@civicsense.fr').count(), 1)
+        self.assertEqual(CustomUser.objects.filter(email='admin@smartresi.fr').count(), 1)
 
     def test_second_seed_does_not_duplicate_categories(self):
         call_command('seed', verbosity=0)

@@ -104,7 +104,7 @@ export default function ServicesPage() {
   }
 
   useEffect(() => {
-    document.title = 'Services — CivicSense'
+    document.title = 'Services — SmartResi'
     loadData()
   }, [])
 

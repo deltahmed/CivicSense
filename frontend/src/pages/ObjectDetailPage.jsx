@@ -159,7 +159,7 @@ export default function ObjectDetailPage() {
         setEditableInfo(buildInfoState(obj))
         const fields = CONFIG_FIELDS[obj.type_objet] || []
         setConfigValues(buildConfigState(fields, obj.attributs_specifiques))
-        document.title = `${obj.nom} - CivicSense`
+        document.title = `${obj.nom} - SmartResi`
         setLoading(false)
       })
       .catch(() => {

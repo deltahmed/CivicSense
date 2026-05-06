@@ -54,7 +54,7 @@ export default function AdminReportsPage() {
         const url = URL.createObjectURL(res.data)
         const a = document.createElement('a')
         a.href = url
-        a.download = `civicsense_stats_${period}.${fmt}`
+        a.download = `smartresi_stats_${period}.${fmt}`
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)

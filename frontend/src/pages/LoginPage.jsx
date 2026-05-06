@@ -62,7 +62,7 @@ export default function LoginPage() {
       <div className="auth-orb auth-orb-a" aria-hidden="true" />
       <div className="auth-orb auth-orb-b" aria-hidden="true" />
       <section className="auth-card" aria-labelledby="login-title">
-        <h1 id="login-title">CivicSense</h1>
+        <h1 id="login-title">SmartResi</h1>
         <p className="auth-subtitle">Connectez-vous à votre résidence</p>
 
         <form onSubmit={handleSubmit} noValidate>

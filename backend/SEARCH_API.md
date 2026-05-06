@@ -1,4 +1,4 @@
-# API Recherche Publique - Documentation
+# API Recherche Publique - Documentation (dev)
 
 ## Endpoints
 
@@ -122,10 +122,4 @@ Le frontend affiche ce message pour inciter les visiteurs à créer un compte.
 | Rechercher/Lister | ✗ (Non requise) | Publique | Données anonymisées |
 | Consulter détails | ✓ (Requise) | IsVerified | Accès complet aux données |
 | Configurer | ✓ (Requise) | IsAvance | Modification des paramètres |
-
-## Historique des versions
-
-### v1.0 (2024-04-29)
-- Endpoint de recherche publique
-- 4 filtres: type_objet, statut, zone, search
-- Sérialiseur public avec données anonymisées
+s

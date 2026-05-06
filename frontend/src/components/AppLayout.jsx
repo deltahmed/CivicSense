@@ -61,9 +61,9 @@ export default function AppLayout({ children }) {
     <div className="app-layout">
       <header className="app-header">
         <div className="header-inner">
-          <Link to="/dashboard" className="header-logo" aria-label="CivicSense — Accueil">
+          <Link to="/dashboard" className="header-logo" aria-label="SmartResi — Accueil">
             <span className="logo-mark" aria-hidden="true" />
-            <span className="logo-text">CivicSense</span>
+            <span className="logo-text">SmartResi</span>
           </Link>
 
           {/* Nav desktop — liens horizontaux, cachée sur mobile */}
@@ -209,7 +209,7 @@ export default function AppLayout({ children }) {
 
       <footer className="app-footer">
         <div className="footer-inner">
-          <p>© 2026 CivicSense</p>
+          <p>© 2026 SmartResi</p>
           <p className="footer-user">
             Connecté en tant que <strong>{user?.pseudo}</strong>
           </p>

@@ -199,10 +199,10 @@ class AdminStatsExportView(APIView):
 
 def _csv_response(stats):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
-    response['Content-Disposition'] = 'attachment; filename="civicsense_stats.csv"'
+    response['Content-Disposition'] = 'attachment; filename="smartresi_stats.csv"'
     w = csv.writer(response)
 
-    w.writerow(['CivicSense — Rapport Admin', f"Période : {stats['period']}"])
+    w.writerow(['SmartResi — Rapport Admin', f"Période : {stats['period']}"])
     w.writerow([])
 
     w.writerow(['Résumé'])
@@ -253,7 +253,7 @@ def _pdf_response(stats):
     styles = getSampleStyleSheet()
     elems = []
 
-    elems.append(Paragraph('CivicSense — Rapport Administrateur', styles['Title']))
+    elems.append(Paragraph('SmartResi — Rapport Administrateur', styles['Title']))
     elems.append(Paragraph(f"Période : {stats['period']}", styles['Normal']))
     elems.append(Spacer(1, 12))
 
@@ -291,7 +291,7 @@ def _pdf_response(stats):
 
     doc.build(elems)
     resp = HttpResponse(content_type='application/pdf')
-    resp['Content-Disposition'] = 'attachment; filename="civicsense_stats.pdf"'
+    resp['Content-Disposition'] = 'attachment; filename="smartresi_stats.pdf"'
     resp.write(buf.getvalue())
     return resp
 
@@ -375,7 +375,7 @@ def _export_csv(payload):
     response['Content-Disposition'] = 'attachment; filename="rapport.csv"'
     w = csv.writer(response)
 
-    w.writerow(['CivicSense — Rapport Consommation'])
+    w.writerow(['SmartResi — Rapport Consommation'])
     w.writerow([f"Période : {payload['period']}", f"Généré le : {payload['generated_at']}"])
     w.writerow([])
 
@@ -406,7 +406,7 @@ def _export_pdf(payload):
 
     # Titre
     c.setFont('Helvetica-Bold', 16)
-    c.drawString(50, h - 50, 'CivicSense — Rapport Consommation')
+    c.drawString(50, h - 50, 'SmartResi — Rapport Consommation')
 
     # Sous-titre
     c.setFont('Helvetica', 10)

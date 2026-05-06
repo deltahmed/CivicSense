@@ -188,7 +188,7 @@ export default function PublicStatsPage() {
     return api_ ? { ...s, ...api_ } : s
   })
 
-  useEffect(() => { document.title = 'CivicSense — Résidence Les Lilas' }, [])
+  useEffect(() => { document.title = 'SmartResi — Résidence Les Lilas' }, [])
 
   useEffect(() => {
     api.get('/public/stats/')
@@ -223,9 +223,9 @@ export default function PublicStatsPage() {
       {/* ── NAVBAR ────────────────────────────────────────────────────────── */}
       <header className="ps-navbar">
         <div className="ps-navbar-inner">
-          <Link to="/" className="ps-navbar-logo" aria-label="CivicSense — Accueil">
+          <Link to="/" className="ps-navbar-logo" aria-label="SmartResi — Accueil">
             <span className="ps-logo-mark" aria-hidden="true" />
-            <span className="ps-logo-text">CivicSense</span>
+            <span className="ps-logo-text">SmartResi</span>
           </Link>
 
           {user ? (
@@ -402,7 +402,7 @@ export default function PublicStatsPage() {
       </main>
 
       <footer className="ps-footer">
-        <p>© 2026 CivicSense — Portail résidentiel</p>
+        <p>© 2026 SmartResi — Portail résidentiel</p>
       </footer>
     </div>
   )

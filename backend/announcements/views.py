@@ -122,7 +122,7 @@ class DeletionRequestView(APIView):
         if admin_emails:
             try:
                 send_mail(
-                    subject='CivicSense — Nouvelle demande de suppression',
+                    subject='SmartResi — Nouvelle demande de suppression',
                     message=(
                         f'Bonjour,\n\n'
                         f'{request.user.pseudo} a soumis une demande de suppression '
