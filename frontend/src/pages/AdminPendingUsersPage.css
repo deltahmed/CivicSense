@@ -1,8 +1,8 @@
 /* ── AdminPendingUsersPage ─────────────────────────────────────── */
 
 .ap-page {
-  padding: 1rem;
-  max-width: 1100px;
+  max-width: 860px;
+  margin: 0 auto;
 }
 
 /* ── Header ──────────────────────────────────────────────────── */
@@ -10,7 +10,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: .75rem;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
@@ -30,39 +30,40 @@
 
 /* ── Alerts ──────────────────────────────────────────────────── */
 .ap-alert {
-  padding: .75rem 1rem;
+  padding: .65rem 1rem;
   border-radius: var(--radius);
   font-size: .875rem;
-  border: 1px solid transparent;
+  font-weight: 600;
   margin-bottom: 1rem;
 }
-.ap-alert-error   { background: var(--color-error-bg);   color: var(--color-error);   border-color: var(--color-error); }
-.ap-alert-success { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
+.ap-alert-error   { background: var(--color-error-bg);   color: var(--color-error); }
+.ap-alert-success { background: var(--color-success-bg); color: var(--color-success); }
 
 /* ── States ──────────────────────────────────────────────────── */
 .ap-state {
-  text-align: center;
-  padding: 3rem 2rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
   color: var(--color-text-muted);
-  font-size: .9rem;
+  font-size: .875rem;
 }
-.ap-state-empty small {
-  display: block;
-  margin-top: .35rem;
-  font-size: .8rem;
-  opacity: .7;
+
+.ap-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  padding: 3rem 1rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
 }
+.ap-empty-icon { font-size: 2.5rem; }
 
 /* ── Table ───────────────────────────────────────────────────── */
 .ap-table-wrap {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-xs);
 }
 
 .ap-table {
@@ -126,14 +127,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: .35rem .85rem;
-  font-size: .8rem;
-  font-weight: 600;
+  padding: .5rem 1.1rem;
+  font-size: .875rem;
+  font-weight: 700;
   font-family: inherit;
   border-radius: var(--radius);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
   white-space: nowrap;
 }
 .ap-btn:disabled { opacity: .5; cursor: not-allowed; }
@@ -146,6 +147,8 @@
 .ap-btn-approve:hover:not(:disabled) {
   background: var(--color-success);
   color: #fff;
+  box-shadow: 0 4px 14px rgb(22 163 74 / .3);
+  transform: translateY(-1px);
 }
 
 .ap-btn-reject {
@@ -156,6 +159,8 @@
 .ap-btn-reject:hover:not(:disabled) {
   background: var(--color-error);
   color: #fff;
+  box-shadow: 0 4px 14px rgb(239 68 68 / .3);
+  transform: translateY(-1px);
 }
 
 .ap-btn-ghost {
@@ -184,7 +189,7 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 1.75rem;
+  padding: 2rem;
   width: 100%;
   max-width: 460px;
   max-height: 90vh;
@@ -260,14 +265,6 @@
 }
 .ap-modal-actions .ap-btn { flex: 1; }
 
-/* ── Responsive ──────────────────────────────────────────────── */
-@media (min-width: 768px) {
-  .ap-page { padding: 1.5rem; }
-}
-@media (min-width: 1024px) {
-  .ap-page { padding: 2rem; }
-}
-
 @media (max-width: 640px) {
   .ap-table, .ap-table thead, .ap-table tbody,
   .ap-table th, .ap-table td, .ap-table tr { display: block; }
@@ -276,6 +273,7 @@
 
   .ap-table tbody tr {
     border: 1px solid var(--color-border);
+    border-left: 4px solid var(--color-primary);
     border-radius: var(--radius-md);
     margin-bottom: .75rem;
     padding: .75rem;
