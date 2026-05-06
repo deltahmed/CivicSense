@@ -1,9 +1,15 @@
 import random
 from datetime import timedelta
 
+import psycopg2
+from psycopg2 import sql
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.management.base import BaseCommand
+from django.core.management import call_command
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
+from django.db.utils import OperationalError
 
 User = get_user_model()
 
@@ -82,6 +88,9 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        self._ensure_database()
+        call_command('migrate', interactive=False, verbosity=options['verbosity'])
+
         if options['clear']:
             self._clear()
 
@@ -102,6 +111,53 @@ class Command(BaseCommand):
         self.stdout.write(f'  Demo    : demo@civicsense.fr     / {SEED_PASSWORD}  (avance)')
         self.stdout.write(f'  Resident: resident@civicsense.fr / {SEED_PASSWORD}  (intermediaire)')
         self.stdout.write(self.style.WARNING('-------------------------\n'))
+
+    def _ensure_database(self):
+        db = settings.DATABASES['default']
+        if db.get('ENGINE') != 'django.db.backends.postgresql':
+            return
+
+        db_name = db.get('NAME')
+        if not db_name:
+            raise CommandError('Le nom de la base PostgreSQL est manquant.')
+
+        connect_kwargs = self._postgres_connect_kwargs(db)
+
+        try:
+            conn = psycopg2.connect(dbname=db_name, connect_timeout=5, **connect_kwargs)
+            conn.close()
+            return
+        except OperationalError:
+            pass
+
+        maintenance_conn = None
+        try:
+            maintenance_conn = psycopg2.connect(dbname='postgres', connect_timeout=5, **connect_kwargs)
+            maintenance_conn.autocommit = True
+            with maintenance_conn.cursor() as cursor:
+                cursor.execute('SELECT 1 FROM pg_database WHERE datname = %s', (db_name,))
+                if cursor.fetchone() is None:
+                    cursor.execute(sql.SQL('CREATE DATABASE {}').format(sql.Identifier(db_name)))
+                    self.stdout.write(self.style.SUCCESS(f'  Base PostgreSQL "{db_name}" créée.'))
+                else:
+                    self.stdout.write(f'  Base PostgreSQL "{db_name}" déjà présente.')
+        except OperationalError as exc:
+            raise CommandError(
+                f"Impossible de joindre ou créer la base PostgreSQL '{db_name}'. "
+                'Vérifie que le serveur PostgreSQL tourne et que l\'utilisateur a les droits nécessaires.'
+            ) from exc
+        finally:
+            if maintenance_conn is not None:
+                maintenance_conn.close()
+
+    def _postgres_connect_kwargs(self, db):
+        kwargs = {
+            'user': db.get('USER'),
+            'password': db.get('PASSWORD'),
+            'host': db.get('HOST'),
+            'port': db.get('PORT'),
+        }
+        return {key: value for key, value in kwargs.items() if value not in (None, '')}
 
     # ── Clear ──────────────────────────────────────────────────────────────────
 
